@@ -3,7 +3,19 @@ from abc import ABC, abstractmethod
 
 class MenuItem(ABC):
 
-    def __init__(self):
+    @property
+    @abstractmethod
+    def name(self):
+        pass
+
+    @property
+    @abstractmethod
+    def letter(self):
+        pass
+
+    @property
+    @abstractmethod
+    def submenu_name(self):
         pass
 
     @abstractmethod
