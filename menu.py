@@ -23,7 +23,7 @@ class MenuItem(ABC):
         pass                                      # w formacie {'litera': 'nazwa opcji widziana w menu'}
 
     @abstractmethod
-    def do_action(self, choice): # miejsce wywoływana konkretnych metod dostępnych z submenu
+    def do_action(self, choice: str): # miejsce wywoływana konkretnych metod dostępnych z submenu
         pass
 
 
@@ -45,7 +45,7 @@ class UsersHandling(MenuItem):
     def get_submenu_items(self) -> dict[str:str]:
         return {'D': 'Dodaj użytkownika', 'U': 'Usuń użytkownika'}
 
-    def do_action(self, choice):
+    def do_action(self, choice: str):
         pass
 
 
@@ -67,5 +67,5 @@ class AccountHandling(MenuItem):
     def get_submenu_items(self) -> dict[str:str]:
         return {'D': 'Dodaj konto', 'U': 'Usuń konto'}
 
-    def do_action(self, choice):
+    def do_action(self, choice: str):
         pass
