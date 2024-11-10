@@ -22,6 +22,10 @@ class MenuItem(ABC):
     def get_submenu_items(self) -> list:
         pass
 
+    @abstractmethod
+    def do_action(self, choice):
+        pass
+
 
 class UsersHandling(MenuItem):
 
@@ -40,6 +44,9 @@ class UsersHandling(MenuItem):
     def get_submenu_items(self) -> dict[str:str]:
         return {'D': 'Dodaj użytkownika', 'U': 'Usuń użytkownika'}
 
+    def do_action(self, choice):
+        pass
+
 
 class AccountHandling(MenuItem):
 
@@ -57,3 +64,6 @@ class AccountHandling(MenuItem):
 
     def get_submenu_items(self) -> dict[str:str]:
         return {'D': 'Dodaj konto', 'U': 'Usuń konto'}
+
+    def do_action(self, choice):
+        pass
