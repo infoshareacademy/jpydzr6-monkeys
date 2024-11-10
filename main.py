@@ -1,4 +1,4 @@
-from examples import MenuItem
+from menu import MenuItem
 
 class WrongUserInput(Exception):
     pass
