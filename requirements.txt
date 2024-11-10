@@ -1,0 +1,7 @@
+""" 
+zainstalowane pakiety na moim środowisku:
+peewee - ORM dla sqlite
+
+"""
+
+peewee==3.16.1
