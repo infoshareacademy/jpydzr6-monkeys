@@ -55,7 +55,7 @@ def main():
                 if submenu_choice == 'Q':
                     continue
 
-        break # todo pamiętaj o usunięciu tego break
+        break
 
 # todo trzeba jeszcze obsłużyć sytuację błędnego wyboru opcji z submenu
 
