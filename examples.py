@@ -7,7 +7,7 @@ class MenuItem(ABC):
         pass
 
     @abstractmethod
-    def show_submenu(self):
+    def get_submenu_items(self) -> list:
         pass
 
 
@@ -25,9 +25,8 @@ class UsersHandling(MenuItem):
     def letter(self):
         return self._letter
 
-    def show_submenu(self):
-        print('D - Dodaj użytkownika'
-              'U - usuń użytkownika')
+    def get_submenu_items(self) -> dict[str:str]:
+        return {'A': 'Add user', 'D': 'Delete user'}
 
 
 class AccountHandling(MenuItem):
@@ -44,5 +43,5 @@ class AccountHandling(MenuItem):
     def letter(self):
         return self._letter
 
-    def show_submenu(self):
-        pass
+    def get_submenu_items(self) -> dict[str:str]:
+        return {'A': 'Add account', 'D': 'Delete account'}
