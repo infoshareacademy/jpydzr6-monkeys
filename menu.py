@@ -19,7 +19,7 @@ class MenuItem(ABC):
         pass
 
     @abstractmethod
-    def get_submenu_items(self) -> dict[str:str]: # przygotowuje słownik opcji dostępnych z submenu
+    def get_submenu_items(self) -> dict[str,str]: # przygotowuje słownik opcji dostępnych z submenu
         pass                                      # w formacie {'litera': 'nazwa opcji widziana w menu'}
 
     @abstractmethod
@@ -42,11 +42,14 @@ class UsersHandling(MenuItem):
     def submenu_name(self):
         return 'Menu obsługi użytkownika'
 
-    def get_submenu_items(self) -> dict[str:str]:
+    def get_submenu_items(self) -> dict[str,str]:
         return {'D': 'Dodaj użytkownika', 'U': 'Usuń użytkownika'}
 
     def do_action(self, choice: str):
-        pass
+        if choice == 'D':
+            print('Dodano użytkownika')
+        elif choice == 'U':
+            print('Usunięto użytkownika')
 
 
 class AccountHandling(MenuItem):
@@ -64,8 +67,11 @@ class AccountHandling(MenuItem):
     def submenu_name(self):
         return 'Menu obsługi konta bankowego'
 
-    def get_submenu_items(self) -> dict[str:str]:
+    def get_submenu_items(self) -> dict[str,str]:
         return {'D': 'Dodaj konto', 'U': 'Usuń konto'}
 
     def do_action(self, choice: str):
-        pass
+        if choice == 'D':
+            print('Dodano konto')
+        elif choice == 'U':
+            print('Usunięto konto')

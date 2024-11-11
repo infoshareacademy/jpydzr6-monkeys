@@ -6,8 +6,8 @@ class WrongUserInput(Exception):
 
 class Menu:
     def __init__(self):
-        self._options = [cls() for cls in MenuItem.__subclasses__()]
-        self._options_dict = {cls.letter: cls for cls in self._options}
+        self._options: list[MenuItem] = [cls() for cls in MenuItem.__subclasses__()]
+        self._options_dict: dict[str, MenuItem] = {cls.letter: cls for cls in self._options}
 
     @property
     def options(self):
@@ -23,17 +23,33 @@ class Menu:
             print(f'{option.letter} - {option.name}')
         print('Q - Wyjście z programu')
 
-    def show_submenu(self, choice: str):
+    def choose_menu_option(self, choice: str) -> MenuItem:
         try:
-            submenu_instance = self._options_dict[choice]
+            chosen_menu_option = self._options_dict[choice]
         except KeyError:
             raise WrongUserInput('Wybór jest nieprawidłowy.') from None
-        else:
-            submenu_items = submenu_instance.get_submenu_items()
-            print(f'\n{submenu_instance.submenu_name}')
-            for letter, name in submenu_items.items():
-                print(f'{letter} - {name}')
-            print('Q - Cofnij się do menu głównego')
+        return chosen_menu_option
+
+    @staticmethod
+    def show_submenu(chosen_menu_option: MenuItem) -> None:
+        submenu_items = chosen_menu_option.get_submenu_items()
+        print(f'\n{chosen_menu_option.submenu_name}')
+        for letter, name in (submenu_items.items
+            ()):
+            print(f'{letter} - {name}')
+        print('Q - Cofnij się do menu głównego')
+
+    @staticmethod
+    def validate_submenu_choice(submenu_choice: str, chosen_menu_option: MenuItem) -> None:
+        try:
+            chosen_menu_option.get_submenu_items()[submenu_choice]
+        except KeyError:
+            raise WrongUserInput('Wybór jest nieprawidłowy.') from None
+
+    @staticmethod
+    def do_chosen_action(submenu_choice: str, chosen_menu_option: MenuItem) -> None:
+        chosen_menu_option.do_action(submenu_choice)
+
 
 def main():
     action = Menu()
@@ -44,20 +60,28 @@ def main():
         if menu_choice == 'Q':
             print('\nDo zobaczenia!')
             break
-        else:
+        while True:
             try:
-                action.show_submenu(choice=menu_choice)
+                chosen_menu_option = action.choose_menu_option(choice=menu_choice)
             except WrongUserInput as ex:
                 print(f'\nWystąpił błąd: {ex}\n')
                 continue
             else:
+                action.show_submenu(chosen_menu_option=chosen_menu_option)
                 submenu_choice = input('\nWybierz co chcesz zrobić: \n').upper()
                 if submenu_choice == 'Q':
+                    break
+                try:
+                    action.validate_submenu_choice(submenu_choice=submenu_choice, chosen_menu_option=chosen_menu_option)
+                except WrongUserInput as ex:
+                    print(f'\nWystąpił błąd: {ex}\n')
+                    continue
+                else:
+                    action.do_chosen_action(submenu_choice=submenu_choice, chosen_menu_option=chosen_menu_option)
                     continue
 
-        break
+        continue
 
-# todo trzeba jeszcze obsłużyć sytuację błędnego wyboru opcji z submenu
 
 if __name__ == '__main__':
     main()
