@@ -34,8 +34,7 @@ class Menu:
     def show_submenu(chosen_menu_option: MenuItem) -> None:
         submenu_items = chosen_menu_option.get_submenu_items()
         print(f'\n{chosen_menu_option.submenu_name}')
-        for letter, name in (submenu_items.items
-            ()):
+        for letter, name in (submenu_items.items()):
             print(f'{letter} - {name}')
         print('Q - Cofnij się do menu głównego')
 
@@ -60,25 +59,23 @@ def main():
         if menu_choice == 'Q':
             print('\nDo zobaczenia!')
             break
+        try:
+            chosen_menu_option = action.choose_menu_option(choice=menu_choice)
+        except WrongUserInput as ex:
+            print(f'\nWystąpił błąd: {ex}\n')
+            continue
         while True:
+            action.show_submenu(chosen_menu_option=chosen_menu_option)
+            submenu_choice = input('\nWybierz co chcesz zrobić: \n').upper()
+            if submenu_choice == 'Q':
+                break
             try:
-                chosen_menu_option = action.choose_menu_option(choice=menu_choice)
+                action.validate_submenu_choice(submenu_choice=submenu_choice, chosen_menu_option=chosen_menu_option)
             except WrongUserInput as ex:
                 print(f'\nWystąpił błąd: {ex}\n')
                 continue
-            else:
-                action.show_submenu(chosen_menu_option=chosen_menu_option)
-                submenu_choice = input('\nWybierz co chcesz zrobić: \n').upper()
-                if submenu_choice == 'Q':
-                    break
-                try:
-                    action.validate_submenu_choice(submenu_choice=submenu_choice, chosen_menu_option=chosen_menu_option)
-                except WrongUserInput as ex:
-                    print(f'\nWystąpił błąd: {ex}\n')
-                    continue
-                else:
-                    action.do_chosen_action(submenu_choice=submenu_choice, chosen_menu_option=chosen_menu_option)
-                    continue
+            action.do_chosen_action(submenu_choice=submenu_choice, chosen_menu_option=chosen_menu_option)
+            continue
 
         continue
 
