@@ -53,3 +53,44 @@ class BudgetManager:
             else:
                 print(
                     "Niepoprawny rodzaj wpisu. Wprowadź 'income' dla dochodu, 'outcome' dla wydatku lub 'exit' aby zakończyć.")
+
+        # pobiera i waliduje kwote
+        while True:
+            try:
+                amount = float(input("Wprowadź kwotę: "))
+                if amount > 0:
+                    break
+                else:
+                    print("Kwota musi być dodatnia.")
+            except ValueError:
+                print("Niepoprawna kwota. Upewnij się, że wprowadzasz liczbę.")
+
+        # pobiera opis
+        description = input("Wprowadź opis wpisu: ").strip()
+        if not description:
+            description = "Brak opisu"  # Domyślny opis, jeśli użytkownik nic nie wprowadzi
+
+        # dodaje wpis
+        self.add_budget_entry(entry_type, amount, description)
+
+        def show_budget(self):
+            if not self.budget:
+                print("Brak danych - budżet jest pusty :(")
+            else:
+                for i, entry in enumerate(self.budget, 1):
+                    print(
+                        f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} (Data: {entry['date']})")
+            # status konta ( wydatki, przychody, saldo )
+
+        def show_budget_summary(self):
+            try:
+                income = sum(entry['amount'] for entry in self.budget if entry['type'] == 'income')
+                expenses = sum(entry['amount'] for entry in self.budget if entry['type'] == 'outcome')
+                balance = income - expenses
+                print("Podsumowanie budżetu:")
+                print(f" - Dochody: {income} PLN")
+                print(f" - Wydatki: {expenses} PLN")
+                print(f" - Saldo: {balance} PLN")
+            except KeyError as e:
+                print(f"Blad: brakuje klucza w danych wpisu budzetowego ({e})")
+
