@@ -1,11 +1,13 @@
-import json #JSONow nie traktujcie na powaznie - w tej chwili sluza jedynie do sprawdzenia poprawnosci zapisywania ( działa jbc )
+import sqlite3
 from datetime import datetime
 
 class BudgetManager:
-    def __init__(self, file_name='budget.json'):
-        self.budget = []
-        self.file_name = file_name
-        self.load_budget_from_file()
+    def __init__(self, db_name='budget.db'):
+        self.db_name = db_name
+        self.create_tables()
+
+    def create_connectiion(self):
+        return sqlite3.connect(self.db_name) #połączenie z bazą dannych sql
 
     def save_budget_to_file(self):
         try:
@@ -112,8 +114,7 @@ class BudgetManager:
     #filtracja TYLKO przychodów zamiast ogólnych wpisów
     def show_incomes_by_category(self, category):
         try:
-            incomes = [entry for entry in self.budget if
-                       entry.get('type') == 'income' and entry.get('category') == category]
+            incomes = self.filter_entries(entry_type='income', category=category)
             if not incomes:
                 print(f"Brak dochodów w kategorii '{category}'.")
                 return
@@ -127,19 +128,17 @@ class BudgetManager:
     #Filtracja tylko wydatków
     def show_outcomes_by_category(self, category):
         try:
-            outcomes = [entry for entry in self.budget if
-                       entry.get('type') == 'outcome' and entry.get('category') == category]
+            outcomes = self.filter_entries(entry_type='outcome', category=category)
             if not outcomes:
                 print(f"Brak wydatków w kategorii '{category}'.")
                 return
-            print(f"Lista wydatków w kategorii '{category}:")
+            print(f"Lista wydatków w kategorii '{category}':")
             for i, entry in enumerate(outcomes, 1):
                 print(f"{i}. Kwota: {entry['amount']} PLN, Opis: {entry['description']}, Data: {entry['date']}")
         except KeyError as e:
             print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
         except Exception as e:
             print(f"Nieoczekiwany błąd: {e}")
-
     #TYLKO PRZYCHODY
     def show_incomes(self):
         try:
