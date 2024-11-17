@@ -86,13 +86,10 @@ class BudgetManager:
         else:
             sorted_budget = sorted(self.budget, key=lambda x: x['date'])
             for i, entry in enumerate(sorted_budget, 1):
-                #kategorie - nie wiem czy tak zadziała :(
                 category = entry.get('category', 'Brak kategorii')
                 print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} "
-                      f"(Kategoria: {category}, (Data: {entry['date']})")
-
+                      f"(Kategoria: {category}, Data: {entry['date']})")
         # status konta ( wydatki, przychody, saldo )
-
     def show_budget_summary(self):
         if not self.budget:
             print("Brak danych do podsumowania.")
@@ -120,16 +117,25 @@ class BudgetManager:
         try:
             entry = self.budget[index - 1]
             print(f"Edycja wpisu: {entry['type']}: {entry['amount']} PLN, {entry['description']}")
-            entry["type"] = input("Nowy typ (income/outcome): ").strip().lower() or entry['type']
-            entry["amount"] = input("Nowa kwota: ").strip() or entry['amount']
+            new_type = input("Nowy typ (income/outcome): ").strip().lower()
+            if new_type in ["income", "outcome"]:
+                entry["type"] = new_type
+            try:
+                new_amount = input("Nowa kwota: ").strip()
+                if new_amount:
+                    entry["amount"] = float(new_amount)
+            except ValueError:
+                print("Błąd: niepoprawna kwota. Pozostawiono starą wartość.")
+
             entry["description"] = input("Nowy opis: ").strip() or entry['description']
+            entry["category"] = input("Nowa kategoria: ").strip() or entry.get('category', "Brak kategorii")
             entry["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.save_budget_to_file()
-            print("Wpis zostal zaktualizowany")
+            print("Wpis został zaktualizowany.")
         except IndexError:
-            print("Nie znaleziono pliku o podanym indeksie. ")
-        except ValueError:
-            print("Błąd: niepoprawna kwota")
+            print("Nie znaleziono wpisu o podanym indeksie.")
+        except Exception as e:
+            print(f"Błąd: {e}")
 
     def delete_budget_entry(self, index):
         try:
