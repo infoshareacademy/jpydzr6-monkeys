@@ -39,3 +39,17 @@ class BudgetManager:
         self.budget.append(entry)
         self.save_budget_to_file()
         print(f"Pomyślnie dodano wpis: {entry_type}, - {amount} PLN, opis: {description}")
+
+    def add_budget_entry_input(self):
+        # pobiera typ wpisu ( wydatek lub przychod )
+        while True:
+            entry_type = input(
+                "Wprowadź rodzaj wpisu ('income' dla dochodu lub 'outcome' dla wydatku, lub 'exit' aby zakończyć): ").strip().lower()
+            if entry_type in ["income", "outcome"]:
+                break
+            elif entry_type == "exit":
+                print("Zakończono dodawanie wpisu.")
+                return  # kończy funkcję, gdy użytkownik wpisze "exit"
+            else:
+                print(
+                    "Niepoprawny rodzaj wpisu. Wprowadź 'income' dla dochodu, 'outcome' dla wydatku lub 'exit' aby zakończyć.")
