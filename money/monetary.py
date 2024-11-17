@@ -81,7 +81,9 @@ class Monetary:
 
     def __validate_ingredient(self, ingredient: Monetary) -> bool:
         """For checking whether in mathematical operations are used instancies with the same currency"""
-        if self.currency != ingredient.currency:
+        if not isinstance(ingredient, Monetary):
+            raise TypeError(f"The type is not a {self.__class__} instance")
+        elif self.currency != ingredient.currency:
             raise AttributeError("The currencies does not match")
         else:
             return True
