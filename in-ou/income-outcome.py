@@ -111,15 +111,19 @@ class BudgetManager:
             print(f"Brak wpisów dla podanej kategorii '{category}'")
         else:
             for i, entry in enumerate(filtered_entries, 1):
-                print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} (Data: {entry['date']})")
+                print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} "
+                      f"(Kategoria: {category}, Data: {entry['date']})")
 
     def edit_budget_entry(self, index):
         try:
             entry = self.budget[index - 1]
             print(f"Edycja wpisu: {entry['type']}: {entry['amount']} PLN, {entry['description']}")
+
+            # Zbieranie nowych wartości od użytkownika
             new_type = input("Nowy typ (income/outcome): ").strip().lower()
             if new_type in ["income", "outcome"]:
                 entry["type"] = new_type
+
             try:
                 new_amount = input("Nowa kwota: ").strip()
                 if new_amount:
@@ -129,6 +133,21 @@ class BudgetManager:
 
             entry["description"] = input("Nowy opis: ").strip() or entry['description']
             entry["category"] = input("Nowa kategoria: ").strip() or entry.get('category', "Brak kategorii")
+
+            # Pokazanie zmian przed zapisaniem
+            print("\nProponowane zmiany:")
+            print(f" - Typ: {entry['type']}")
+            print(f" - Kwota: {entry['amount']:.2f} PLN")
+            print(f" - Opis: {entry['description']}")
+            print(f" - Kategoria: {entry['category']}")
+
+            # Potwierdzenie zapisania zmian
+            confirm = input("Czy na pewno chcesz zapisać zmiany? (tak/nie): ").strip().lower()
+            if confirm != "tak":
+                print("Edycja anulowana.")
+                return
+
+            # Aktualizacja daty i zapisanie zmian
             entry["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.save_budget_to_file()
             print("Wpis został zaktualizowany.")
@@ -139,8 +158,9 @@ class BudgetManager:
 
     def delete_budget_entry(self, index):
         try:
+            print(f"Próba usunięcia wpisu o indeksie: {index}")
             entry = self.budget.pop(index - 1)
             self.save_budget_to_file()
             print(f"Wpis usunięty: {entry['type']} - {entry['amount']} PLN, {entry['description']}")
         except IndexError:
-            print("Nie ma wpisu z podanym indexem.")
+            print(f"Nie ma wpisu z podanym indeksem: {index}")
