@@ -1,6 +1,7 @@
 from math import floor
 
 from currency import Currency
+from currencies import PLN
 
 
 class Monetary:
@@ -50,3 +51,10 @@ class Monetary:
                         return floor(converted * factor)
             case _:
                 raise TypeError("Wrong type of given value")
+
+if __name__ == '__main__':
+    print(Monetary.major_to_minor_monetary_unit(1, PLN))
+    print(Monetary.major_to_minor_monetary_unit(1.11, PLN))
+    print(Monetary.major_to_minor_monetary_unit("1.2", PLN))
+    print(Monetary.major_to_minor_monetary_unit("1.34", PLN))
+    print(Monetary.major_to_minor_monetary_unit("1.567", PLN))
