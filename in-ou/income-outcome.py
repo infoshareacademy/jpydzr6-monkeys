@@ -79,21 +79,24 @@ class BudgetManager:
         if not self.budget:
             print("Brak danych - budżet jest pusty :(")
         else:
-            for i, entry in enumerate(self.budget, 1):
-                print(
-                    f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} (Data: {entry['date']})")
+            sorted_budget = sorted(self.budget, key=lambda x: x['date'])
+            for i, entry in enumerate(sorted_budget, 1):
+                print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} (Data: {entry['date']})")
 
         # status konta ( wydatki, przychody, saldo )
 
     def show_budget_summary(self):
+        if not self.budget:
+            print("Brak danych do podsumowania.")
+            return
         try:
             income = sum(entry['amount'] for entry in self.budget if entry['type'] == 'income')
             expenses = sum(entry['amount'] for entry in self.budget if entry['type'] == 'outcome')
             balance = income - expenses
             print("Podsumowanie budżetu:")
-            print(f" - Dochody: {income} PLN")
-            print(f" - Wydatki: {expenses} PLN")
-            print(f" - Saldo: {balance} PLN")
+            print(f" - Dochody: {income:.2f} PLN")
+            print(f" - Wydatki: {expenses:.2f} PLN")
+            print(f" - Saldo: {balance:.2f} PLN")
         except KeyError as e:
             print(f"Blad: brakuje klucza w danych wpisu budzetowego ({e})")
 
