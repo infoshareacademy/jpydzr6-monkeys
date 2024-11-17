@@ -24,8 +24,18 @@ class BudgetManager:
         except json.decoder.JSONDecodeError:
             print("Plik budżetu jest uszkodzony.")
         except IOError:
-            print("Blad: Nie udalo sie wczytac pliku budzetu.")
+            print("Blad: Nie udalo sie wczytac pliku budzetu."
 
     def add_budget_entry(self, entry_type, amount, description):
         if not isinstance(amount, (int, float)) or amount <= 0:
             print("Blad: kwota musi byc liczba dodatnia.")
+
+        entry = {
+            "type": entry_type,
+            "amount": amount,
+            "description": description,
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.budget.append(entry)
+        self.save_budget_to_file()
+        print(f"Pomyślnie dodano wpis: {entry_type}, - {amount} PLN, opis: {description}")
