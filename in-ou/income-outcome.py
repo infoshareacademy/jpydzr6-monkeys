@@ -108,6 +108,14 @@ class BudgetManager:
         except KeyError as e:
             print(f"Blad: brakuje klucza w danych wpisu budzetowego ({e})")
 
+    def show_entries_by_category(self, category):
+        filtered_entries = [entry for entry in self.budget if entry.get('category') == category]
+        if not filtered_entries:
+            print(f"Brak wpisów dla podanej kategorii '{category}'")
+        else:
+            for i, entry in enumerate(filtered_entries, 1):
+                print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} (Data: {entry['date']})")
+
     def edit_budget_entry(self, index):
         try:
             entry = self.budget[index - 1]
