@@ -1,3 +1,4 @@
+from __future__ import annotations
 from math import floor
 
 from currency import Currency
@@ -25,6 +26,15 @@ class Monetary:
         else:
             self.__amount = amount
         self.__currency = currency
+
+    @property
+    def amount(self) -> int:
+        return self.__amount
+
+    @property
+    def currency(self) -> str:
+        return self.__currency.get("code")
+
 
     @staticmethod
     def __validate_amount(amount) -> bool:
@@ -61,6 +71,13 @@ class Monetary:
                         return floor(converted * factor)
             case _:
                 raise TypeError("Wrong type of given value")
+
+    def __validate_ingredient(self, ingredient: Monetary) -> bool:
+        if self.currency != ingredient.currency:
+            raise AttributeError("The currencies does not match")
+        else:
+            return True
+
 
 if __name__ == '__main__':
     print(Monetary.major_to_minor_monetary_unit(1, PLN))
