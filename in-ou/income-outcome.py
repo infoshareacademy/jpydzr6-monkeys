@@ -27,8 +27,15 @@ class BudgetManager:
             print("Blad: Nie udalo sie wczytac pliku budzetu.")
 
     def add_budget_entry(self, entry_type, amount, description):
+        if entry_type not in ["income", "outcome"]:
+            print("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.")
+            return
         if not isinstance(amount, (int, float)) or amount <= 0:
-            print("Blad: kwota musi byc liczba dodatnia.")
+            print("Blad: Kwota musi być liczbą dodatnią.")
+            return
+        if len(description) > 255:
+            print("Blad: Opis jest za długi (maksymalnie 255 znaków).")
+            return
 
         entry = {
             "type": entry_type,
