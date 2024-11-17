@@ -104,16 +104,38 @@ class BudgetManager:
             print(f" - Saldo: {balance:.2f} PLN")
         except KeyError as e:
             print(f"Blad: brakuje klucza w danych wpisu budzetowego ({e})")
+    #filtracja TYLKO przychodów zamiast ogólnych wpisów
+    def show_incomes_by_category(self, category):
+        try:
+            incomes = [entry for entry in self.budget if
+                       entry.get('type') == 'income' and entry.get('category') == category]
+            if not incomes:
+                print(f"Brak dochodów w kategorii '{category}'.")
+                return
+            print(f"Lista dochodów w kategorii '{category}':")
+            for i, entry in enumerate(incomes, 1):
+                print(f"{i}. Kwota: {entry['amount']} PLN, Opis: {entry['description']}, Data: {entry['date']}")
+        except KeyError as e:
+            print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
+        except Exception as e:
+            print(f"Nieoczekiwany błąd: {e}")
+    #Filtracja tylko wydatków
+    def show_outcomes_by_category(self, category):
+        try:
+            outcomes = [entry for entry in self.budget if
+                       entry.get('type') == 'outcome' and entry.get('category') == category]
+            if not outcomes:
+                print(f"Brak wydatków w kategorii '{category}'.")
+                return
+            print(f"Lista wydatków w kategorii '{category}:")
+            for i, entry in enumerate(outcomes, 1):
+                print(f"{i}. Kwota: {entry['amount']} PLN, Opis: {entry['description']}, Data: {entry['date']}")
+        except KeyError as e:
+            print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
+        except Exception as e:
+            print(f"Nieoczekiwany błąd: {e}")
 
-    def show_entries_by_category(self, category):
-        filtered_entries = [entry for entry in self.budget if entry.get('category') == category]
-        if not filtered_entries:
-            print(f"Brak wpisów dla podanej kategorii '{category}'")
-        else:
-            for i, entry in enumerate(filtered_entries, 1):
-                print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} "
-                      f"(Kategoria: {category}, Data: {entry['date']})")
-
+    #TYLKO PRZYCHODY
     def show_incomes(self):
         try:
             incomes = [entry for entry in self.budget if entry.get('type') == 'income']
@@ -128,7 +150,7 @@ class BudgetManager:
             print(f"Błąd: Brakuje klucza w danych budżetu ({e}). ")
         except Exception as e:
             print(f"Nieoczekiwany błąd: {e}")
-
+    #TYLKO WYDATKI
     def show_outcomes(self):
         try:
             outcomes = [entry for entry in self.budget if entry.get('type') == 'outcome']
@@ -143,7 +165,6 @@ class BudgetManager:
             print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
         except Exception as e:
             print(f"Nieoczekiwany błąd: {e}")
-
 
     def edit_budget_entry(self, index):
         try:
