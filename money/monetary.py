@@ -6,7 +6,7 @@ from currencies import PLN
 
 class Monetary:
     """
-    Base class for holding monetary values.
+    Base class for holding money values.
     It is inspired by Dinero.js (v1/v2).
     """
     __slot__ = ("__amount", "__currency")
@@ -15,7 +15,7 @@ class Monetary:
         """
         While instantiating a Monetary object the value should be given in the smallest available unit available in
         chosen currency. There is given a static method to convert non-minor value to the minor.
-        :param amount: Amount of the monetary in the smallest unit of the currency.
+        :param amount: Amount of the money in the smallest unit of the currency.
         :param currency: Currency dictionary from 'currencies' directory
         """
         try:
