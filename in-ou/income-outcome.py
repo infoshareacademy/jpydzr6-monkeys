@@ -26,7 +26,7 @@ class BudgetManager:
         except IOError:
             print("Blad: Nie udalo sie wczytac pliku budzetu.")
 
-    def add_budget_entry(self, entry_type, amount, description):
+    def add_budget_entry(self, entry_type, amount, description, category="brak kategorii"):
         if entry_type not in ["income", "outcome"]:
             print("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.")
             return
@@ -41,11 +41,12 @@ class BudgetManager:
             "type": entry_type,
             "amount": amount,
             "description": description,
+            "category": category,
             "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         self.budget.append(entry)
         self.save_budget_to_file()
-        print(f"Pomyślnie dodano wpis: {entry_type}, - {amount} PLN, opis: {description}")
+        print(f"Pomyślnie dodano wpis: {entry_type}, - {amount} PLN, opis: {description}, kategoria: {category}")
 
     def add_budget_entry_input(self):
         while True:
@@ -115,3 +116,10 @@ class BudgetManager:
         except ValueError:
             print("Błąd: niepoprawna kwota")
 
+    def delete_budget_entry(self, index):
+        try:
+            entry = self.budget.pop(index - 1)
+            self.save_budget_to_file()
+            print(f"Wpis usunięty: {entry['type']} - {entry['amount']} PLN, {entry['description']}")
+        except IndexError:
+            print("Nie ma wpisu z podanym indexem.")
