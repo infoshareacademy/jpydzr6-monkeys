@@ -1,4 +1,4 @@
-import json
+import json #JSONow nie traktujcie na powaznie - w tej chwili sluza jedynie do sprawdzenia poprawnosci zapisywania ( działa jbc )
 from datetime import datetime
 
 class BudgetManager:
@@ -10,7 +10,7 @@ class BudgetManager:
     def save_budget_to_file(self):
         try:
             with open(self.file_name, 'w', encoding='utf-8') as file:
-                json.dump(self.budget, file, ensure_ascii=False, indent=4)
+                json.dump(self.budget, file, ensure_ascii=False, indent=4) #Do usunięcia w przyszłości
             print("Budzet zostal zapisany do pliku.")
         except IOError:
             print("Blad: Nie udalo sie zapisac budzetu do pliku")
@@ -28,7 +28,7 @@ class BudgetManager:
 
     def add_budget_entry(self, entry_type, amount, description, category="brak kategorii"):
         if entry_type not in ["income", "outcome"]:
-            print("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.")
+            print("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.") #Zmienić na I / O, czy zostawić pełne słowa?
             return
         if not isinstance(amount, (int, float)) or amount <= 0:
             print("Blad: Kwota musi być liczbą dodatnią.")
@@ -48,10 +48,10 @@ class BudgetManager:
         self.save_budget_to_file()
         print(f"Pomyślnie dodano wpis: {entry_type}, - {amount} PLN, opis: {description}, kategoria: {category}")
 
-    def add_budget_entry_input(self):
+    def add_budget_entry_input(self): #Dodawanie wpisów z inputem, również do usunięcia w przyszłości.
         while True:
             entry_type = input(
-                "Wprowadź rodzaj wpisu ('income' dla dochodu lub 'outcome' dla wydatku, lub 'exit' aby zakończyć): ").strip().lower()
+                "Wprowadź rodzaj wpisu ('income' dla dochodu lub 'outcome' dla wydatku, lub 'exit' aby zakończyć): ").strip().lower() # To samo co wyżej, może warto zmienić na I/O?
             if entry_type in ["income", "outcome"]:
                 break
             elif entry_type == "exit":
@@ -72,17 +72,17 @@ class BudgetManager:
 
         description = input("Wprowadź opis wpisu: ").strip()
         if not description:
-            description = "Brak opisu"
+            description = "Brak opisu" #domyślny opis
 
         category = input("Wprowadz kategorię wpisu: ").strip()
         if not category:
-            category = "Brak kategorii"
+            category = "Brak kategorii" # domyśla kategoria
 
         self.add_budget_entry(entry_type, amount, description, category)
 
     def show_budget(self):
         if not self.budget:
-            print("Brak danych - budżet jest pusty :(")
+            print("Brak danych - budżet jest pusty. ")
         else:
             sorted_budget = sorted(self.budget, key=lambda x: x['date'])
             for i, entry in enumerate(sorted_budget, 1):
@@ -119,7 +119,7 @@ class BudgetManager:
             entry = self.budget[index - 1]
             print(f"Edycja wpisu: {entry['type']}: {entry['amount']} PLN, {entry['description']}")
 
-            # Zbieranie nowych wartości od użytkownika
+            #Tu użytkownik wpisuje nowe dane, Value Error wystarczy czy coś więcej?
             new_type = input("Nowy typ (income/outcome): ").strip().lower()
             if new_type in ["income", "outcome"]:
                 entry["type"] = new_type
@@ -156,6 +156,7 @@ class BudgetManager:
         except Exception as e:
             print(f"Błąd: {e}")
 
+    #usuwanie wpisow prawdopodobnie do poprawienia, ale jeszcze nie wiem w jaki sposób
     def delete_budget_entry(self, index):
         try:
             print(f"Próba usunięcia wpisu o indeksie: {index}")
