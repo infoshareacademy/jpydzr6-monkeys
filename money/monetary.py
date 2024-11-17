@@ -27,6 +27,39 @@ class Monetary:
             self.__amount = amount
         self.__currency = currency
 
+    def __add__(self, ingredient: Monetary) -> Monetary:
+        if self.__validate_ingredient(ingredient):
+            result = self.amount + ingredient.amount
+            return Monetary(result, self.__currency)
+
+    def __sub__(self, ingredient: Monetary) -> Monetary:
+        if self.__validate_ingredient(ingredient):
+            result = self.amount - ingredient.amount
+            return Monetary(result, self.__currency)
+
+    def __mul__(self, ingredient: int | float) -> Monetary:
+        if not isinstance(ingredient, (int, float)):
+            raise TypeError("It is not possible to multiply an amount of money by another one")
+        else:
+            result = int(round(self.amount * ingredient, 0))
+            return Monetary(result, self.__currency)
+
+    def __truediv__(self, ingredient: int | float) -> Monetary:
+        if not isinstance(ingredient, (int, float)):
+            raise TypeError("It is not possible to divide an amount of money by another one")
+        else:
+            result = int(round(self.amount / ingredient, 0))
+            return Monetary(result, self.__currency)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.amount}, {self.currency})"
+
+    def __str__(self):
+        factor = pow(self.__currency.get("base"), self.__currency.get("exponent"))
+        major = self.amount / factor
+        exponent = self.__currency.get("exponent")
+        return f"{self.currency} {major:.{exponent}f}"
+
     @property
     def amount(self) -> int:
         return self.__amount
