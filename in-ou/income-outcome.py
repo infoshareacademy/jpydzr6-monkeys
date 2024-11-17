@@ -74,7 +74,11 @@ class BudgetManager:
         if not description:
             description = "Brak opisu"
 
-        self.add_budget_entry(entry_type, amount, description)
+        category = input("Wprowadz kategorię wpisu: ").strip()
+        if not category:
+            category = "Brak kategorii"
+
+        self.add_budget_entry(entry_type, amount, description, category)
 
     def show_budget(self):
         if not self.budget:
