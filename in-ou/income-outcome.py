@@ -114,6 +114,37 @@ class BudgetManager:
                 print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} "
                       f"(Kategoria: {category}, Data: {entry['date']})")
 
+    def show_incomes(self):
+        try:
+            incomes = [entry for entry in self.budget if entry.get('type') == 'income']
+            if not incomes:
+                print("Brak dochodów do wyświetlenia")
+                return
+            print("Lista dochodów: ")
+            for i, entry in enumerate(incomes, 1):
+                print(f"{i}. Kwota: {entry['amount']} PLN, Opis: {entry['description']}, Kategoria: "
+                      f"{entry.get('category', 'Brak kategorii')}, Data: {entry['date']}")
+        except KeyError as e:
+            print(f"Błąd: Brakuje klucza w danych budżetu ({e}). ")
+        except Exception as e:
+            print(f"Nieoczekiwany błąd: {e}")
+
+    def show_outcomes(self):
+        try:
+            outcomes = [entry for entry in self.budget if entry.get('type') == 'outcome']
+            if not outcomes:
+                print("Brak wydatków do wyświetlenia")
+                return
+            print("Lista wydatków: ")
+            for i, entry in enumerate(outcomes, 1):
+                print(f"{i}. Kwota: {entry['amount']} PLN, Opis: {entry['description']}, "
+                      f"Kategoria: {entry.get('category', 'Brak kategorii')}, Data: {entry['date']}")
+        except KeyError as e:
+            print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
+        except Exception as e:
+            print(f"Nieoczekiwany błąd: {e}")
+
+
     def edit_budget_entry(self, index):
         try:
             entry = self.budget[index - 1]
