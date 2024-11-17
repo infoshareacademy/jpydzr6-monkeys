@@ -100,3 +100,18 @@ class BudgetManager:
         except KeyError as e:
             print(f"Blad: brakuje klucza w danych wpisu budzetowego ({e})")
 
+    def edit_budget_entry(self, index):
+        try:
+            entry = self.budget[index - 1]
+            print(f"Edycja wpisu: {entry['type']}: {entry['amount']} PLN, {entry['description']}")
+            entry["type"] = input("Nowy typ (income/outcome): ").strip().lower() or entry['type']
+            entry["amount"] = input("Nowa kwota: ").strip() or entry['amount']
+            entry["description"] = input("Nowy opis: ").strip() or entry['description']
+            entry["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            self.save_budget_to_file()
+            print("Wpis zostal zaktualizowany")
+        except IndexError:
+            print("Nie znaleziono pliku o podanym indeksie. ")
+        except ValueError:
+            print("Błąd: niepoprawna kwota")
+
