@@ -27,7 +27,7 @@ class BudgetManager:
             conn.commit()
 
     def save_budget_to_file(self):
-        """Zapisuje dane z `self.budget` do bazy danych SQLite."""
+        #integracja z sqlitem - zapisuje dane do bazy
         with self.create_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM budget")  # Usuwa stare dane
@@ -40,7 +40,7 @@ class BudgetManager:
         print("Budżet został zapisany do bazy danych.")
 
     def load_budget_from_file(self):
-        """Ładuje dane z bazy danych SQLite do `self.budget`."""
+        #integracja z sqlitem - pobiera dane z bazy
         with self.create_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT entry_type, amount, description, category, date FROM budget")
