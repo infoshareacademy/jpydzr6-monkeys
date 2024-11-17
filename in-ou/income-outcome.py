@@ -104,6 +104,11 @@ class BudgetManager:
             print(f" - Saldo: {balance:.2f} PLN")
         except KeyError as e:
             print(f"Blad: brakuje klucza w danych wpisu budzetowego ({e})")
+    #filtracja wszystkich wpisów
+    def filter_entries(self, entry_type=None, category=None):
+        return [entry for entry in self.budget if
+                (entry_type is None or entry.get('type') == entry_type) and
+                (category is None or entry.get('category') == category)]
     #filtracja TYLKO przychodów zamiast ogólnych wpisów
     def show_incomes_by_category(self, category):
         try:
