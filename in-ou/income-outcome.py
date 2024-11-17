@@ -9,88 +9,49 @@ class BudgetManager:
     def create_connectiion(self):
         return sqlite3.connect(self.db_name) #połączenie z bazą dannych sql
 
-    def save_budget_to_file(self):
-        try:
-            with open(self.file_name, 'w', encoding='utf-8') as file:
-                json.dump(self.budget, file, ensure_ascii=False, indent=4) #Do usunięcia w przyszłości
-            print("Budzet zostal zapisany do pliku.")
-        except IOError:
-            print("Blad: Nie udalo sie zapisac budzetu do pliku")
-
-    def load_budget_from_file(self):
-        try:
-            with open(self.file_name, 'r', encoding='utf-8') as file:
-                self.budget = json.load(file)
-        except FileNotFoundError:
-            print("Nie znaleziono pliku budżetowego.")
-        except json.decoder.JSONDecodeError:
-            print("Plik budżetu jest uszkodzony.")
-        except IOError:
-            print("Blad: Nie udalo sie wczytac pliku budzetu.")
+    def create_tables(self):
+        with self.create_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS budget (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entry_type TEXT NOT NULL,
+                amount REAL NOT NULL,
+                description TEXT,
+                category TEXT,
+                date TEXT NOT NULL
+            )
+            ''')
+            conn.commit()
 
     def add_budget_entry(self, entry_type, amount, description, category="brak kategorii"):
         if entry_type not in ["income", "outcome"]:
             print("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.") #Zmienić na I / O, czy zostawić pełne słowa?
             return
-        if not isinstance(amount, (int, float)) or amount <= 0:
-            print("Blad: Kwota musi być liczbą dodatnią.")
-            return
-        if len(description) > 255:
-            print("Blad: Opis jest za długi (maksymalnie 255 znaków).")
+        if amount <= 0:
+            print("Błąd. Kwota musi być dodatnią.")
             return
 
-        entry = {
-            "type": entry_type,
-            "amount": amount,
-            "description": description,
-            "category": category,
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
-        self.budget.append(entry)
-        self.save_budget_to_file()
-        print(f"Pomyślnie dodano wpis: {entry_type}, - {amount} PLN, opis: {description}, kategoria: {category}")
-
-    def add_budget_entry_input(self): #Dodawanie wpisów z inputem, również do usunięcia w przyszłości.
-        while True:
-            entry_type = input(
-                "Wprowadź rodzaj wpisu ('income' dla dochodu lub 'outcome' dla wydatku, lub 'exit' aby zakończyć): ").strip().lower() # To samo co wyżej, może warto zmienić na I/O?
-            if entry_type in ["income", "outcome"]:
-                break
-            elif entry_type == "exit":
-                print("Zakończono dodawanie wpisu.")
-                return
-            else:
-                print("Niepoprawny rodzaj wpisu. Spróbuj ponownie.")
-
-        while True:
-            try:
-                amount = float(input("Wprowadź kwotę: "))
-                if amount > 0:
-                    break
-                else:
-                    print("Kwota musi być dodatnia.")
-            except ValueError:
-                print("Niepoprawna kwota. Upewnij się, że wprowadzasz liczbę.")
-
-        description = input("Wprowadź opis wpisu: ").strip()
-        if not description:
-            description = "Brak opisu" #domyślny opis
-
-        category = input("Wprowadz kategorię wpisu: ").strip()
-        if not category:
-            category = "Brak kategorii" # domyśla kategoria
-
-        self.add_budget_entry(entry_type, amount, description, category)
+        with self.create_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+            INSERT INTO budget (entry_type, amount, description, category, date)
+            VALUES (?, ?, ?, ?, ?)
+            ''', (entry_type, amount, description, category, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            conn.commit()
+            print(f"Pomyślnie dodano wpis: {entry_type}, - {amount} PLN, opis: {description}, kategoria: {category}")
 
     def show_budget(self):
-        if not self.budget:
-            print("Brak danych - budżet jest pusty. ")
-        else:
-            sorted_budget = sorted(self.budget, key=lambda x: x['date'])
-            for i, entry in enumerate(sorted_budget, 1):
-                category = entry.get('category', 'Brak kategorii')
-                print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} "
-                      f"(Kategoria: {category}, Data: {entry['date']})")
+        """Wyświetla wszystkie wpisy w budżecie."""
+        with self.create_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM budget ORDER BY date')
+            rows = cursor.fetchall()
+            if not rows:
+                print("Brak danych - budżet jest pusty.")
+                return
+            for row in rows:
+                print(f"{row[0]}. {row[1]}: {row[2]} PLN, {row[3]} (Kategoria: {row[4]}, Data: {row[5]})")
         # status konta ( wydatki, przychody, saldo )
     def show_budget_summary(self):
         if not self.budget:
