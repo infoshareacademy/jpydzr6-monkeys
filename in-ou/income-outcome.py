@@ -86,7 +86,10 @@ class BudgetManager:
         else:
             sorted_budget = sorted(self.budget, key=lambda x: x['date'])
             for i, entry in enumerate(sorted_budget, 1):
-                print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} (Data: {entry['date']})")
+                #kategorie - nie wiem czy tak zadziała :(
+                category = entry.get('category', 'Brak kategorii')
+                print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} "
+                      f"(Kategoria: {category}, (Data: {entry['date']})")
 
         # status konta ( wydatki, przychody, saldo )
 
