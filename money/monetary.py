@@ -38,6 +38,7 @@ class Monetary:
 
     @staticmethod
     def __validate_amount(amount) -> bool:
+        """Validate whether the amount (type int) is nonzero"""
         if not isinstance(amount, int):
             raise TypeError("Amount must be an integer")
         if amount < 0:
@@ -46,6 +47,12 @@ class Monetary:
 
     @staticmethod
     def major_to_minor_monetary_unit(major_value: int | float | str, currency: Currency) -> int:
+        """
+        Converts an amount of money in major unit to appropriate minor unit
+        :param major_value: Amount of money in major unit
+        :param currency: Currency on which basis the amount will be converted
+        :return:
+        """
         factor = pow(currency.get("base"), currency.get("exponent"))
         match major_value:
             case int():
@@ -73,6 +80,7 @@ class Monetary:
                 raise TypeError("Wrong type of given value")
 
     def __validate_ingredient(self, ingredient: Monetary) -> bool:
+        """For checking whether in mathematical operations are used instancies with the same currency"""
         if self.currency != ingredient.currency:
             raise AttributeError("The currencies does not match")
         else:
