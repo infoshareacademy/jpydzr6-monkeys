@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from peewee import *
 
 db = SqliteDatabase('budget.db')
@@ -30,3 +32,26 @@ class Account(Model):
 
 db.connect()
 db.create_tables([Account])
+
+class AccountManager:
+
+    def add_account(
+                    self,
+                    account_number: int,
+                    account_name: str,
+                    balance: Decimal,
+                    user_id: int,
+                    currency_id: int
+    ) -> None:
+
+        account = Account.create(
+                          account_number=account_number,
+                          account_name=account_name,
+                          balance=balance,
+                          user_id=user_id,
+                          currency_id=currency_id
+        )
+
+        print(f'Konto o numerze {account_number} zostało utworzone.')
+#todo walidacja danych - sprawdzenie typu, wartości, czy user_id istnieje,
+# zapytaj do jakiego użytkownika przypisać konto 
