@@ -68,7 +68,6 @@ class Monetary:
     def currency(self) -> str:
         return self.__currency.get("code")
 
-
     @staticmethod
     def __validate_amount(amount) -> bool:
         """Validate whether the amount (type int) is nonzero"""
@@ -79,7 +78,7 @@ class Monetary:
         return True
 
     @staticmethod
-    def major_to_minor_monetary_unit(major_value: int | float | str, currency: Currency) -> int:
+    def major_to_minor_unit(major_value: int | float | str, currency: Currency) -> int:
         """
         Converts an amount of money in major unit to appropriate minor unit
         :param major_value: Amount of money in major unit
