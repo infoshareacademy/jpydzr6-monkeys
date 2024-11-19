@@ -3,6 +3,7 @@ from math import floor
 
 from currency import Currency
 from currencies import PLN
+from currencies import EUR
 
 
 class Monetary:
@@ -122,8 +123,42 @@ class Monetary:
 
 
 if __name__ == '__main__':
-    print(Monetary.major_to_minor_monetary_unit(1, PLN))
-    print(Monetary.major_to_minor_monetary_unit(1.11, PLN))
-    print(Monetary.major_to_minor_monetary_unit("1.2", PLN))
-    print(Monetary.major_to_minor_monetary_unit("1.34", PLN))
-    print(Monetary.major_to_minor_monetary_unit("1.567", PLN))
+    print("*" * 5)
+    print("Major to minor conversion")
+    print(f"{Monetary.major_to_minor_unit(1, PLN) = }")
+    print(f"{Monetary.major_to_minor_unit(1.11, PLN) = }")
+    print(f"{Monetary.major_to_minor_unit(1.2, PLN) = }")
+    print(f"{Monetary.major_to_minor_unit("1.34", PLN) = }")
+    print(f"{Monetary.major_to_minor_unit("1.567", PLN) = }")
+
+    print("*" * 5)
+    print("Basic operations")
+    pln1 = Monetary(1, PLN)
+    pln2 = Monetary(Monetary.major_to_minor_unit(100.0, PLN), PLN)
+    print(f"m1 = {pln1}, m2 = {pln2}")
+
+    pln3 = pln1 + pln2
+    print(f"m1 + m2 = {pln3}")
+    print(pln3.__repr__())
+
+    pln3 = pln2 - pln1
+    print(f"m2 - m1 = {pln3}")
+    print(pln3.__repr__())
+
+    pln3 = pln2 * 2
+    print(f"m2 * 2 = {pln3}")
+    print(pln3.__repr__())
+
+    pln3 = pln2 / 2
+    print(f"m2 / 2 = {pln3}")
+    print(pln3.__repr__())
+
+    pln3 = pln1 / 2
+    print(f"m1 / 2 = {pln3}")
+    print(pln3.__repr__())
+
+    print("*" * 5)
+    print("Different currencies")
+    eur1 = Monetary(100, EUR)
+    print(eur1)
+    some = pln1 + eur1
