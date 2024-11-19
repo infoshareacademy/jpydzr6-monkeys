@@ -25,3 +25,27 @@ class MenuItem(ABC):
     @abstractmethod
     def do_action(self, choice: str): # miejsce wywoływana konkretnych metod dostępnych z submenu
         pass
+
+
+class AccountMenu(MenuItem):
+    @property
+    def name(self):
+        return 'Zarządzanie kontem'
+
+    @property
+    def letter(self):
+        return 'K'
+
+    @property
+    def submenu_name(self):
+        return 'Menu zarządzania kontami bankowymi'
+
+    def get_submenu_items(self) -> dict[str,str]:
+        return {
+            'D': 'Dodaj konto bankowe',
+        }
+
+
+    @property
+    def do_action(self):
+        pass
