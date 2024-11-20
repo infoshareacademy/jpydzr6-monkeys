@@ -68,7 +68,7 @@ class AccountHandling(MenuItem):
                         continue
                     break
                 while True:
-                    try:
+                    try: #todo konieczne sprawdzenia istnienia użytkownika w bazie danych
                         user_id = int(input('Podaj ID właściciela konta: '))
                     except ValueError:
                         print('Podane nieprawidłowe ID.')

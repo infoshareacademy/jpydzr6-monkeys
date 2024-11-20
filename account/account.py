@@ -22,7 +22,7 @@ class AccountManager:
 
     def add_account(
                     self,
-                    account_number: int,
+                    account_number: str,
                     account_name: str,
                     balance: float,
                     user_id: int,
@@ -40,13 +40,3 @@ class AccountManager:
             print('Konto o podanym numerze już istnieje.')
         else:
             print(f'Konto o numerze {account_number} zostało utworzone.')
-#todo walidacja danych - sprawdzenie typu, wartości, czy user_id istnieje,
-
-
-if __name__ == '__main__':
-    db.connect()
-    db.create_tables([Account])
-    test = AccountManager()
-    test.add_account(1234, 'mbank', 430.0, 3, 'PLN')
-    test.add_account(1234, 'Millenium', 543, 2, 'PLN')
-    test.add_account('12', 'Dolarowe', 67, 1, 'USD')
