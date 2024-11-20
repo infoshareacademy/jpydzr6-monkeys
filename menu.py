@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-
 from account.account import AccountManager
 
 
@@ -51,8 +50,12 @@ class AccountHandling(MenuItem):
         match choice:
             case 'D':
                 while True:
+                    account_number = input('Podaj numer konta: ')
+                    if len(account_number) != 26:
+                        print('Numer konta skłąda się z 26 cyfr.')
+                        continue
                     try:
-                        account_number = int(input('Podaj numer konta: '))
+                        account_number_test = int(account_number)
                     except ValueError:
                         print('Numer konta powinien składać się z liczb.')
                         continue
@@ -71,7 +74,12 @@ class AccountHandling(MenuItem):
                         print('Podane nieprawidłowe ID.')
                         continue
                     break
-                currency = input('Podaj w jaką walutę obsługuje konto: ')
+                while True:
+                    currency = input('Podaj w jaką walutę obsługuje konto: ').upper()
+                    if currency not in ['PLN', 'USD', 'EUR']:
+                        print('Podano nieprawidłową walutę.')
+                        continue
+                    break
                 account_name = input('Nadaj kontu nazwę: ')
 
                 account_manager.add_account(
