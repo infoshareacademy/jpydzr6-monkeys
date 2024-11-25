@@ -1,7 +1,7 @@
 from __future__ import annotations
 from math import floor
 
-from currency import Currency
+from .currency import Currency
 
 
 class Monetary:
