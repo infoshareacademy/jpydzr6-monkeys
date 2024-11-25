@@ -19,12 +19,12 @@ class Monetary:
         :param currency: Currency dictionary from 'currencies' directory
         """
         try:
-            self.__validate_amount(amount)
+            self.__validate_amount_type(amount)
         except Exception as e:
             print(e)
         else:
             self.__amount = amount
-        self.__currency = currency
+            self.__currency = currency
 
     def __add__(self, ingredient: Monetary) -> Monetary:
         if self.__validate_ingredient(ingredient):
@@ -68,13 +68,12 @@ class Monetary:
         return self.__currency.get("code")
 
     @staticmethod
-    def __validate_amount(amount) -> bool:
+    def __validate_amount_type(amount) -> bool:
         """Validate whether the amount (type int) is nonzero"""
         if not isinstance(amount, int):
             raise TypeError("Amount must be an integer")
-        if amount < 0:
-            raise ValueError("Amount can not be negative")
-        return True
+        else:
+            return True
 
     @staticmethod
     def major_to_minor_unit(major_value: int | float | str, currency: Currency) -> int:
@@ -87,15 +86,9 @@ class Monetary:
         factor = pow(currency.get("base"), currency.get("exponent"))
         match major_value:
             case int():
-                if major_value < 0:
-                    raise ValueError("Amount can not be negative")
-                else:
-                    return major_value * factor
+                return major_value * factor
             case float():
-                if major_value < 0.0:
-                    raise ValueError("Amount can not be negative")
-                else:
-                    return floor(major_value * factor)
+                return floor(major_value * factor)
             case str():
                 major_value.strip().replace(",", ".")
                 try:
@@ -103,15 +96,12 @@ class Monetary:
                 except:
                     raise ValueError("Given string cannot be converted into float")
                 else:
-                    if converted < 0.0:
-                        raise ValueError("Amount can not be negative")
-                    else:
-                        return floor(converted * factor)
+                    return floor(converted * factor)
             case _:
                 raise TypeError("Wrong type of given value")
 
     def __validate_ingredient(self, ingredient: Monetary) -> bool:
-        """For checking whether in mathematical operations are used instancies with the same currency"""
+        """For checking whether in mathematical operations are used instances with the same currency"""
         if not isinstance(ingredient, Monetary):
             raise TypeError(f"The type is not a {self.__class__} instance")
         elif self.currency != ingredient.currency:
