@@ -2,8 +2,6 @@ from __future__ import annotations
 from math import floor
 
 from currency import Currency
-from currencies import PLN
-from currencies import EUR
 
 
 class Monetary:
