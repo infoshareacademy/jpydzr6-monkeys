@@ -1,3 +1,7 @@
+class InvalidData(Exception):
+    pass
+
+
 class Helper:
     @staticmethod
     def check_type(number, test_type):
@@ -5,7 +9,7 @@ class Helper:
             test = test_type(number)
             return test
         except ValueError:
-            return False
+            raise InvalidData('Nieprawidłowe dane: ') from None
 
 
 if __name__ == '__main__':
