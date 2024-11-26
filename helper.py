@@ -18,6 +18,4 @@ class Helper:
     def check_length(data: Any, length: int) -> Any:
         if len(data) == length:
             return data
-        else:
-            raise InvalidData('Nieprawidłowe dane') from None
-
+        raise InvalidData('Nieprawidłowe dane') from None
