@@ -10,7 +10,7 @@ class Account(Model):
     account_name = CharField()
     balance = DecimalField(decimal_places=2)
     user_id = BigIntegerField()
-    currency = CharField()
+    currency_id = CharField()
 
     class Meta:
         database = db
@@ -26,7 +26,7 @@ class AccountManager:
                     account_name: str,
                     balance: float,
                     user_id: int,
-                    currency: str
+                    currency_id: str
     ) -> None:
         try:
             account = Account.create(
@@ -34,7 +34,7 @@ class AccountManager:
                               account_name=account_name,
                               balance=balance,
                               user_id=user_id,
-                              currency=currency
+                              currency_id=currency_id
             )
         except IntegrityError:
             print('Konto o podanym numerze już istnieje.')

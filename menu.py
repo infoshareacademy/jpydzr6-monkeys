@@ -52,7 +52,7 @@ class AccountHandling(MenuItem):
                 while True:
                     account_number = input('Podaj numer konta: ')
                     if len(account_number) != 26:
-                        print('Numer konta skłąda się z 26 cyfr.')
+                        print('Numer konta składa się z 26 cyfr.')
                         continue
                     try:
                         account_number_test = int(account_number)
@@ -87,7 +87,7 @@ class AccountHandling(MenuItem):
                     account_name=account_name,
                     balance=balance,
                     user_id=user_id,
-                    currency=currency
+                    currency_id=currency
                 )
 
 if __name__ == '__main__':
