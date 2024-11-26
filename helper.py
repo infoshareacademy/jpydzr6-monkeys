@@ -13,3 +13,11 @@ class Helper:
             return validated_data
         except ValueError:
             raise InvalidData('Nieprawidłowe dane: ') from None
+
+    @staticmethod
+    def check_length(data: Any, length: int) -> Any:
+        if len(data) == length:
+            return data
+        else:
+            raise InvalidData('Nieprawidłowe dane') from None
+
