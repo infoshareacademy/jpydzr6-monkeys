@@ -1,17 +1,15 @@
+from typing import Any, Callable
+
+
 class InvalidData(Exception):
     pass
 
 
 class Helper:
     @staticmethod
-    def check_type(number, test_type):
+    def check_value(data: Any, test_value: Callable) -> Any:
         try:
-            test = test_type(number)
-            return test
+            validated_data = test_value(data)
+            return validated_data
         except ValueError:
             raise InvalidData('Nieprawidłowe dane: ') from None
-
-
-if __name__ == '__main__':
-    test = Helper()
-    print(test.check_type(3.8, float))
