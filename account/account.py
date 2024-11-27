@@ -1,7 +1,10 @@
-from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, DecimalField, IntegrityError
+from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, DecimalField, IntegrityError, \
+    DoesNotExist
 
 db = SqliteDatabase('budget.db')
 
+class SQLError(Exception):
+    pass
 
 class Account(Model):
     DoesNotExist = None
@@ -37,6 +40,12 @@ class AccountManager:
                               currency_id=currency_id
             )
         except IntegrityError:
-            print('Konto o podanym numerze już istnieje.')
+            raise SQLError('Konto o podanym numerze już istnieje.') from None
         else:
             print(f'Konto o numerze {account_number} zostało utworzone.')
+
+    def delete_account(account_number: str) -> None:
+        try:
+            Account.delete().where(Account.account_number == account_number)
+        except DoesNotExist:
+            raise SQLError('Konto o podanym numerze nie istnieje.') from None
