@@ -44,7 +44,7 @@ class AccountHandling(MenuItem):
         return 'Menu obsługi kont bankowych'
 
     def get_submenu_items(self) -> dict[str,str]:
-        return {'D': 'Dodaj konto'}
+        return {'D': 'Dodaj konto', 'U': 'Usuń konto'}
 
     def do_action(self, choice: str) -> None:
         account_manager = AccountManager()
@@ -94,6 +94,9 @@ class AccountHandling(MenuItem):
                     )
                 except SQLError as e:
                     print(f'Wystąpił błąd: {e}')
-
-if __name__ == '__main__':
-    pass
+            case 'U':
+                account_number = input('Podaj numer konta do usunięcia: ')
+                try:
+                    account_manager.delete_account(account_number=account_number)
+                except SQLError as e:
+                    print(f'Wystąpił błąd: {e}')
