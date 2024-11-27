@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from account.account import AccountManager
+from account.account import AccountManager, SQLError
 from helper import Helper, InvalidData
 
 
@@ -53,7 +53,7 @@ class AccountHandling(MenuItem):
                 validation = Helper()
                 while True:
                     account_number = input('Podaj numer konta: ')
-                    try:
+                    try: # todo zmień wymaganą długość numeru
                         validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
                         validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
                     except InvalidData as e:
@@ -84,14 +84,16 @@ class AccountHandling(MenuItem):
                         continue
                     break
                 account_name = input('Nadaj kontu nazwę: ')
-
-                account_manager.add_account(
-                    account_number=account_number,
-                    account_name=account_name,
-                    balance=balance,
-                    user_id=user_id,
-                    currency_id=currency
-                )
+                try:
+                    account_manager.add_account(
+                        account_number=account_number,
+                        account_name=account_name,
+                        balance=balance,
+                        user_id=user_id,
+                        currency_id=currency
+                    )
+                except SQLError as e:
+                    print(f'Wystąpił błąd: {e}')
 
 if __name__ == '__main__':
     pass
