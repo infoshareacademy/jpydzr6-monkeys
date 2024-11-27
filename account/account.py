@@ -23,8 +23,8 @@ db.create_tables([Account])
 
 class AccountManager:
 
+    @staticmethod
     def add_account(
-                    self,
                     account_number: str,
                     account_name: str,
                     balance: float,
@@ -44,8 +44,11 @@ class AccountManager:
         else:
             print(f'Konto o numerze {account_number} zostało utworzone.')
 
+    @staticmethod
     def delete_account(account_number: str) -> None:
         try:
             Account.delete().where(Account.account_number == account_number)
+            print('Nice')
         except DoesNotExist:
             raise SQLError('Konto o podanym numerze nie istnieje.') from None
+        print('Pomyślnie usunięto konto.')
