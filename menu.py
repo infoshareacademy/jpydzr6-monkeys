@@ -1,7 +1,4 @@
 from abc import ABC, abstractmethod
-
-from platformdirs import user_log_dir
-
 from account.account import AccountManager
 from helper import Helper, InvalidData
 
