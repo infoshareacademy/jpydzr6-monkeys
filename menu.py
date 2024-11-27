@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from account.account import AccountManager
+from helper import Helper, InvalidData
 
 
 class MenuItem(ABC):
@@ -49,29 +50,31 @@ class AccountHandling(MenuItem):
         account_manager = AccountManager()
         match choice:
             case 'D':
+                validation = Helper()
                 while True:
                     account_number = input('Podaj numer konta: ')
-                    if len(account_number) != 26:
-                        print('Numer konta składa się z 26 cyfr.')
-                        continue
                     try:
-                        account_number_test = int(account_number)
-                    except ValueError:
-                        print('Numer konta powinien składać się z liczb.')
+                        validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
+                        validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
+                    except InvalidData as e:
+                        print(f'Nieprawidłowe dane: {e}')
                         continue
                     break
                 while True:
+                    balance = input('Podaj aktualny stan konta: ')
                     try:
-                        balance = float(input('Podaj aktualny stan konta: '))
-                    except ValueError:
-                        print('Stan konta powinien być podany za pomocą liczb.')
+                        balance = validation.check_value(balance, float, 'Stan konta powinien być podany jako liczba.')
+                    except InvalidData as e:
+                        print(f'Nieprawidłowe dane: {e}')
                         continue
                     break
                 while True:
-                    try: #todo konieczne sprawdzenia istnienia użytkownika w bazie danych
-                        user_id = int(input('Podaj ID właściciela konta: '))
-                    except ValueError:
-                        print('Podane nieprawidłowe ID.')
+#todo konieczne sprawdzenia istnienia użytkownika w bazie danych
+                    user_id = input('Podaj ID właściciela konta: ')
+                    try:
+                        user_id = validation.check_value(user_id, int, 'Podano nieprawidłowe ID')
+                    except InvalidData as e:
+                        print(f'Nieprawidłowe dane: {e}')
                         continue
                     break
                 while True:
