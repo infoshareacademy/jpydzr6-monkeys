@@ -40,3 +40,6 @@ class AccountManager:
             print('Konto o podanym numerze już istnieje.')
         else:
             print(f'Konto o numerze {account_number} zostało utworzone.')
+
+    def edit_account():
+
