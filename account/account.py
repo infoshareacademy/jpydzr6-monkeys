@@ -1,5 +1,4 @@
-from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, DecimalField, IntegrityError, \
-    DoesNotExist
+from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, DecimalField, IntegrityError
 
 db = SqliteDatabase('budget.db')
 
