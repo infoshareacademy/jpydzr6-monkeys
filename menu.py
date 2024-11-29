@@ -53,8 +53,8 @@ class AccountHandling(MenuItem):
                 validation = Helper()
                 while True:
                     account_number = input('Podaj numer konta: ')
-                    try: # todo zmień wymaganą długość numeru
-                        validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
+                    try:
+                        validation.check_length(account_number,26,'Nieprawidłowa długość numeru konta')
                         validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
                     except InvalidData as e:
                         print(f'Nieprawidłowe dane: {e}')
