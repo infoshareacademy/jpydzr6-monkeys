@@ -22,7 +22,6 @@ db.connect()
 db.create_tables([Account])
 
 class AccountManager:
-
     @staticmethod
     def add_account(
                     account_number: str,
@@ -43,12 +42,13 @@ class AccountManager:
             raise SQLError('Konto o podanym numerze już istnieje.') from None
         else:
             print(f'Konto o numerze {account_number} zostało utworzone.')
-
     @staticmethod
-    def delete_account(account_number: str) -> None:
+    def delete_account(account_id: str) -> None:
         try:
-            Account.delete().where(Account.account_number == account_number)
-            print('Nice')
-        except DoesNotExist:
-            raise SQLError('Konto o podanym numerze nie istnieje.') from None
-        print('Pomyślnie usunięto konto.')
+            query = Account.delete().where(Account.account_id == account_id)
+            if query.execute():
+                print('Pomyślnie usunięto konto.')
+            else:
+                raise SQLError('Konto o podanym numerze ID nie istnieje.') from None
+        except IntegrityError:
+            raise SQLError('Nie udało się usunąć konta.') from None

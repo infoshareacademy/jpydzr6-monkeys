@@ -95,8 +95,8 @@ class AccountHandling(MenuItem):
                 except SQLError as e:
                     print(f'Wystąpił błąd: {e}')
             case 'U':
-                account_number = input('Podaj numer konta do usunięcia: ')
+                account_id = input('Podaj numer ID konta do usunięcia: ')
                 try:
-                    account_manager.delete_account(account_number=account_number)
+                    account_manager.delete_account(account_id=account_id)
                 except SQLError as e:
                     print(f'Wystąpił błąd: {e}')
