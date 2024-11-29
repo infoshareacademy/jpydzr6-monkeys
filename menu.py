@@ -44,7 +44,7 @@ class AccountHandling(MenuItem):
         return 'Menu obsługi kont bankowych'
 
     def get_submenu_items(self) -> dict[str,str]:
-        return {'D': 'Dodaj konto'}
+        return {'D': 'Dodaj konto', 'E':'Edytuj konto'}
 
     def do_action(self, choice: str) -> None:
         account_manager = AccountManager()
@@ -92,6 +92,8 @@ class AccountHandling(MenuItem):
                     user_id=user_id,
                     currency_id=currency
                 )
+            case 'E':
+                account_id = input('Podaj ID konta, które chcesz edytować: ')
 
 if __name__ == '__main__':
     pass
