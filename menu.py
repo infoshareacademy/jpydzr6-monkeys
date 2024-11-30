@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from account.account import AccountManager, SQLError
+from account.account import AccountManager, SQLError, ACCOUNT_PARAMETERS
 from helper import Helper, InvalidData
 
 
@@ -49,13 +49,13 @@ class AccountHandling(MenuItem):
 
     def do_action(self, choice: str) -> None:
         account_manager = AccountManager()
+        validation = Helper()
         match choice:
             case 'D':
-                validation = Helper()
                 while True:
                     account_number = input('Podaj numer konta: ')
                     try:
-                        validation.check_length(account_number,26,'Nieprawidłowa długość numeru konta')
+                        validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
                         validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
                     except InvalidData as e:
                         print(f'Nieprawidłowe dane: {e}')
@@ -101,4 +101,65 @@ class AccountHandling(MenuItem):
                     print(f'Wystąpił błąd: {e}')
 
             case 'E':
-                account_id = input('Podaj ID konta, które chcesz edytować: ')
+                while True:
+                    try:
+                        account_id = input('Podaj ID konta, które chcesz edytować lub porzuć edycję [Q]: ')
+                        account_id = validation.check_value(account_id, int, 'Numer konta powinien być liczbą.')
+                    except InvalidData as e:
+                        print(f'Wystąpił błąd: {e}')
+                        continue
+                    try:
+                        AccountManager().check_record_existence(account_id=account_id)
+                    except SQLError as e:
+                        print(f'Wystąpił błąd: {e}')
+                        continue
+                    break #todo trzeba dać możliwość cofnięcia się do submenu (łatwo wpaść w petlę bez wyjścia, jeśli baza jest pusta)
+
+                print('Możliwe do zmiany parametry konta:')
+                print('1 - numer konta\n' +
+                      '2 - nazwa konta\n' +
+                      '3 - stan konta\n' +
+                      '4 - ID użytkownika\n' +
+                      '5 - waluta\n' +
+                      'Q - porzuć edycję')
+
+                while True:
+                    param_to_change_from_user = input('Podaj jaki parametr konta chcesz zmienić: ')
+                    if param_to_change_from_user == 'Q':
+                        break # todo nie wiem jak wycofać się do submenu konta
+                    try:
+                        parameter_to_change = ACCOUNT_PARAMETERS[param_to_change_from_user]
+                    except KeyError:
+                        print('Nieprawidłowy wybór.')
+                        continue
+                    break
+                while True:
+                    new_value = input('Podaj nową wartość: ')
+                    match param_to_change_from_user:
+                        case '1' | '4':
+                            try:
+                                validation.check_value(new_value, int, 'podana wartość powinna być liczbą całkowitą.')
+                            except InvalidData as e:
+                                print(f'Wystąpił błąd: {e}')
+                                continue
+                            break
+                        case '3':
+                            try:
+                                validation.check_value(new_value, float,'podana wartość powinna być liczbą.')
+                            except InvalidData as e:
+                                print(f'Wystąpił błąd: {e}')
+                                continue
+                            break
+                        case '5':
+                            if new_value not in ['PLN', 'USD', 'EUR']:
+                                print('Podano nieprawidłową walutę.')
+                                continue
+                            break
+                    break
+                try:
+                    account_manager.edit_account(account_id, parameter_to_change, new_value)
+                except SQLError as e:
+                    print(f'Wystąpił błąd: {e}')
+                print('Zmiana została wykonana.')
+
+

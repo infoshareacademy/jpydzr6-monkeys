@@ -20,6 +20,14 @@ class Account(Model):
 db.connect()
 db.create_tables([Account])
 
+ACCOUNT_PARAMETERS ={
+    '1': Account.account_number,
+    '2': Account.account_name,
+    '3': Account.balance,
+    '4': Account.user_id,
+    '5':Account.currency_id
+}
+
 class AccountManager:
     @staticmethod
     def add_account(
@@ -52,11 +60,24 @@ class AccountManager:
                 raise SQLError('Konto o podanym numerze ID nie istnieje.') from None
         except IntegrityError:
             raise SQLError('Nie udało się usunąć konta.') from None
+        except ValueError:
+            raise SQLError('Podana nowa wartość jest nieprawidłowa.') from None
 
     @staticmethod
-    def edit_account(account_id: int, parameter_to_change: str, new_value: str) -> None:
-        try:
-            field = getattr(Account, parameter_to_change, None)
-        except ValueError:
-            raise SQLError('Nieprawdiłowo określono atrybut do zmiany.')
-        Account.update({field: new_value}).where(Account.account_id == account_id).execute()
+    def edit_account(account_id: int, parameter_to_change: str, new_value: str|int|float) -> None:
+        # try:
+        #     # field = getattr(Account, parameter_to_change, None)
+        # except ValueError:
+        #     raise SQLError('Nieprawdiłowo określono atrybut do zmiany.')
+        Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
+
+    @staticmethod
+    def check_record_existence(account_id) -> None:
+        if not Account.select().where(Account.account_id == account_id).exists():
+            raise SQLError('Konto o podanym ID nie istnieje')
+
+
+
+if __name__ == '__main__':
+    # print(AccountManager.check_record_existence())
+    AccountManager.edit_account(1, 'balance', 324)
