@@ -80,7 +80,7 @@ class AccountHandling(MenuItem):
                     break
                 while True:
                     currency = input('Podaj w jaką walutę obsługuje konto: ').upper()
-                    if currency not in ['PLN', 'USD', 'EUR']:
+                    if currency.upper() not in ['PLN', 'USD', 'EUR']:
                         print('Podano nieprawidłową walutę.')
                         continue
                     break
@@ -153,7 +153,7 @@ class AccountHandling(MenuItem):
                                 continue
                             break
                         case '5':
-                            if new_value not in ['PLN', 'USD', 'EUR']:
+                            if new_value.upper() not in ['PLN', 'USD', 'EUR']:
                                 print('Podano nieprawidłową walutę.')
                                 continue
                             break
