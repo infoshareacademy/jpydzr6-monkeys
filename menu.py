@@ -157,7 +157,6 @@ class AccountHandling(MenuItem):
                                 print('Podano nieprawidłową walutę.')
                                 continue
                             break
-                    break
                 try:
                     account_manager.edit_account(account_id, parameter_to_change, new_value)
                 except SQLError as e:
