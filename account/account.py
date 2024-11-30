@@ -41,5 +41,14 @@ class AccountManager:
         else:
             print(f'Konto o numerze {account_number} zostało utworzone.')
 
-    def edit_account():
+    @staticmethod
+    def edit_account(account_id: int, parameter_to_change: str, new_value: str) -> None:
+        try:
+            field = getattr(Account, parameter_to_change, None)
+        except ValueError:
+            raise SQLError('Nieprawdiłowo określono atrybut do zmiany.')
+        Account.update({field: new_value}).where(Account.account_id == account_id).execute()
 
+if __name__ == '__main__':
+    # AccountManager().add_account('1234', 'nowe', 321, 1, 'PLN')
+    AccountManager().edit_account(1, 'balances', 0)
