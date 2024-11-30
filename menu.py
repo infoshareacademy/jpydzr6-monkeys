@@ -104,6 +104,8 @@ class AccountHandling(MenuItem):
                 while True:
                     try:
                         account_id = input('Podaj ID konta, które chcesz edytować lub porzuć edycję [Q]: ')
+                        if account_id.upper() == 'Q':
+                            return None
                         account_id = validation.check_value(account_id, int, 'Numer konta powinien być liczbą.')
                     except InvalidData as e:
                         print(f'Wystąpił błąd: {e}')
@@ -113,20 +115,20 @@ class AccountHandling(MenuItem):
                     except SQLError as e:
                         print(f'Wystąpił błąd: {e}')
                         continue
-                    break #todo trzeba dać możliwość cofnięcia się do submenu (łatwo wpaść w petlę bez wyjścia, jeśli baza jest pusta)
+                    break
 
                 print('Możliwe do zmiany parametry konta:')
-                print('1 - numer konta\n' +
-                      '2 - nazwa konta\n' +
-                      '3 - stan konta\n' +
-                      '4 - ID użytkownika\n' +
-                      '5 - waluta\n' +
+                print('1 - numer konta\n'
+                      '2 - nazwa konta\n'
+                      '3 - stan konta\n'
+                      '4 - ID użytkownika\n'
+                      '5 - waluta\n'
                       'Q - porzuć edycję')
 
                 while True:
                     param_to_change_from_user = input('Podaj jaki parametr konta chcesz zmienić: ')
-                    if param_to_change_from_user == 'Q':
-                        break # todo nie wiem jak wycofać się do submenu konta
+                    if param_to_change_from_user.upper() == 'Q':
+                        return None
                     try:
                         parameter_to_change = ACCOUNT_PARAMETERS[param_to_change_from_user]
                     except KeyError:
