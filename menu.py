@@ -54,7 +54,7 @@ class AccountHandling(MenuItem):
             case 'D':
                 while True:
                     account_number = input('Podaj numer konta: ')
-                    try:
+                    try: #todo trzeba ustawić odpowiednią długośc numeru konta
                         validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
                         validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
                     except InvalidData as e:
@@ -161,5 +161,3 @@ class AccountHandling(MenuItem):
                 except SQLError as e:
                     print(f'Wystąpił błąd: {e}')
                 print('Zmiana została wykonana.')
-
-

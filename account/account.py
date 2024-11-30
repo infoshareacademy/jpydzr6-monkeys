@@ -65,19 +65,9 @@ class AccountManager:
 
     @staticmethod
     def edit_account(account_id: int, parameter_to_change: str, new_value: str|int|float) -> None:
-        # try:
-        #     # field = getattr(Account, parameter_to_change, None)
-        # except ValueError:
-        #     raise SQLError('Nieprawdiłowo określono atrybut do zmiany.')
         Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
 
     @staticmethod
     def check_record_existence(account_id) -> None:
         if not Account.select().where(Account.account_id == account_id).exists():
             raise SQLError('Konto o podanym ID nie istnieje')
-
-
-
-if __name__ == '__main__':
-    # print(AccountManager.check_record_existence())
-    AccountManager.edit_account(1, 'balance', 324)
