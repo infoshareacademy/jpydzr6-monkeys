@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from account.account import AccountManager
+from account.account import AccountManager, SQLError
 from helper import Helper, InvalidData
 
 
@@ -44,7 +44,7 @@ class AccountHandling(MenuItem):
         return 'Menu obsługi kont bankowych'
 
     def get_submenu_items(self) -> dict[str,str]:
-        return {'D': 'Dodaj konto'}
+        return {'D': 'Dodaj konto', 'U': 'Usuń konto'}
 
     def do_action(self, choice: str) -> None:
         account_manager = AccountManager()
@@ -54,7 +54,7 @@ class AccountHandling(MenuItem):
                 while True:
                     account_number = input('Podaj numer konta: ')
                     try:
-                        validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
+                        validation.check_length(account_number,26,'Nieprawidłowa długość numeru konta')
                         validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
                     except InvalidData as e:
                         print(f'Nieprawidłowe dane: {e}')
@@ -84,14 +84,19 @@ class AccountHandling(MenuItem):
                         continue
                     break
                 account_name = input('Nadaj kontu nazwę: ')
-
-                account_manager.add_account(
-                    account_number=account_number,
-                    account_name=account_name,
-                    balance=balance,
-                    user_id=user_id,
-                    currency_id=currency
-                )
-
-if __name__ == '__main__':
-    pass
+                try:
+                    account_manager.add_account(
+                        account_number=account_number,
+                        account_name=account_name,
+                        balance=balance,
+                        user_id=user_id,
+                        currency_id=currency
+                    )
+                except SQLError as e:
+                    print(f'Wystąpił błąd: {e}')
+            case 'U':
+                account_id = input('Podaj numer ID konta do usunięcia: ')
+                try:
+                    account_manager.delete_account(account_id=account_id)
+                except SQLError as e:
+                    print(f'Wystąpił błąd: {e}')
