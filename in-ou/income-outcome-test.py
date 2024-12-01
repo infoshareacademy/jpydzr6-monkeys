@@ -1,13 +1,13 @@
 import unittest
 import os
 from datetime import datetime
-from budget_manager import BudgetManager
-
+from budget_manager import Transactions
 
 class TestBudgetManager(unittest.TestCase):
     def setUp(self):
         self.test_db = 'test_budget.db'
-        self.manager = BudgetManager(db_name=self.test_db)
+        self.test_table = 'test_operations'
+        self.manager = Transactions(db_name=self.test_db, table_name=self.test_table)
 
     def tearDown(self):
         if os.path.exists(self.test_db):
@@ -20,7 +20,6 @@ class TestBudgetManager(unittest.TestCase):
             description='Test income',
             category='Test category'
         )
-        self.manager.load_budget_from_file()
         self.assertEqual(len(self.manager.budget), 1)
         self.assertEqual(self.manager.budget[0]['type'], 'income')
         self.assertEqual(self.manager.budget[0]['amount'], 100.50)
@@ -34,9 +33,7 @@ class TestBudgetManager(unittest.TestCase):
             description='To delete',
             category='Test'
         )
-        self.manager.load_budget_from_file()
         self.manager.delete_budget_entry(1)
-        self.manager.load_budget_from_file()
         self.assertEqual(len(self.manager.budget), 0)
 
     def test_show_budget_summary(self):
@@ -52,8 +49,6 @@ class TestBudgetManager(unittest.TestCase):
             description='Test outcome',
             category='Category2'
         )
-        self.manager.load_budget_from_file()
-
         income = sum(entry['amount'] for entry in self.manager.budget if entry['type'] == 'income')
         outcome = sum(entry['amount'] for entry in self.manager.budget if entry['type'] == 'outcome')
         balance = income - outcome
@@ -69,27 +64,22 @@ class TestBudgetManager(unittest.TestCase):
             description='Initial description',
             category='Initial category'
         )
-        self.manager.load_budget_from_file()
 
-        entry_index = 1
-        new_type = 'outcome'
-        new_amount = 75.50
-        new_description = 'Updated description'
-        new_category = 'Updated category'
-
-        self.manager.budget[entry_index - 1]['type'] = new_type
-        self.manager.budget[entry_index - 1]['amount'] = new_amount
-        self.manager.budget[entry_index - 1]['description'] = new_description
-        self.manager.budget[entry_index - 1]['category'] = new_category
+        entry = self.manager.budget[0]
+        entry['type'] = 'outcome'
+        entry['amount'] = 75.50
+        entry['description'] = 'Updated description'
+        entry['category'] = 'Updated category'
+        entry['date'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         self.manager.save_budget_to_file()
         self.manager.load_budget_from_file()
 
         edited_entry = self.manager.budget[0]
-        self.assertEqual(edited_entry['type'], new_type)
-        self.assertEqual(edited_entry['amount'], new_amount)
-        self.assertEqual(edited_entry['description'], new_description)
-        self.assertEqual(edited_entry['category'], new_category)
+        self.assertEqual(edited_entry['type'], 'outcome')
+        self.assertEqual(edited_entry['amount'], 75.50)
+        self.assertEqual(edited_entry['description'], 'Updated description')
+        self.assertEqual(edited_entry['category'], 'Updated category')
 
     def test_show_incomes(self):
         self.manager.add_budget_entry(
@@ -98,7 +88,6 @@ class TestBudgetManager(unittest.TestCase):
             description='Income test',
             category='Income category'
         )
-        self.manager.load_budget_from_file()
         incomes = [entry for entry in self.manager.budget if entry['type'] == 'income']
         self.assertEqual(len(incomes), 1)
         self.assertEqual(incomes[0]['amount'], 300)
@@ -110,7 +99,6 @@ class TestBudgetManager(unittest.TestCase):
             description='Outcome test',
             category='Outcome category'
         )
-        self.manager.load_budget_from_file()
         outcomes = [entry for entry in self.manager.budget if entry['type'] == 'outcome']
         self.assertEqual(len(outcomes), 1)
         self.assertEqual(outcomes[0]['amount'], 150)
