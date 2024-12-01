@@ -2,9 +2,13 @@ import sqlite3
 import shutil
 import os
 from datetime import datetime
+import re
 
 class Transactions:
-    def __init__(self, db_name='budget.db'):
+    def __init__(self, db_name='budget.db', table_name='operations'):
+        if not re.match(r'^\w+$', table_name): #bez znaków specjalnych w nazwie tabeli
+            raise ValueError("Nawa tabeli zawiera niedozwolone znaki.")
+        self.table_name = db_name
         self.db_name = db_name
         self.budget = []
         self.create_table()
@@ -17,7 +21,7 @@ class Transactions:
         with self.create_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-            CREATE TABLE IF NOT EXISTS budget (
+            CREATE TABLE IF NOT EXISTS  {self.table_name} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 entry_type TEXT NOT NULL,
                 amount INTEGER NOT NULL,
@@ -47,7 +51,7 @@ class Transactions:
                 for entry in self.budget:
                     amount_in_grosze = int(round(entry['amount'] * 100))
                     cursor.execute('''
-                    INSERT INTO budget (entry_type, amount, description, category, date)
+                    INSERT INTO {self.table_name} (entry_type, amount, description, category, date)
                     VALUES (?, ?, ?, ?, ?)
                     ''', (entry['type'], amount_in_grosze, entry['description'], entry['category'], entry['date']))
                 # Zatwierdzenie transakcji
@@ -65,7 +69,7 @@ class Transactions:
         #integracja z sqlitem - pobiera dane z bazy
         with self.create_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT entry_type, amount, description, category, date FROM budget")
+            cursor.execute("SELECT entry_type, amount, description, category, date FROM {self.table_name}")
             rows = cursor.fetchall()
             self.budget = [{
                 'type': row[0],
@@ -103,7 +107,7 @@ class Transactions:
             with self.create_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
-                INSERT INTO budget (entry_type, amount, description, category, date)
+                INSERT INTO {self.table_name} (entry_type, amount, description, category, date)
                 VALUES (?, ?, ?, ?, ?)
             ''', (entry_type, amount_in_grosze, description, category, entry_date))
                 conn.commit()
