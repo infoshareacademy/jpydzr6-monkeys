@@ -7,7 +7,7 @@ class SQLError(Exception):
 
 class Account(Model):
     DoesNotExist = None
-    account_id = AutoField()
+    account_id = AutoField(primary_key=True)
     account_number = CharField(unique=True)
     account_name = CharField()
     balance = DecimalField(decimal_places=2)
@@ -27,6 +27,7 @@ ACCOUNT_PARAMETERS ={
     '4': Account.user_id,
     '5':Account.currency_id
 }
+
 
 class AccountManager:
     @staticmethod
