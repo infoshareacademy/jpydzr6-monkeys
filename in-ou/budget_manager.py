@@ -1,7 +1,9 @@
 import sqlite3
+import shutil
+import os
 from datetime import datetime
 
-class BudgetManager:
+class Transactions:
     def __init__(self, db_name='budget.db'):
         self.db_name = db_name
         self.budget = []
@@ -27,17 +29,35 @@ class BudgetManager:
             conn.commit()
 
     def save_budget_to_file(self):
-        #integracja z sqlitem - zapisuje dane do bazy
-        with self.create_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM budget")  # Usuwa stare dane
-            for entry in self.budget:
-                cursor.execute('''
-                INSERT INTO budget (entry_type, amount, description, category, date)
-                VALUES (?, ?, ?, ?, ?)
-                ''', (entry['type'], entry['amount'], entry['description'], entry['category'], entry['date']))
-            conn.commit()
-        print("Budżet został zapisany do bazy danych.")
+        # Integracja z SQLite - zapisuje dane do bazy
+        backup_db = self.db_name + '.bak'
+        try:
+            # Tworzenie kopii zapasowej bazy danych
+            shutil.copyfile(self.db_name, backup_db)
+            print("Kopia zapasowa bazy danych została utworzona.")
+
+            with self.create_connection() as conn:
+                cursor = conn.cursor()
+                # Rozpoczęcie transakcji
+                cursor.execute('BEGIN TRANSACTION;')
+                # Usunięcie starych danych
+                cursor.execute("DELETE FROM budget")
+                # Wstawienie nowych danych
+                for entry in self.budget:
+                    cursor.execute('''
+                    INSERT INTO budget (entry_type, amount, description, category, date)
+                    VALUES (?, ?, ?, ?, ?)
+                    ''', (entry['type'], entry['amount'], entry['description'], entry['category'], entry['date']))
+                # Zatwierdzenie transakcji
+                conn.commit()
+            # Usunięcie kopii zapasowej po pomyślnym zapisie
+            os.remove(backup_db)
+            print("Budżet został zapisany do bazy danych.")
+        except Exception as e:
+            print(f"Błąd podczas zapisywania budżetu: {e}")
+            # Przywrócenie bazy danych z kopii zapasowej
+            shutil.copyfile(backup_db, self.db_name)
+            print("Przywrócono bazę danych z kopii zapasowej.")
 
     def load_budget_from_file(self):
         #integracja z sqlitem - pobiera dane z bazy
@@ -245,3 +265,15 @@ class BudgetManager:
             print(f"Wpis usunięty: {entry['type']} - {entry['amount']} PLN, {entry['description']}")
         except IndexError:
             print(f"Nie ma wpisu z podanym indeksem: {index}")
+
+
+if __name__ == '__main__':
+    manager = Transactions()
+
+    manager.add_budget_entry('income', 350, 'Wynagrodzenie', 'Praca')
+    manager.add_budget_entry('outcome', 40, 'Zakupy spożywcze', 'Jedzenie')
+
+print("\n--- Lista dochodów ---")
+manager.show_incomes()
+print("\n--- Lista wydatków ---")
+manager.show_outcomes()
