@@ -33,8 +33,11 @@ class Transactions:
         backup_db = self.db_name + '.bak'
         try:
             # Tworzenie kopii zapasowej bazy danych
-            shutil.copyfile(self.db_name, backup_db)
-            print("Kopia zapasowa bazy danych została utworzona.")
+            if os.path.exists(self.db_name):
+                shutil.copyfile(self.db_name, backup_db)
+                print("Kopia zapasowa bazy danych została utworzona.")
+            else:
+                print("Plik bazy danych nie isnieje. Kopia zapasowa nie została utrworzona.")
 
             with self.create_connection() as conn:
                 cursor = conn.cursor()
@@ -48,7 +51,7 @@ class Transactions:
                     VALUES (?, ?, ?, ?, ?)
                     ''', (entry['type'], amount_in_grosze, entry['description'], entry['category'], entry['date']))
                 # Zatwierdzenie transakcji
-                conn.commit()
+            conn.commit()
             # Usunięcie kopii zapasowej po pomyślnym zapisie
             os.remove(backup_db)
             print("Budżet został zapisany do bazy danych.")
@@ -76,7 +79,7 @@ class Transactions:
     def add_budget_entry(self, entry_type, amount, description, category="brak kategorii"):
         errors = [] #lista błędów
         if entry_type not in ["income", "outcome"]:
-            errors.append("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.") #Zmienić na I / O, czy zostawić pełne słowa?
+            errors.append("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.")
 
         try:
             amount = float(amount)
@@ -103,14 +106,14 @@ class Transactions:
                 INSERT INTO budget (entry_type, amount, description, category, date)
                 VALUES (?, ?, ?, ?, ?)
             ''', (entry_type, amount_in_grosze, description, category, entry_date))
-            conn.commit()
+                conn.commit()
             self.load_budget_from_file()
             print(f"Pomyślnie dodano wpis: {entry_type}, - {amount:.2f} PLN, opis {description}, kategoria: {category}")
         except sqlite3.Error as e:
             print(f"Błąd podczas dodawania wpisu: {e}")
 
 
-    def add_budget_entry_input(self): #Dodawanie wpisów z inputem, również do usunięcia w przyszłości.
+    def add_budget_entry_input(self):
         while True:
             entry_type = input(
                 "Wprowadź rodzaj wpisu ('income' dla dochodu lub 'outcome' dla wydatku, lub 'exit' aby zakończyć): ").strip().lower() # To samo co wyżej, może warto zmienić na I/O?
@@ -165,7 +168,7 @@ class Transactions:
             print(f" - Wydatki: {expenses:.2f} PLN")
             print(f" - Saldo: {balance:.2f} PLN")
         except KeyError as e:
-            print(f"Blad: brakuje klucza w danych wpisu budzetowego ({e})")
+            print(f"Bląd: brakuje klucza w danych wpisu budzetowego ({e})")
     #filtracja TYLKO przychodów zamiast ogólnych wpisów
     def show_incomes_by_category(self, category):
         try:
@@ -189,7 +192,7 @@ class Transactions:
             if not outcomes:
                 print(f"Brak wydatków w kategorii '{category}'.")
                 return
-            print(f"Lista wydatków w kategorii '{category}:")
+            print(f"Lista wydatków w kategorii '{category}':")
             for i, entry in enumerate(outcomes, 1):
                 print(f"{i}. Kwota: {entry['amount']} PLN, Opis: {entry['description']}, Data: {entry['date']}")
         except KeyError as e:
@@ -206,7 +209,7 @@ class Transactions:
                 return
             print("Lista dochodów: ")
             for i, entry in enumerate(incomes, 1):
-                print(f"{i}. Kwota: {entry['amount']} PLN, Opis: {entry['description']}, Kategoria: "
+                print(f"{i}. Kwota: {entry['amount']:.2f} PLN, Opis: {entry['description']}, Kategoria: "
                       f"{entry.get('category', 'Brak kategorii')}, Data: {entry['date']}")
         except KeyError as e:
             print(f"Błąd: Brakuje klucza w danych budżetu ({e}). ")
@@ -242,8 +245,9 @@ class Transactions:
                 new_amount_input = input("Nowa kwota: ").strip()
                 if new_amount_input:
                     new_amount = float(new_amount_input)
-                    if new_amount <=0:
+                    if new_amount <= 0:
                         print("Błąd: Kwota musi być dodatnia.")
+                        return
                     entry["amount"] = new_amount
             except ValueError:
                 print("Błąd: niepoprawna kwota. Pozostawiono starą wartość.")
@@ -273,24 +277,11 @@ class Transactions:
         except Exception as e:
             print(f"Błąd: {e}")
 
-    #usuwanie wpisow prawdopodobnie do poprawienia, ale jeszcze nie wiem w jaki sposób
     def delete_budget_entry(self, index):
         try:
             print(f"Próba usunięcia wpisu o indeksie: {index}")
             entry = self.budget.pop(index - 1)
             self.save_budget_to_file()
-            print(f"Wpis usunięty: {entry['type']} - {entry['amount']} PLN, {entry['description']}")
+            print(f"Wpis usunięty: {entry['type']} - {entry['amount']:.2f} PLN, {entry['description']}")
         except IndexError:
             print(f"Nie ma wpisu z podanym indeksem: {index}")
-
-
-if __name__ == '__main__':
-    manager = Transactions()
-
-    manager.add_budget_entry('income', 350, 'Wynagrodzenie', 'Praca')
-    manager.add_budget_entry('outcome', 40, 'Zakupy spożywcze', 'Jedzenie')
-
-print("\n--- Lista dochodów ---")
-manager.show_incomes()
-print("\n--- Lista wydatków ---")
-manager.show_outcomes()
