@@ -101,7 +101,7 @@ class AccountHandling(MenuItem):
                 except SQLError as e:
                     print(f'Wystąpił błąd: {e}')
 
-            case 'E':
+            case 'E': #todo dodaj wyswietlenie kont
                 while True:
                     try:
                         account_id = input('Podaj ID konta, które chcesz edytować lub porzuć edycję [Q]: ')

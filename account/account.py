@@ -69,6 +69,6 @@ class AccountManager:
         Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
 
     @staticmethod
-    def check_record_existence(account_id) -> None:
+    def check_record_existence(account_id: int) -> None:
         if not Account.select().where(Account.account_id == account_id).exists():
             raise SQLError('Konto o podanym ID nie istnieje')
