@@ -38,16 +38,15 @@ class Transactions:
 
             with self.create_connection() as conn:
                 cursor = conn.cursor()
-                # Rozpoczęcie transakcji
                 cursor.execute('BEGIN TRANSACTION;')
-                # Usunięcie starych danych
                 cursor.execute("DELETE FROM budget")
-                # Wstawienie nowych danych
+
                 for entry in self.budget:
+                    amount_in_grosze = int(round(entry['amount'] * 100))
                     cursor.execute('''
                     INSERT INTO budget (entry_type, amount, description, category, date)
                     VALUES (?, ?, ?, ?, ?)
-                    ''', (entry['type'], entry['amount'], entry['description'], entry['category'], entry['date']))
+                    ''', (entry['type'], amount_in_grosze, entry['description'], entry['category'], entry['date']))
                 # Zatwierdzenie transakcji
                 conn.commit()
             # Usunięcie kopii zapasowej po pomyślnym zapisie
@@ -67,7 +66,7 @@ class Transactions:
             rows = cursor.fetchall()
             self.budget = [{
                 'type': row[0],
-                'amount': row[1],
+                'amount': row[1] / 100, # Groszy / złotówki
                 'description': row[2],
                 'category': row[3],
                 'date': row[4]
@@ -101,10 +100,11 @@ class Transactions:
             with self.create_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
-                INSERT INTO budget (entry_type, amount, descriptin, category, date)
+                INSERT INTO budget (entry_type, amount, description, category, date)
                 VALUES (?, ?, ?, ?, ?)
             ''', (entry_type, amount_in_grosze, description, category, entry_date))
             conn.commit()
+            self.load_budget_from_file()
             print(f"Pomyślnie dodano wpis: {entry_type}, - {amount:.2f} PLN, opis {description}, kategoria: {category}")
         except sqlite3.Error as e:
             print(f"Błąd podczas dodawania wpisu: {e}")
@@ -149,7 +149,7 @@ class Transactions:
             sorted_budget = sorted(self.budget, key=lambda x: x['date'])
             for i, entry in enumerate(sorted_budget, 1):
                 category = entry.get('category', 'Brak kategorii')
-                print(f"{i}. {entry['type']}: {entry['amount']} PLN, {entry['description']} "
+                print(f"{i}. {entry['type']}: {entry['amount']:.2f} PLN, {entry['description']} "
                       f"(Kategoria: {category}, Data: {entry['date']})")
         # status konta ( wydatki, przychody, saldo )
     def show_budget_summary(self):
@@ -176,7 +176,7 @@ class Transactions:
                 return
             print(f"Lista dochodów w kategorii '{category}':")
             for i, entry in enumerate(incomes, 1):
-                print(f"{i}. Kwota: {entry['amount']} PLN, Opis: {entry['description']}, Data: {entry['date']}")
+                print(f"{i}. Kwota: {entry['amount']:.2f} PLN, Opis: {entry['description']}, Data: {entry['date']}")
         except KeyError as e:
             print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
         except Exception as e:
@@ -221,7 +221,7 @@ class Transactions:
                 return
             print("Lista wydatków: ")
             for i, entry in enumerate(outcomes, 1):
-                print(f"{i}. Kwota: {entry['amount']} PLN, Opis: {entry['description']}, "
+                print(f"{i}. Kwota: {entry['amount']:.2f} PLN, Opis: {entry['description']}, "
                       f"Kategoria: {entry.get('category', 'Brak kategorii')}, Data: {entry['date']}")
         except KeyError as e:
             print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
@@ -239,9 +239,12 @@ class Transactions:
                 entry["type"] = new_type
 
             try:
-                new_amount = input("Nowa kwota: ").strip()
-                if new_amount:
-                    entry["amount"] = float(new_amount)
+                new_amount_input = input("Nowa kwota: ").strip()
+                if new_amount_input:
+                    new_amount = float(new_amount_input)
+                    if new_amount <=0:
+                        print("Błąd: Kwota musi być dodatnia.")
+                    entry["amount"] = new_amount
             except ValueError:
                 print("Błąd: niepoprawna kwota. Pozostawiono starą wartość.")
 
