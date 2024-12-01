@@ -52,7 +52,7 @@ class AccountManager:
             print(f'Konto o numerze {account_number} zostało utworzone.')
 
     @staticmethod
-    def delete_account(account_id: str) -> None:
+    def delete_account(account_id: str) -> None: # todo przyjrzyj się temu typowaniu
         try:
             query = Account.delete().where(Account.account_id == account_id)
             if query.execute():
