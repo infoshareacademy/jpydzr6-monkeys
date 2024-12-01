@@ -75,26 +75,40 @@ class Transactions:
         print("Budżet został załadowany z bazy danych.")
 
     def add_budget_entry(self, entry_type, amount, description, category="brak kategorii"):
+        errors = [] #lista błędów
         if entry_type not in ["income", "outcome"]:
-            print("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.") #Zmienić na I / O, czy zostawić pełne słowa?
-            return
-        if not isinstance(amount, (int, float)) or amount <= 0:
-            print("Blad: Kwota musi być liczbą dodatnią.")
-            return
+            errors.append("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.") #Zmienić na I / O, czy zostawić pełne słowa?
+
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                errors.append("Błąd: Kwota musi być dodatnią.")
+        except ValueError:
+            errors.append("Błąd: Kwota musi być liczbą.")
+
         if len(description) > 255:
-            print("Blad: Opis jest za długi (maksymalnie 255 znaków).")
+            errors.append("Błąd: Opis jest za długi (maksymalnie 255 znaków).")
+
+        if errors:
+            for error in errors:
+                print(error)
             return
 
-        entry = {
-            "type": entry_type,
-            "amount": amount,
-            "description": description,
-            "category": category,
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
-        self.budget.append(entry)
-        self.save_budget_to_file()
-        print(f"Pomyślnie dodano wpis: {entry_type}, - {amount} PLN, opis: {description}, kategoria: {category}")
+        amount_in_grosze = int(round(amount * 100))
+
+        entry_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        try:
+            with self.create_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                INSERT INTO budget (entry_type, amount, descriptin, category, date)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (entry_type, amount_in_grosze, description, category, entry_date))
+            conn.commit()
+            print(f"Pomyślnie dodano wpis: {entry_type}, - {amount:.2f} PLN, opis {description}, kategoria: {category}")
+        except sqlite3.Error as e:
+            print(f"Błąd podczas dodawania wpisu: {e}")
+
 
     def add_budget_entry_input(self): #Dodawanie wpisów z inputem, również do usunięcia w przyszłości.
         while True:
