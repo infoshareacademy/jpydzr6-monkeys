@@ -20,7 +20,7 @@ class Transactions:
             CREATE TABLE IF NOT EXISTS budget (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 entry_type TEXT NOT NULL,
-                amount REAL NOT NULL,
+                amount INTEGER NOT NULL,
                 description TEXT,
                 category TEXT,
                 date TEXT NOT NULL
