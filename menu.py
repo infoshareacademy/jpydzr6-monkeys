@@ -53,11 +53,12 @@ class AccountHandling(MenuItem):
         match choice:
             case 'D':
                 while True:
+                    # todo popraw walidację istnienia konta, żeby była od razu
                     account_number = input('Podaj numer konta: ')
                     try: #todo trzeba ustawić odpowiednią długośc numeru konta
                         validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
                         validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
-                    except InvalidData as e:
+                    except InvalidData as e: # todo dodaj check_value, żeby na 100% to był str
                         print(f'Nieprawidłowe dane: {e}')
                         continue
                     break
@@ -157,6 +158,7 @@ class AccountHandling(MenuItem):
                                 print('Podano nieprawidłową walutę.')
                                 continue
                             break
+                    break
                 try:
                     account_manager.edit_account(account_id, parameter_to_change, new_value)
                 except SQLError as e:
