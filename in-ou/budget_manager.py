@@ -37,7 +37,7 @@ class Transactions:
                 shutil.copyfile(self.db_name, backup_db)
                 print("Kopia zapasowa bazy danych została utworzona.")
             else:
-                print("Plik bazy danych nie isnieje. Kopia zapasowa nie została utrworzona.")
+                print("Plik bazy danych nie istnieje. Kopia zapasowa nie została utworzona.")
 
             with self.create_connection() as conn:
                 cursor = conn.cursor()
@@ -51,7 +51,7 @@ class Transactions:
                     VALUES (?, ?, ?, ?, ?)
                     ''', (entry['type'], amount_in_grosze, entry['description'], entry['category'], entry['date']))
                 # Zatwierdzenie transakcji
-            conn.commit()
+                conn.commit()
             # Usunięcie kopii zapasowej po pomyślnym zapisie
             os.remove(backup_db)
             print("Budżet został zapisany do bazy danych.")
@@ -79,12 +79,12 @@ class Transactions:
     def add_budget_entry(self, entry_type, amount, description, category="brak kategorii"):
         errors = [] #lista błędów
         if entry_type not in ["income", "outcome"]:
-            errors.append("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.")
+            errors.append("Błąd: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.")
 
         try:
             amount = float(amount)
             if amount <= 0:
-                errors.append("Błąd: Kwota musi być dodatnią.")
+                errors.append("Błąd: Kwota musi być dodatnia.")
         except ValueError:
             errors.append("Błąd: Kwota musi być liczbą.")
 
@@ -139,9 +139,9 @@ class Transactions:
         if not description:
             description = "Brak opisu" #domyślny opis
 
-        category = input("Wprowadz kategorię wpisu: ").strip()
+        category = input("Wprowadź kategorię wpisu: ").strip()
         if not category:
-            category = "Brak kategorii" # domyśla kategoria
+            category = "Brak kategorii" # domyślna kategoria
 
         self.add_budget_entry(entry_type, amount, description, category)
 
@@ -168,7 +168,7 @@ class Transactions:
             print(f" - Wydatki: {expenses:.2f} PLN")
             print(f" - Saldo: {balance:.2f} PLN")
         except KeyError as e:
-            print(f"Bląd: brakuje klucza w danych wpisu budzetowego ({e})")
+            print(f"Błąd: brakuje klucza w danych wpisu budżetowego ({e})")
     #filtracja TYLKO przychodów zamiast ogólnych wpisów
     def show_incomes_by_category(self, category):
         try:
@@ -194,7 +194,7 @@ class Transactions:
                 return
             print(f"Lista wydatków w kategorii '{category}':")
             for i, entry in enumerate(outcomes, 1):
-                print(f"{i}. Kwota: {entry['amount']} PLN, Opis: {entry['description']}, Data: {entry['date']}")
+                print(f"{i}. Kwota: {entry['amount']:.2f} PLN, Opis: {entry['description']}, Data: {entry['date']}")
         except KeyError as e:
             print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
         except Exception as e:
@@ -234,7 +234,7 @@ class Transactions:
     def edit_budget_entry(self, index):
         try:
             entry = self.budget[index - 1]
-            print(f"Edycja wpisu: {entry['type']}: {entry['amount']} PLN, {entry['description']}")
+            print(f"Edycja wpisu: {entry['type']}: {entry['amount']:.2f} PLN, {entry['description']}")
 
             #Tu użytkownik wpisuje nowe dane, Value Error wystarczy czy coś więcej?
             new_type = input("Nowy typ (income/outcome): ").strip().lower()
