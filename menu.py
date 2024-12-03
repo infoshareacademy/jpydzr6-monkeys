@@ -59,7 +59,7 @@ class AccountHandling(MenuItem):
                         validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
                         validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
                     except InvalidData as e: # todo dodaj check_value, żeby na 100% to był str
-                        print(f'Nieprawidłowe dane: {e}')
+                        print(f'\nNieprawidłowe dane: {e}')
                         continue
                     break
                 while True:
@@ -67,7 +67,7 @@ class AccountHandling(MenuItem):
                     try:
                         balance = validation.check_value(balance, float, 'Stan konta powinien być podany jako liczba.')
                     except InvalidData as e:
-                        print(f'Nieprawidłowe dane: {e}')
+                        print(f'\nNieprawidłowe dane: {e}')
                         continue
                     break
                 while True:
@@ -76,13 +76,13 @@ class AccountHandling(MenuItem):
                     try:
                         user_id = validation.check_value(user_id, int, 'Podano nieprawidłowe ID')
                     except InvalidData as e:
-                        print(f'Nieprawidłowe dane: {e}')
+                        print(f'\nNieprawidłowe dane: {e}')
                         continue
                     break
                 while True:
                     currency = input('Podaj w jaką walutę obsługuje konto: ').upper()
                     if currency.upper() not in ['PLN', 'USD', 'EUR']:
-                        print('Podano nieprawidłową walutę.')
+                        print('\nPodano nieprawidłową walutę.')
                         continue
                     break
                 account_name = input('Nadaj kontu nazwę: ')
@@ -109,12 +109,12 @@ class AccountHandling(MenuItem):
                             return None
                         account_id = validation.check_value(account_id, int, 'Numer konta powinien być liczbą.')
                     except InvalidData as e:
-                        print(f'Wystąpił błąd: {e}')
+                        print(f'\nWystąpił błąd: {e}')
                         continue
                     try:
                         AccountManager().check_record_existence(account_id=account_id)
                     except SQLError as e:
-                        print(f'Wystąpił błąd: {e}')
+                        print(f'\nWystąpił błąd: {e}')
                         continue
                     break
 
@@ -133,7 +133,7 @@ class AccountHandling(MenuItem):
                     try:
                         parameter_to_change = ACCOUNT_PARAMETERS[param_to_change_from_user]
                     except KeyError:
-                        print('Nieprawidłowy wybór.')
+                        print('\nNieprawidłowy wybór.')
                         continue
                     break
                 while True:
@@ -143,26 +143,30 @@ class AccountHandling(MenuItem):
                             try:
                                 validation.check_value(new_value, int, 'podana wartość powinna być liczbą całkowitą.')
                             except InvalidData as e:
-                                print(f'Wystąpił błąd: {e}')
+                                print(f'\nWystąpił błąd: {e}')
                                 continue
                             break
                         case '3':
                             try:
                                 validation.check_value(new_value, float,'podana wartość powinna być liczbą.')
                             except InvalidData as e:
-                                print(f'Wystąpił błąd: {e}')
+                                print(f'\nWystąpił błąd: {e}')
                                 continue
                             break
                         case '5':
                             if new_value.upper() not in ['PLN', 'USD', 'EUR']:
-                                print('Podano nieprawidłową walutę.')
+                                print('\nPodano nieprawidłową walutę.')
                                 continue
                             break
                     break
                 try:
                     account_manager.edit_account(account_id, parameter_to_change, new_value)
                 except SQLError as e:
-                    print(f'Wystąpił błąd: {e}')
+                    print(f'\nWystąpił błąd: {e}')
                 print('Zmiana została wykonana.')
             case 'P':
                 account_id = input('Podaj numer id konta, którego szczegóły chcesz wyświetlić lub wciśniej enter, żeby zobaczyć wszystkie konta.')
+                try:
+                    account_manager.show_account(account_id)
+                except SQLError as e:
+                    print(f'\nWystąpił błąd: {e}')

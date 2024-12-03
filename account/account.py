@@ -1,4 +1,5 @@
-from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, DecimalField, IntegrityError
+from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, DecimalField, IntegrityError, \
+    DoesNotExist
 
 db = SqliteDatabase('budget.db')
 
@@ -76,15 +77,25 @@ class AccountManager:
             raise SQLError('Konto o podanym ID nie istnieje')
 
     @staticmethod
-    def show_account(account_id: int | None) -> None:
-        record = Account.select().where(Account.account_id == account_id).get()
-
-        print(f'ID konta: {record.account_id}\n'
-              f'Nazwa konta: {record.account_name}\n'
-              f'Numer konta: {record.account_number}\n'
-              f'Stan konta: {record.balance}{record.currency_id}\n')
+    def show_account(account_id: str) -> None: #todo pogadaj z markiem o przekazywaniu str albo int czy warto robić walidację
+        if account_id:
+            try:
+                record = Account.select().where(Account.account_id == account_id).get()
+            except DoesNotExist:
+                raise SQLError('Konto o podanym ID nie istnieje.') from None
+            else:
+                print(f'\nID konta: {record.account_id}\n'
+                      f'Nazwa konta: {record.account_name}\n'
+                      f'Numer konta: {record.account_number}\n'
+                      f'Stan konta: {record.balance} {record.currency_id}\n')
+        else:
+            for record in Account:
+                print(f'\nID konta: {record.account_id}\n'
+                      f'Nazwa konta: {record.account_name}\n'
+                      f'Numer konta: {record.account_number}\n'
+                      f'Stan konta: {record.balance} {record.currency_id}\n')
 
 
 if __name__ == '__main__':
     test = AccountManager()
-    test.show_account(1)
+    test.show_account('')
