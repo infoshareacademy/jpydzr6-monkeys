@@ -63,12 +63,28 @@ class AccountManager:
             raise SQLError('Nie udało się usunąć konta.') from None
         except ValueError:
             raise SQLError('Podana nowa wartość jest nieprawidłowa.') from None
+        # todo tutaj nie ma nowej wartości :O skąd ten ValueError
 
     @staticmethod
     def edit_account(account_id: int, parameter_to_change: str, new_value: str|int|float) -> None:
         Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
+        #todo tu chyba trzeba dodać IntegrityError
 
     @staticmethod
     def check_record_existence(account_id: int) -> None:
         if not Account.select().where(Account.account_id == account_id).exists():
             raise SQLError('Konto o podanym ID nie istnieje')
+
+    @staticmethod
+    def show_account(account_id: int | None) -> None:
+        record = Account.select().where(Account.account_id == account_id).get()
+
+        print(f'ID konta: {record.account_id}\n'
+              f'Nazwa konta: {record.account_name}\n'
+              f'Numer konta: {record.account_number}\n'
+              f'Stan konta: {record.balance}{record.currency_id}\n')
+
+
+if __name__ == '__main__':
+    test = AccountManager()
+    test.show_account(1)
