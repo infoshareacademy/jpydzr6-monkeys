@@ -1,5 +1,5 @@
 from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, DecimalField, IntegrityError, \
-    DoesNotExist
+    DoesNotExist, OperationalError
 
 db = SqliteDatabase('budget.db')
 
@@ -50,7 +50,7 @@ class AccountManager:
         except IntegrityError:
             raise SQLError('Konto o podanym numerze już istnieje.') from None
         else:
-            print(f'Konto o numerze {account_number} zostało utworzone.')
+            print(f'\nKonto o numerze {account_number} zostało utworzone.')
 
     @staticmethod
     def delete_account(account_id: str) -> None: # todo przyjrzyj się temu typowaniu
@@ -83,19 +83,18 @@ class AccountManager:
                 record = Account.select().where(Account.account_id == account_id).get()
             except DoesNotExist:
                 raise SQLError('Konto o podanym ID nie istnieje.') from None
+
             else:
                 print(f'\nID konta: {record.account_id}\n'
                       f'Nazwa konta: {record.account_name}\n'
                       f'Numer konta: {record.account_number}\n'
                       f'Stan konta: {record.balance} {record.currency_id}\n')
         else:
-            for record in Account:
-                print(f'\nID konta: {record.account_id}\n'
-                      f'Nazwa konta: {record.account_name}\n'
-                      f'Numer konta: {record.account_number}\n'
-                      f'Stan konta: {record.balance} {record.currency_id}\n')
-
-
-if __name__ == '__main__':
-    test = AccountManager()
-    test.show_account('')
+            try:
+                for record in Account:
+                    print(f'\nID konta: {record.account_id}\n'
+                          f'Nazwa konta: {record.account_name}\n'
+                          f'Numer konta: {record.account_number}\n'
+                          f'Stan konta: {record.balance} {record.currency_id}\n')
+            except OperationalError:
+                raise SQLError('Wystąpił problem połączenia z bazą danych.')
