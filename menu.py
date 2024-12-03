@@ -44,7 +44,7 @@ class AccountHandling(MenuItem):
         return 'Menu obsługi kont bankowych'
 
     def get_submenu_items(self) -> dict[str,str]:
-        return {'D': 'Dodaj konto', 'E':'Edytuj konto', 'U': 'Usuń konto'}
+        return {'D': 'Dodaj konto', 'E':'Edytuj konto', 'U': 'Usuń konto', 'P': 'Pokaż szczegóły konta.'}
 
 
     def do_action(self, choice: str) -> None:
@@ -164,3 +164,5 @@ class AccountHandling(MenuItem):
                 except SQLError as e:
                     print(f'Wystąpił błąd: {e}')
                 print('Zmiana została wykonana.')
+            case 'P':
+                account_id = input('Podaj numer id konta, którego szczegóły chcesz wyświetlić lub wciśniej enter, żeby zobaczyć wszystkie konta.')
