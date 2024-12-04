@@ -53,12 +53,13 @@ class AccountHandling(MenuItem):
         match choice:
             case 'D':
                 while True:
+                    # todo daj możliwość dodawania gotówki (numer konta ma być unikalny, ale tylko, jeśli istnieje)
                     # todo popraw walidację istnienia konta, żeby była od razu
                     account_number = input('Podaj numer konta: ')
                     try: #todo trzeba ustawić odpowiednią długośc numeru konta
                         validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
                         validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
-                    except InvalidData as e: # todo dodaj check_value, żeby na 100% to był str
+                    except InvalidData as e:
                         print(f'\nNieprawidłowe dane: {e}')
                         continue
                     break
@@ -92,7 +93,11 @@ class AccountHandling(MenuItem):
                 except SQLError as e:
                     print(f'Wystąpił błąd: {e}')
 
-            case 'E': #todo dodaj wyswietlenie kont
+            case 'E':
+                try:
+                    account_manager.show_account('')
+                except SQLError as e:
+                    print(f'\nWystąpił błąd: {e}')
                 while True:
                     try:
                         account_id = input('Podaj ID konta, które chcesz edytować lub porzuć edycję [Q]: ')

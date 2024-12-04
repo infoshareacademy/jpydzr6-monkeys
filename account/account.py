@@ -25,7 +25,7 @@ ACCOUNT_PARAMETERS ={
     '2': Account.account_name,
     '3': Account.balance,
     '4':Account.currency_id
-} # todo sprawdź czy usunięcie usera nie zniszczyło czegoś w menu przy wyborze edycji
+}
 
 
 class AccountManager:
@@ -50,6 +50,7 @@ class AccountManager:
 
     @staticmethod
     def delete_account(account_id: str) -> None: # todo przyjrzyj się temu typowaniu
+        # todo zastosuj tutaj na starcie sprawdzenie czy dany rekord istnieje
         try:
             query = Account.delete().where(Account.account_id == account_id)
             if query.execute():
@@ -65,7 +66,7 @@ class AccountManager:
     @staticmethod
     def edit_account(account_id: int, parameter_to_change: str, new_value: str|int|float) -> None:
         Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
-        #todo tu chyba trzeba dodać IntegrityError
+        #todo tu chyba trzeba dodać IntegrityError i obsługę innych błędów
 
     @staticmethod
     def check_record_existence(account_id: int) -> None:
