@@ -70,15 +70,7 @@ class AccountHandling(MenuItem):
                         print(f'\nNieprawidłowe dane: {e}')
                         continue
                     break
-                while True:
-#todo konieczne sprawdzenia istnienia użytkownika w bazie danych
-                    user_id = input('Podaj ID właściciela konta: ')
-                    try:
-                        user_id = validation.check_value(user_id, int, 'Podano nieprawidłowe ID')
-                    except InvalidData as e:
-                        print(f'\nNieprawidłowe dane: {e}')
-                        continue
-                    break
+
                 while True:
                     currency = input('Podaj w jaką walutę obsługuje konto: ').upper()
                     if currency.upper() not in ['PLN', 'USD', 'EUR']:
@@ -91,7 +83,6 @@ class AccountHandling(MenuItem):
                     account_number=account_number,
                     account_name=account_name,
                     balance=balance,
-                    user_id=user_id,
                     currency_id=currency
                 )
             case 'U':
@@ -122,8 +113,7 @@ class AccountHandling(MenuItem):
                 print('1 - numer konta\n'
                       '2 - nazwa konta\n'
                       '3 - stan konta\n'
-                      '4 - ID użytkownika\n'
-                      '5 - waluta\n'
+                      '4 - waluta\n'
                       'Q - porzuć edycję')
 
                 while True:
@@ -139,7 +129,7 @@ class AccountHandling(MenuItem):
                 while True:
                     new_value = input('Podaj nową wartość: ')
                     match param_to_change_from_user:
-                        case '1' | '4':
+                        case '1':
                             try:
                                 validation.check_value(new_value, int, 'podana wartość powinna być liczbą całkowitą.')
                             except InvalidData as e:
@@ -153,7 +143,7 @@ class AccountHandling(MenuItem):
                                 print(f'\nWystąpił błąd: {e}')
                                 continue
                             break
-                        case '5':
+                        case '4':
                             if new_value.upper() not in ['PLN', 'USD', 'EUR']:
                                 print('\nPodano nieprawidłową walutę.')
                                 continue

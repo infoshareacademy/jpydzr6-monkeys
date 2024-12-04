@@ -12,7 +12,6 @@ class Account(Model):
     account_number = CharField(unique=True)
     account_name = CharField()
     balance = DecimalField(decimal_places=2)
-    user_id = BigIntegerField()
     currency_id = CharField()
 
     class Meta:
@@ -25,9 +24,8 @@ ACCOUNT_PARAMETERS ={
     '1': Account.account_number,
     '2': Account.account_name,
     '3': Account.balance,
-    '4': Account.user_id,
-    '5':Account.currency_id
-}
+    '4':Account.currency_id
+} # todo sprawdź czy usunięcie usera nie zniszczyło czegoś w menu przy wyborze edycji
 
 
 class AccountManager:
@@ -36,7 +34,6 @@ class AccountManager:
                     account_number: str,
                     account_name: str,
                     balance: float,
-                    user_id: int,
                     currency_id: str
     ) -> None:
         try:
@@ -44,7 +41,6 @@ class AccountManager:
                               account_number=account_number,
                               account_name=account_name,
                               balance=balance,
-                              user_id=user_id,
                               currency_id=currency_id
             )
         except IntegrityError:
