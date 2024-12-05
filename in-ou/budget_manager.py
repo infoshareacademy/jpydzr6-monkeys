@@ -7,6 +7,7 @@ class BudgetManager:
         self.budget = []
         self.create_table()
         self.load_budget_from_file()
+        self.__entry_types = ('income', 'outcome')
 
     def create_connection(self):
         return sqlite3.connect(self.db_name)
@@ -55,7 +56,7 @@ class BudgetManager:
         print("Budżet został załadowany z bazy danych.")
 
     def add_budget_entry(self, entry_type, amount, description, category="brak kategorii"):
-        if entry_type not in ["income", "outcome"]:
+        if entry_type not in self.__entry_types:
             print("Blad: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.") #Zmienić na I / O, czy zostawić pełne słowa?
             return
         if not isinstance(amount, (int, float)) or amount <= 0:
@@ -74,13 +75,13 @@ class BudgetManager:
         }
         self.budget.append(entry)
         self.save_budget_to_file()
-        print(f"Pomyślnie dodano wpis: {entry_type}, - {amount} PLN, opis: {description}, kategoria: {category}")
+        print(f"Pomyślnie dodano wpis: {entry_type} - {amount} PLN, opis: {description}, kategoria: {category}")
 
     def add_budget_entry_input(self): #Dodawanie wpisów z inputem, również do usunięcia w przyszłości.
         while True:
             entry_type = input(
                 "Wprowadź rodzaj wpisu ('income' dla dochodu lub 'outcome' dla wydatku, lub 'exit' aby zakończyć): ").strip().lower() # To samo co wyżej, może warto zmienić na I/O?
-            if entry_type in ["income", "outcome"]:
+            if entry_type in self.__entry_types:
                 break
             elif entry_type == "exit":
                 print("Zakończono dodawanie wpisu.")
