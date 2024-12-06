@@ -1,7 +1,7 @@
 import unittest
 import os
 from datetime import datetime
-from budget_manager import Transactions
+from income_outcome import Transactions
 
 class TestBudgetManager(unittest.TestCase):
     def setUp(self):
