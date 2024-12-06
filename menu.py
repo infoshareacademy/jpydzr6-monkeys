@@ -68,7 +68,7 @@ class AccountHandling(MenuItem):
                 while True:
                     balance = input('Podaj aktualny stan konta: ')
                     try:
-                        balance = validation.check_value(balance, float, 'Stan konta powinien być podany jako liczba.')
+                        balance = validation.check_value(balance, float, 'Stan konta powinien być podany jako liczba z kropką jako separatorem.')
                     except InvalidData as e:
                         print(f'\nNieprawidłowe dane: {e}')
                         continue
@@ -76,8 +76,10 @@ class AccountHandling(MenuItem):
 
                 while True:
                     currency_id = input('Podaj w jaką walutę obsługuje konto: ').upper()
-                    if currency_id not in currencies.__all__:
-                        print('\nPodano nieprawidłową walutę.')
+                    try:
+                        validation.check_currency(currency_id, 'Podano nieprawidłową walutę.')
+                    except InvalidData as e:
+                        print(f'Wystąpił błąd: {e}')
                         continue
                     break
 
@@ -152,8 +154,10 @@ class AccountHandling(MenuItem):
                                 continue
                             break
                         case '4':
-                            if new_value.upper() not in ['PLN', 'USD', 'EUR']: # todo zaciągniemy od Marka
-                                print('\nPodano nieprawidłową walutę.')
+                            try:
+                                validation.check_currency(new_value, 'Podano nieprawidłową walutę.')
+                            except InvalidData as e:
+                                print(f'Wystąpił błąd: {e}')
                                 continue
                             break
                     break
