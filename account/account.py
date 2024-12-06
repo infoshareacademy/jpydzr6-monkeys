@@ -1,6 +1,7 @@
 from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, IntegrityError, \
     DoesNotExist, OperationalError
-from  money import Currency, Monetary
+from money import Currency, Monetary
+import currencies
 
 db = SqliteDatabase('budget.db')
 

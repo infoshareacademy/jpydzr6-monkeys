@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from account.account import AccountManager, SQLError, ACCOUNT_PARAMETERS
 from helper import Helper, InvalidData
-from money import currency, monetary
+from money import Currency, Monetary
+import currencies
 
 
 class MenuItem(ABC):
@@ -74,18 +75,19 @@ class AccountHandling(MenuItem):
                     break
 
                 while True:
-                    currency = input('Podaj w jaką walutę obsługuje konto: ').upper()
-                    if currency.upper() not in ['PLN', 'USD', 'EUR']: # todo zaciągniemy od Marka
+                    currency_id = input('Podaj w jaką walutę obsługuje konto: ').upper()
+                    if currency_id not in currencies.__all__:
                         print('\nPodano nieprawidłową walutę.')
                         continue
                     break
+
                 account_name = input('Nadaj kontu nazwę: ')
 
                 account_manager.add_account(
                     account_number=account_number,
                     account_name=account_name,
                     balance=balance,
-                    currency_id=currency
+                    currency_id=currency_id
                 )
             case 'U':
                 account_id = input('Podaj numer ID konta do usunięcia: ')
