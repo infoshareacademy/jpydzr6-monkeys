@@ -24,7 +24,7 @@ class Transactions:
             CREATE TABLE IF NOT EXISTS  {self.table_name} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 entry_type TEXT NOT NULL,
-                amount INTEGER NOT NULL,
+                amount BIGINT NOT NULL,
                 description TEXT,
                 category TEXT,
                 date TEXT NOT NULL
