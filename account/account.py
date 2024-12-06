@@ -1,5 +1,6 @@
-from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, DecimalField, IntegrityError, \
+from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, IntegrityError, \
     DoesNotExist, OperationalError
+from  money import Currency, Monetary
 
 db = SqliteDatabase('budget.db')
 
@@ -11,7 +12,7 @@ class Account(Model):
     account_id = AutoField(primary_key=True)
     account_number = CharField(unique=True)
     account_name = CharField()
-    balance = DecimalField(decimal_places=2)
+    balance = BigIntegerField()
     currency_id = CharField()
 
     class Meta:
@@ -24,17 +25,17 @@ ACCOUNT_PARAMETERS ={
     '1': Account.account_number,
     '2': Account.account_name,
     '3': Account.balance,
-    '4':Account.currency_id
+    '4':Account.currency_id # todo upewnij się, że tu wsyzstko gra
 }
 
-
+ # todo rozważ dodanie wszędzie operational error (jako błądz połączenia z bazą danych
 class AccountManager:
     @staticmethod
     def add_account(
                     account_number: str,
                     account_name: str,
-                    balance: float,
-                    currency_id: str
+                    balance: Monetary,
+                    currency_id: Currency
     ) -> None:
         try:
             account = Account.create(
@@ -64,7 +65,7 @@ class AccountManager:
         # todo tutaj nie ma nowej wartości :O skąd ten ValueError
 
     @staticmethod
-    def edit_account(account_id: int, parameter_to_change: str, new_value: str|int|float) -> None:
+    def edit_account(account_id: int, parameter_to_change: str, new_value: str|Currency|Monetary) -> None:
         Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
         #todo tu chyba trzeba dodać IntegrityError i obsługę innych błędów
 
@@ -74,7 +75,7 @@ class AccountManager:
             raise SQLError('Konto o podanym ID nie istnieje')
 
     @staticmethod
-    def show_account(account_id: str) -> None: #todo pogadaj z markiem o przekazywaniu str albo int czy warto robić walidację
+    def show_account(account_id: str) -> None:
         if account_id:
             try:
                 record = Account.select().where(Account.account_id == account_id).get()
@@ -95,3 +96,6 @@ class AccountManager:
                           f'Stan konta: {record.balance} {record.currency_id}\n')
             except OperationalError:
                 raise SQLError('Wystąpił problem połączenia z bazą danych.')
+
+if __name__ == '__main__':
+    AccountManager.add_account('1234', 'z monetary dwa', 456, 'PLN')
