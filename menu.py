@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from account.account import AccountManager, SQLError, ACCOUNT_PARAMETERS
 from helper import Helper, InvalidData
+from money import currency, monetary
 
 
 class MenuItem(ABC):
@@ -51,7 +52,7 @@ class AccountHandling(MenuItem):
         account_manager = AccountManager()
         validation = Helper()
         match choice:
-            case 'D':
+            case 'D': # todo zmodyfikuj do klas Marka
                 while True:
                     # todo daj możliwość dodawania gotówki (numer konta ma być unikalny, ale tylko, jeśli istnieje)
                     # todo popraw walidację istnienia konta, żeby była od razu
@@ -74,7 +75,7 @@ class AccountHandling(MenuItem):
 
                 while True:
                     currency = input('Podaj w jaką walutę obsługuje konto: ').upper()
-                    if currency.upper() not in ['PLN', 'USD', 'EUR']:
+                    if currency.upper() not in ['PLN', 'USD', 'EUR']: # todo zaciągniemy od Marka
                         print('\nPodano nieprawidłową walutę.')
                         continue
                     break
@@ -93,13 +94,13 @@ class AccountHandling(MenuItem):
                 except SQLError as e:
                     print(f'Wystąpił błąd: {e}')
 
-            case 'E':
+            case 'E': # todo dotaj tu jeszcze wyświetlenie aktualnej wartości
                 try:
                     account_manager.show_account('')
                 except SQLError as e:
                     print(f'\nWystąpił błąd: {e}')
                 while True:
-                    try:
+                    try: # todo walidacja account_id do inta
                         account_id = input('Podaj ID konta, które chcesz edytować lub porzuć edycję [Q]: ')
                         if account_id.upper() == 'Q':
                             return None
@@ -149,7 +150,7 @@ class AccountHandling(MenuItem):
                                 continue
                             break
                         case '4':
-                            if new_value.upper() not in ['PLN', 'USD', 'EUR']:
+                            if new_value.upper() not in ['PLN', 'USD', 'EUR']: # todo zaciągniemy od Marka
                                 print('\nPodano nieprawidłową walutę.')
                                 continue
                             break
@@ -159,7 +160,7 @@ class AccountHandling(MenuItem):
                 except SQLError as e:
                     print(f'\nWystąpił błąd: {e}')
                 print('Zmiana została wykonana.')
-            case 'P':
+            case 'P': # todo walidacja account_id do inta
                 account_id = input('Podaj numer id konta, którego szczegóły chcesz wyświetlić lub wciśnij enter, żeby zobaczyć wszystkie konta.')
                 try:
                     account_manager.show_account(account_id)
