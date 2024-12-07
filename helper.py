@@ -1,5 +1,6 @@
 from typing import Any, Callable
 import currencies
+from money import Currency
 
 
 class InvalidData(Exception):
@@ -27,4 +28,3 @@ class Helper:
             raise InvalidData(error_message) from None
         else:
             return currency_id
-

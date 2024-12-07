@@ -3,6 +3,12 @@ from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField,
 from money import Currency, Monetary
 import currencies
 
+CURRENCY_MAP = {
+    'EUR': currencies.EUR,
+    'USD': currencies.USD,
+    'PLN': currencies.PLN,
+}
+
 db = SqliteDatabase('budget.db')
 
 class SQLError(Exception):
@@ -26,7 +32,7 @@ ACCOUNT_PARAMETERS ={
     '1': Account.account_number,
     '2': Account.account_name,
     '3': Account.balance,
-    '4':Account.currency_id # todo upewnij się, że tu wsyzstko gra
+    '4':Account.currency_id
 }
 
  # todo rozważ dodanie wszędzie operational error (jako błądz połączenia z bazą danych
@@ -35,14 +41,16 @@ class AccountManager:
     def add_account(
                     account_number: str,
                     account_name: str,
-                    balance: Monetary,
-                    currency_id: Currency
+                    balance: int,
+                    currency_id: str
     ) -> None:
+
+        balance_int = Monetary.major_to_minor_unit(balance, CURRENCY_MAP[currency_id])
         try:
             account = Account.create(
                               account_number=account_number,
                               account_name=account_name,
-                              balance=balance,
+                              balance=balance_int,
                               currency_id=currency_id
             )
         except IntegrityError:
@@ -51,19 +59,13 @@ class AccountManager:
             print(f'\nKonto o numerze {account_number} zostało utworzone.')
 
     @staticmethod
-    def delete_account(account_id: str) -> None: # todo przyjrzyj się temu typowaniu
-        # todo zastosuj tutaj na starcie sprawdzenie czy dany rekord istnieje
+    def delete_account(account_id: int) -> None:
         try:
-            query = Account.delete().where(Account.account_id == account_id)
-            if query.execute():
-                print('Pomyślnie usunięto konto.')
-            else:
-                raise SQLError('Konto o podanym numerze ID nie istnieje.') from None
+            Account.delete().where(Account.account_id == account_id).execute()
         except IntegrityError:
             raise SQLError('Nie udało się usunąć konta.') from None
-        except ValueError:
-            raise SQLError('Podana nowa wartość jest nieprawidłowa.') from None
-        # todo tutaj nie ma nowej wartości :O skąd ten ValueError
+        print('Pomyślnie usunięto konto.')
+
 
     @staticmethod
     def edit_account(account_id: int, parameter_to_change: str, new_value: str|Currency|Monetary) -> None:
@@ -76,7 +78,7 @@ class AccountManager:
             raise SQLError('Konto o podanym ID nie istnieje')
 
     @staticmethod
-    def show_account(account_id: str) -> None:
+    def show_account(account_id: int | str) -> None:
         if account_id:
             try:
                 record = Account.select().where(Account.account_id == account_id).get()

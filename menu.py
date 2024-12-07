@@ -91,11 +91,19 @@ class AccountHandling(MenuItem):
                     balance=balance,
                     currency_id=currency_id
                 )
-            case 'U':
+            case 'U': # todo wyświetl tu listę wszystkich kont
+                try:
+                    account_manager.show_account('')
+                except SQLError as e:
+                    print(f'\nWystąpił błąd: {e}')
                 account_id = input('Podaj numer ID konta do usunięcia: ')
                 try:
-                    account_manager.delete_account(account_id=account_id)
+                    account_id_int = validation.check_value(account_id, int, 'Numer ID konta powinien być liczbą.')
+                    account_manager.check_record_existence(account_id_int)
+                    account_manager.delete_account(account_id=account_id_int)
                 except SQLError as e:
+                    print(f'Wystąpił błąd: {e}')
+                except InvalidData as e:
                     print(f'Wystąpił błąd: {e}')
 
             case 'E': # todo dotaj tu jeszcze wyświetlenie aktualnej wartości
@@ -113,7 +121,7 @@ class AccountHandling(MenuItem):
                         print(f'\nWystąpił błąd: {e}')
                         continue
                     try:
-                        AccountManager().check_record_existence(account_id=account_id)
+                        account_manager.check_record_existence(account_id=account_id)
                     except SQLError as e:
                         print(f'\nWystąpił błąd: {e}')
                         continue
