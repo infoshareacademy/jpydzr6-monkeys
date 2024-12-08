@@ -7,7 +7,7 @@ class MenuItem(ABC):
 
     @property
     @abstractmethod
-    def name(self):  # dodanie nazwy submenu, która będzie wyświetlona  menu głównym
+    def name(self):  # dodanie nazwy submenu, która będzie wyświetlona menu głównym
         pass
 
     @property
@@ -74,7 +74,7 @@ class AccountHandling(MenuItem):
                         continue
                     break
                 while True:
-                    balance = input('Podaj aktualny stan konta: ') #todo można podać liczbę z dużą ilością miejsc po przecinku
+                    balance = input('Podaj aktualny stan konta: ')
                     try:
                         balance = validation.check_value(balance, float, 'Stan konta powinien być podany jako liczba z kropką jako separatorem.')
                     except InvalidData as e:

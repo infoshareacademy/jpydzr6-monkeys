@@ -37,7 +37,7 @@ ACCOUNT_PARAMETERS ={
     '4':Account.currency_id
 }
 
- # todo rozważ dodanie wszędzie operational error (jako błąd połączenia z bazą danych)
+
 class AccountManager:
     @staticmethod
     def add_account(
@@ -70,14 +70,15 @@ class AccountManager:
             raise SQLError('Błąd połączenia z bazą danych.') from None
         print('Pomyślnie usunięto konto.')
 
-
     @staticmethod
     def edit_account(account_id: int, parameter_to_change: Account, new_value: str, param_to_change_from_usr: str) -> None:
         if param_to_change_from_usr == 'balance':
             currency_id = Account.select(Account.currency_id).where(Account.account_id == account_id).get().currency_id
             new_value = Monetary.major_to_minor_unit(new_value, CURRENCY_MAP[currency_id])
-        Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
-        #todo tu chyba trzeba dodać IntegrityError i obsługę innych błędów
+        try:
+            Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
+        except (IntegrityError, OperationalError):
+            raise SQLError('Błąd bazy danych') from None
 
     @staticmethod
     def check_record_existence(account_id: int) -> None:
@@ -88,7 +89,6 @@ class AccountManager:
     def check_account_number_existence(account_number: str):
         if Account.select().where(Account.account_number == account_number).exists():
             raise SQLError('Konto o podanym numerze już istnieje.')
-
 
     def show_account(self, account_id: int | str) -> None:
         if account_id:
