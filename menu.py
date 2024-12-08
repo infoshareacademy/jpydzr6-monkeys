@@ -53,16 +53,21 @@ class AccountHandling(MenuItem):
         account_manager = AccountManager()
         validation = Helper()
         match choice:
-            case 'D': # todo zmodyfikuj do klas Marka
+            case 'D':
+                account_number_choice = input('Czy chcesz podać numer konta? T/N').upper()
                 while True:
-                    # todo daj możliwość dodawania gotówki (numer konta ma być unikalny, ale tylko, jeśli istnieje)
-                    # todo popraw walidację istnienia konta, żeby była od razu
+                    if account_number_choice == 'N':
+                        account_number = None
+                        break
                     account_number = input('Podaj numer konta: ')
-                    try: #todo trzeba ustawić odpowiednią długośc numeru konta
-                        validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
+                    try:
                         validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
+                        account_manager.check_account_number_existence(account_number)
                     except InvalidData as e:
                         print(f'\nNieprawidłowe dane: {e}')
+                        continue
+                    except SQLError as e:
+                        print(f'Wystąpił błąd: {e}')
                         continue
                     break
                 while True:
@@ -91,7 +96,7 @@ class AccountHandling(MenuItem):
                     balance=balance,
                     currency_id=currency_id
                 )
-            case 'U': # todo wyświetl tu listę wszystkich kont
+            case 'U':
                 try:
                     account_manager.show_account('')
                 except SQLError as e:
@@ -112,7 +117,7 @@ class AccountHandling(MenuItem):
                 except SQLError as e:
                     print(f'\nWystąpił błąd: {e}')
                 while True:
-                    try: # todo walidacja account_id do inta
+                    try:
                         account_id = input('Podaj ID konta, które chcesz edytować lub porzuć edycję [Q]: ')
                         if account_id.upper() == 'Q':
                             return None

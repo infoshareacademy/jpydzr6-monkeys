@@ -17,7 +17,7 @@ class SQLError(Exception):
 class Account(Model):
     DoesNotExist = None
     account_id = AutoField(primary_key=True)
-    account_number = CharField(unique=True)
+    account_number = CharField(default=None, null=True)
     account_name = CharField()
     balance = BigIntegerField()
     currency_id = CharField()
@@ -35,7 +35,7 @@ ACCOUNT_PARAMETERS ={
     '4':Account.currency_id
 }
 
- # todo rozważ dodanie wszędzie operational error (jako błądz połączenia z bazą danych
+ # todo rozważ dodanie wszędzie operational error (jako błąd połączenia z bazą danych)
 class AccountManager:
     @staticmethod
     def add_account(
@@ -46,17 +46,14 @@ class AccountManager:
     ) -> None:
 
         balance_int = Monetary.major_to_minor_unit(balance, CURRENCY_MAP[currency_id])
-        try:
-            account = Account.create(
-                              account_number=account_number,
-                              account_name=account_name,
-                              balance=balance_int,
-                              currency_id=currency_id
-            )
-        except IntegrityError:
-            raise SQLError('Konto o podanym numerze już istnieje.') from None
-        else:
-            print(f'\nKonto o numerze {account_number} zostało utworzone.')
+        account = Account.create(
+                          account_number=account_number,
+                          account_name=account_name,
+                          balance=balance_int,
+                          currency_id=currency_id
+        )
+
+        print(f'\nKonto o numerze zostało utworzone.')
 
     @staticmethod
     def delete_account(account_id: int) -> None:
@@ -69,6 +66,8 @@ class AccountManager:
 
     @staticmethod
     def edit_account(account_id: int, parameter_to_change: str, new_value: str|Currency|Monetary) -> None:
+        if parameter_to_change == 'balance': #todo popraw to
+            balance_int = Monetary.major_to_minor_unit(parameter_to_change, CURRENCY_MAP[currency_id])
         Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
         #todo tu chyba trzeba dodać IntegrityError i obsługę innych błędów
 
@@ -76,6 +75,11 @@ class AccountManager:
     def check_record_existence(account_id: int) -> None:
         if not Account.select().where(Account.account_id == account_id).exists():
             raise SQLError('Konto o podanym ID nie istnieje')
+
+    @staticmethod
+    def check_account_number_existence(account_number: str):
+        if Account.select().where(Account.account_number == account_number).exists():
+            raise SQLError('Konto o podanym numerze już istnieje.')
 
     @staticmethod
     def show_account(account_id: int | str) -> None:
@@ -100,5 +104,9 @@ class AccountManager:
             except OperationalError:
                 raise SQLError('Wystąpił problem połączenia z bazą danych.')
 
+    @staticmethod
+    def modify_balance():
+        pass
+
 if __name__ == '__main__':
-    AccountManager.add_account('1234', 'z monetary dwa', 456, 'PLN')
+    AccountManager.add_account(None, 'z monetary dwa', 456, 'PLN')
