@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from account.account import AccountManager, SQLError, ACCOUNT_PARAMETERS
 from helper import Helper, InvalidData
-from money import Currency, Monetary
-import currencies
 
 
 class MenuItem(ABC):
@@ -111,7 +109,7 @@ class AccountHandling(MenuItem):
                 except InvalidData as e:
                     print(f'Wystąpił błąd: {e}')
 
-            case 'E': # todo dotaj tu jeszcze wyświetlenie aktualnej wartości
+            case 'E':
                 try:
                     account_manager.show_account('')
                 except SQLError as e:
@@ -179,8 +177,16 @@ class AccountHandling(MenuItem):
                 except SQLError as e:
                     print(f'\nWystąpił błąd: {e}')
                 print('Zmiana została wykonana.')
-            case 'P': # todo walidacja account_id do inta
+            case 'P':
                 account_id = input('Podaj numer id konta, którego szczegóły chcesz wyświetlić lub wciśnij enter, żeby zobaczyć wszystkie konta.')
+                while True:
+                    if account_id:
+                        try:
+                            account_id = validation.check_value(account_id, int, 'ID powinno być liczbą.')
+                        except InvalidData as e:
+                            print(f'Wystąpił błąd: {e}')
+                            continue
+                    break
                 try:
                     account_manager.show_account(account_id)
                 except SQLError as e:

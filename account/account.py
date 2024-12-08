@@ -65,9 +65,10 @@ class AccountManager:
 
 
     @staticmethod
-    def edit_account(account_id: int, parameter_to_change: str, new_value: str|Currency|Monetary) -> None:
-        if parameter_to_change == 'balance': #todo popraw to
-            balance_int = Monetary.major_to_minor_unit(parameter_to_change, CURRENCY_MAP[currency_id])
+    def edit_account(account_id: int, parameter_to_change: Account, new_value: str|Currency|Monetary) -> None:
+        if parameter_to_change == Account.balance: #todo popraw to
+            currency_id = Account.select(Account.currency_id).where(Account.account_id == account_id).get().currency_id
+            new_value = Monetary.major_to_minor_unit(new_value, CURRENCY_MAP[currency_id])
         Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
         #todo tu chyba trzeba dodać IntegrityError i obsługę innych błędów
 
