@@ -1,6 +1,6 @@
 from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, IntegrityError, \
     DoesNotExist, OperationalError
-from money import Currency, Monetary
+from money import Monetary
 import currencies
 
 CURRENCY_MAP = {
@@ -108,5 +108,16 @@ class AccountManager:
                 raise SQLError('Wystąpił problem połączenia z bazą danych.')
 
     @staticmethod
-    def modify_balance():
-        pass
+    def modify_balance(account_id: int, transaction_amount: Monetary, transaction_type: str) -> None:
+        account = Account.get(Account.account_id == account_id)
+        currency_id = account.currency_id
+        actual_balance = account.balance
+        account_balance = Monetary(actual_balance, CURRENCY_MAP[currency_id])
+        if transaction_type == 'income':
+            new_amount = account_balance + transaction_amount
+        elif transaction_type == 'outcome':
+            new_amount = account_balance - transaction_amount
+        new_value = new_amount.amount
+
+        Account.update({Account.balance: new_value}).where(Account.account_id == account_id).execute()
+
