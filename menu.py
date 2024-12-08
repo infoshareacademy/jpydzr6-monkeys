@@ -52,7 +52,12 @@ class AccountHandling(MenuItem):
         validation = Helper()
         match choice:
             case 'D':
-                account_number_choice = input('Czy chcesz podać numer konta? T/N').upper()
+                while True:
+                    account_number_choice = input('Czy chcesz podać numer konta? T/N').upper()
+                    if account_number_choice not in ('T', 'N'):
+                        print('\nNieprawidłowy wybór.')
+                        continue
+                    break
                 while True:
                     if account_number_choice == 'N':
                         account_number = None
@@ -69,7 +74,7 @@ class AccountHandling(MenuItem):
                         continue
                     break
                 while True:
-                    balance = input('Podaj aktualny stan konta: ')
+                    balance = input('Podaj aktualny stan konta: ') #todo można podać liczbę z dużą ilością miejsc po przecinku
                     try:
                         balance = validation.check_value(balance, float, 'Stan konta powinien być podany jako liczba z kropką jako separatorem.')
                     except InvalidData as e:
@@ -99,15 +104,20 @@ class AccountHandling(MenuItem):
                     account_manager.show_account('')
                 except SQLError as e:
                     print(f'\nWystąpił błąd: {e}')
-                account_id = input('Podaj numer ID konta do usunięcia: ')
-                try:
-                    account_id_int = validation.check_value(account_id, int, 'Numer ID konta powinien być liczbą.')
-                    account_manager.check_record_existence(account_id_int)
-                    account_manager.delete_account(account_id=account_id_int)
-                except SQLError as e:
-                    print(f'Wystąpił błąd: {e}')
-                except InvalidData as e:
-                    print(f'Wystąpił błąd: {e}')
+                while True:
+                    account_id = input('Podaj numer ID konta do usunięcia: ')
+                    try:
+                        account_id_int = validation.check_value(account_id, int, 'Numer ID konta powinien być liczbą.')
+                        account_manager.check_record_existence(account_id_int)
+                        account_manager.delete_account(account_id=account_id_int)
+                    except SQLError as e:
+                        print(f'Wystąpił błąd: {e}')
+                        continue
+                    except InvalidData as e:
+                        print(f'Wystąpił błąd: {e}')
+                        continue
+                    break
+
 
             case 'E':
                 try:
@@ -130,12 +140,12 @@ class AccountHandling(MenuItem):
                         continue
                     break
 
-                print('Możliwe do zmiany parametry konta:')
+                print('\nMożliwe do zmiany parametry konta:\n')
                 print('1 - numer konta\n'
                       '2 - nazwa konta\n'
                       '3 - stan konta\n'
                       '4 - waluta\n'
-                      'Q - porzuć edycję')
+                      'Q - porzuć edycję\n')
 
                 while True:
                     param_to_change_from_user = input('Podaj jaki parametr konta chcesz zmienić: ')
@@ -165,6 +175,7 @@ class AccountHandling(MenuItem):
                                 continue
                             break
                         case '4':
+                            new_value = new_value.upper()
                             try:
                                 validation.check_currency(new_value, 'Podano nieprawidłową walutę.')
                             except InvalidData as e:
@@ -173,13 +184,14 @@ class AccountHandling(MenuItem):
                             break
                     break
                 try:
-                    account_manager.edit_account(account_id, parameter_to_change, new_value)
+                    account_manager.edit_account(account_id, parameter_to_change, new_value, param_to_change_from_user)
                 except SQLError as e:
                     print(f'\nWystąpił błąd: {e}')
-                print('Zmiana została wykonana.')
+                print('\nZmiana została wykonana.')
             case 'P':
-                account_id = input('Podaj numer id konta, którego szczegóły chcesz wyświetlić lub wciśnij enter, żeby zobaczyć wszystkie konta.')
                 while True:
+                    account_id = input(
+                        'Podaj numer id konta, którego szczegóły chcesz wyświetlić lub wciśnij enter, żeby zobaczyć wszystkie konta.')
                     if account_id:
                         try:
                             account_id = validation.check_value(account_id, int, 'ID powinno być liczbą.')

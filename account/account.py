@@ -65,8 +65,8 @@ class AccountManager:
 
 
     @staticmethod
-    def edit_account(account_id: int, parameter_to_change: Account, new_value: str|Currency|Monetary) -> None:
-        if parameter_to_change == Account.balance:
+    def edit_account(account_id: int, parameter_to_change: Account, new_value: str, param_to_change_from_usr: str) -> None:
+        if param_to_change_from_usr == 'balance':
             currency_id = Account.select(Account.currency_id).where(Account.account_id == account_id).get().currency_id
             new_value = Monetary.major_to_minor_unit(new_value, CURRENCY_MAP[currency_id])
         Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
@@ -83,7 +83,7 @@ class AccountManager:
             raise SQLError('Konto o podanym numerze już istnieje.')
 
     @staticmethod
-    def show_account(account_id: int | str) -> None: # todo popraw wyświetlanie stanu konta
+    def show_account(account_id: int | str) -> None: # todo żeby sie powtarzać dodaj dodatkową metodę z wyświetlaniem
         if account_id:
             try:
                 record = Account.select().where(Account.account_id == account_id).get()
