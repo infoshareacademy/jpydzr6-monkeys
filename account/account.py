@@ -1,5 +1,15 @@
-from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, DecimalField, IntegrityError, \
+from cgi import print_arguments
+
+from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, IntegrityError, \
     DoesNotExist, OperationalError
+from money import Monetary
+import currencies
+
+CURRENCY_MAP = {
+    'EUR': currencies.EUR,
+    'USD': currencies.USD,
+    'PLN': currencies.PLN,
+}
 
 db = SqliteDatabase('budget.db')
 
@@ -9,10 +19,9 @@ class SQLError(Exception):
 class Account(Model):
     DoesNotExist = None
     account_id = AutoField(primary_key=True)
-    account_number = CharField(unique=True)
+    account_number = CharField(default=None, null=True)
     account_name = CharField()
-    balance = DecimalField(decimal_places=2)
-    user_id = BigIntegerField()
+    balance = BigIntegerField()
     currency_id = CharField()
 
     class Meta:
@@ -25,8 +34,7 @@ ACCOUNT_PARAMETERS ={
     '1': Account.account_number,
     '2': Account.account_name,
     '3': Account.balance,
-    '4': Account.user_id,
-    '5':Account.currency_id
+    '4':Account.currency_id
 }
 
 
@@ -35,41 +43,42 @@ class AccountManager:
     def add_account(
                     account_number: str,
                     account_name: str,
-                    balance: float,
-                    user_id: int,
+                    balance: int,
                     currency_id: str
     ) -> None:
+
+        balance_int = Monetary.major_to_minor_unit(balance, CURRENCY_MAP[currency_id])
         try:
             account = Account.create(
                               account_number=account_number,
                               account_name=account_name,
-                              balance=balance,
-                              user_id=user_id,
+                              balance=balance_int,
                               currency_id=currency_id
             )
-        except IntegrityError:
-            raise SQLError('Konto o podanym numerze już istnieje.') from None
-        else:
-            print(f'\nKonto o numerze {account_number} zostało utworzone.')
+        except (IntegrityError, OperationalError) as e:
+            raise SQLError('Błąd bazy danych.') from None
+
+        print(f'\nKonto o numerze zostało utworzone.')
 
     @staticmethod
-    def delete_account(account_id: str) -> None: # todo przyjrzyj się temu typowaniu
+    def delete_account(account_id: int) -> None:
         try:
-            query = Account.delete().where(Account.account_id == account_id)
-            if query.execute():
-                print('Pomyślnie usunięto konto.')
-            else:
-                raise SQLError('Konto o podanym numerze ID nie istnieje.') from None
+            Account.delete().where(Account.account_id == account_id).execute()
         except IntegrityError:
             raise SQLError('Nie udało się usunąć konta.') from None
-        except ValueError:
-            raise SQLError('Podana nowa wartość jest nieprawidłowa.') from None
-        # todo tutaj nie ma nowej wartości :O skąd ten ValueError
+        except OperationalError:
+            raise SQLError('Błąd połączenia z bazą danych.') from None
+        print('Pomyślnie usunięto konto.')
 
     @staticmethod
-    def edit_account(account_id: int, parameter_to_change: str, new_value: str|int|float) -> None:
-        Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
-        #todo tu chyba trzeba dodać IntegrityError
+    def edit_account(account_id: int, parameter_to_change: Account, new_value: str, param_to_change_from_usr: str) -> None:
+        if param_to_change_from_usr == 'balance':
+            currency_id = Account.select(Account.currency_id).where(Account.account_id == account_id).get().currency_id
+            new_value = Monetary.major_to_minor_unit(new_value, CURRENCY_MAP[currency_id])
+        try:
+            Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
+        except (IntegrityError, OperationalError):
+            raise SQLError('Błąd bazy danych') from None
 
     @staticmethod
     def check_record_existence(account_id: int) -> None:
@@ -77,24 +86,45 @@ class AccountManager:
             raise SQLError('Konto o podanym ID nie istnieje')
 
     @staticmethod
-    def show_account(account_id: str) -> None: #todo pogadaj z markiem o przekazywaniu str albo int czy warto robić walidację
+    def check_account_number_existence(account_number: str):
+        if Account.select().where(Account.account_number == account_number).exists():
+            raise SQLError('Konto o podanym numerze już istnieje.')
+
+    def show_account(self, account_id: int | str) -> None:
         if account_id:
             try:
                 record = Account.select().where(Account.account_id == account_id).get()
             except DoesNotExist:
                 raise SQLError('Konto o podanym ID nie istnieje.') from None
-
             else:
-                print(f'\nID konta: {record.account_id}\n'
-                      f'Nazwa konta: {record.account_name}\n'
-                      f'Numer konta: {record.account_number}\n'
-                      f'Stan konta: {record.balance} {record.currency_id}\n')
+                self.print_account(record)
         else:
             try:
                 for record in Account:
-                    print(f'\nID konta: {record.account_id}\n'
-                          f'Nazwa konta: {record.account_name}\n'
-                          f'Numer konta: {record.account_number}\n'
-                          f'Stan konta: {record.balance} {record.currency_id}\n')
+                    self.print_account(record)
             except OperationalError:
                 raise SQLError('Wystąpił problem połączenia z bazą danych.')
+
+    @staticmethod
+    def print_account(record: Account) -> None:
+        balance = Monetary(record.balance, CURRENCY_MAP[record.currency_id])
+        print(f'\nID konta: {record.account_id}\n'
+              f'Nazwa konta: {record.account_name}\n'
+              f'Numer konta: {record.account_number}\n'
+              f'Stan konta: {balance}\n')
+
+    @staticmethod
+    def modify_balance(account_id: int, transaction_amount: Monetary, transaction_type: str) -> None:
+        account = Account.get(Account.account_id == account_id)
+        currency_id = account.currency_id
+        actual_balance = account.balance
+        account_balance = Monetary(actual_balance, CURRENCY_MAP[currency_id])
+        if transaction_type == 'income':
+            new_amount = account_balance + transaction_amount
+        elif transaction_type == 'outcome':
+            new_amount = account_balance - transaction_amount
+        new_value = new_amount.amount
+        try:
+            Account.update({Account.balance: new_value}).where(Account.account_id == account_id).execute()
+        except (IntegrityError, OperationalError):
+            raise SQLError('Wystąpił błąd bazy danych.') from None
