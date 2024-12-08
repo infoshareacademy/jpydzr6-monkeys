@@ -66,7 +66,7 @@ class AccountManager:
 
     @staticmethod
     def edit_account(account_id: int, parameter_to_change: Account, new_value: str|Currency|Monetary) -> None:
-        if parameter_to_change == Account.balance: #todo popraw to
+        if parameter_to_change == Account.balance:
             currency_id = Account.select(Account.currency_id).where(Account.account_id == account_id).get().currency_id
             new_value = Monetary.major_to_minor_unit(new_value, CURRENCY_MAP[currency_id])
         Account.update({parameter_to_change: new_value}).where(Account.account_id == account_id).execute()
@@ -83,7 +83,7 @@ class AccountManager:
             raise SQLError('Konto o podanym numerze już istnieje.')
 
     @staticmethod
-    def show_account(account_id: int | str) -> None:
+    def show_account(account_id: int | str) -> None: # todo popraw wyświetlanie stanu konta
         if account_id:
             try:
                 record = Account.select().where(Account.account_id == account_id).get()
@@ -91,23 +91,22 @@ class AccountManager:
                 raise SQLError('Konto o podanym ID nie istnieje.') from None
 
             else:
+                balance = Monetary(record.balance, CURRENCY_MAP[record.currency_id])
                 print(f'\nID konta: {record.account_id}\n'
                       f'Nazwa konta: {record.account_name}\n'
                       f'Numer konta: {record.account_number}\n'
-                      f'Stan konta: {record.balance} {record.currency_id}\n')
+                      f'Stan konta: {balance}\n')
         else:
             try:
                 for record in Account:
+                    balance = Monetary(record.balance, CURRENCY_MAP[record.currency_id])
                     print(f'\nID konta: {record.account_id}\n'
                           f'Nazwa konta: {record.account_name}\n'
                           f'Numer konta: {record.account_number}\n'
-                          f'Stan konta: {record.balance} {record.currency_id}\n')
+                          f'Stan konta: {balance}\n')
             except OperationalError:
                 raise SQLError('Wystąpił problem połączenia z bazą danych.')
 
     @staticmethod
     def modify_balance():
         pass
-
-if __name__ == '__main__':
-    AccountManager.add_account(None, 'z monetary dwa', 456, 'PLN')
