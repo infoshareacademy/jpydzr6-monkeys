@@ -92,13 +92,16 @@ class AccountHandling(MenuItem):
                     break
 
                 account_name = input('Nadaj kontu nazwę: ')
+                try:
+                    account_manager.add_account(
+                        account_number=account_number,
+                        account_name=account_name,
+                        balance=balance,
+                        currency_id=currency_id
+                    )
+                except SQLError as e:
+                    print(f'Wystąpił błąd: {e}')
 
-                account_manager.add_account(
-                    account_number=account_number,
-                    account_name=account_name,
-                    balance=balance,
-                    currency_id=currency_id
-                )
             case 'U':
                 try:
                     account_manager.show_account('')

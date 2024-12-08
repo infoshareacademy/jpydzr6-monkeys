@@ -48,12 +48,15 @@ class AccountManager:
     ) -> None:
 
         balance_int = Monetary.major_to_minor_unit(balance, CURRENCY_MAP[currency_id])
-        account = Account.create(
-                          account_number=account_number,
-                          account_name=account_name,
-                          balance=balance_int,
-                          currency_id=currency_id
-        )
+        try:
+            account = Account.create(
+                              account_number=account_number,
+                              account_name=account_name,
+                              balance=balance_int,
+                              currency_id=currency_id
+            )
+        except (IntegrityError, OperationalError) as e:
+            raise SQLError('Błąd bazy danych.') from None
 
         print(f'\nKonto o numerze zostało utworzone.')
 
@@ -63,6 +66,8 @@ class AccountManager:
             Account.delete().where(Account.account_id == account_id).execute()
         except IntegrityError:
             raise SQLError('Nie udało się usunąć konta.') from None
+        except OperationalError:
+            raise SQLError('Błąd połączenia z bazą danych.') from None
         print('Pomyślnie usunięto konto.')
 
 
@@ -85,7 +90,7 @@ class AccountManager:
             raise SQLError('Konto o podanym numerze już istnieje.')
 
 
-    def show_account(self, account_id: int | str) -> None:# todo można dodać dodatkową metodą
+    def show_account(self, account_id: int | str) -> None:
         if account_id:
             try:
                 record = Account.select().where(Account.account_id == account_id).get()
@@ -119,5 +124,7 @@ class AccountManager:
         elif transaction_type == 'outcome':
             new_amount = account_balance - transaction_amount
         new_value = new_amount.amount
-
-        Account.update({Account.balance: new_value}).where(Account.account_id == account_id).execute()
+        try:
+            Account.update({Account.balance: new_value}).where(Account.account_id == account_id).execute()
+        except (IntegrityError, OperationalError):
+            raise SQLError('Wystąpił błąd bazy danych.') from None
