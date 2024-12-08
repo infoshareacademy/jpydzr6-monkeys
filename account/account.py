@@ -1,3 +1,5 @@
+from cgi import print_arguments
+
 from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, IntegrityError, \
     DoesNotExist, OperationalError
 from money import Monetary
@@ -82,30 +84,29 @@ class AccountManager:
         if Account.select().where(Account.account_number == account_number).exists():
             raise SQLError('Konto o podanym numerze już istnieje.')
 
-    @staticmethod
-    def show_account(account_id: int | str) -> None: # todo żeby sie powtarzać dodaj dodatkową metodę z wyświetlaniem
+
+    def show_account(self, account_id: int | str) -> None:# todo można dodać dodatkową metodą
         if account_id:
             try:
                 record = Account.select().where(Account.account_id == account_id).get()
             except DoesNotExist:
                 raise SQLError('Konto o podanym ID nie istnieje.') from None
-
             else:
-                balance = Monetary(record.balance, CURRENCY_MAP[record.currency_id])
-                print(f'\nID konta: {record.account_id}\n'
-                      f'Nazwa konta: {record.account_name}\n'
-                      f'Numer konta: {record.account_number}\n'
-                      f'Stan konta: {balance}\n')
+                self.print_account(record)
         else:
             try:
                 for record in Account:
-                    balance = Monetary(record.balance, CURRENCY_MAP[record.currency_id])
-                    print(f'\nID konta: {record.account_id}\n'
-                          f'Nazwa konta: {record.account_name}\n'
-                          f'Numer konta: {record.account_number}\n'
-                          f'Stan konta: {balance}\n')
+                    self.print_account(record)
             except OperationalError:
                 raise SQLError('Wystąpił problem połączenia z bazą danych.')
+
+    @staticmethod
+    def print_account(record: Account) -> None:
+        balance = Monetary(record.balance, CURRENCY_MAP[record.currency_id])
+        print(f'\nID konta: {record.account_id}\n'
+              f'Nazwa konta: {record.account_name}\n'
+              f'Numer konta: {record.account_number}\n'
+              f'Stan konta: {balance}\n')
 
     @staticmethod
     def modify_balance(account_id: int, transaction_amount: Monetary, transaction_type: str) -> None:
@@ -120,4 +121,3 @@ class AccountManager:
         new_value = new_amount.amount
 
         Account.update({Account.balance: new_value}).where(Account.account_id == account_id).execute()
-
