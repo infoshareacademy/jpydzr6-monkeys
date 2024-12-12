@@ -3,10 +3,13 @@ import shutil
 import os
 from datetime import datetime
 import re
+from account.account import AccountManager, SQLError
+from money import Monetary
 
 class Transactions:
+
     def __init__(self, db_name='budget.db', table_name='operations'):
-        if not re.match(r'^\w+$', table_name): #bez znaków specjalnych w nazwie tabeli
+        if not re.match(r'^\w+$', table_name):  # bez znaków specjalnych w nazwie tabeli
             raise ValueError("Nazwa tabeli zawiera niedozwolone znaki.")
         self.db_name = db_name
         self.table_name = table_name
@@ -20,23 +23,23 @@ class Transactions:
     def create_table(self):
         with self.create_connection() as conn:
             cursor = conn.cursor()
+            # Dodajemy kolumnę account_id, aby móc modyfikować saldo konta powiązanego z transakcją
             cursor.execute(f'''
-            CREATE TABLE IF NOT EXISTS  {self.table_name} (
+            CREATE TABLE IF NOT EXISTS {self.table_name} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 entry_type TEXT NOT NULL,
                 amount BIGINT NOT NULL,
                 description TEXT,
                 category TEXT,
-                date TEXT NOT NULL
+                date TEXT NOT NULL,
+                account_id INTEGER NOT NULL
             )
             ''')
             conn.commit()
 
     def save_budget_to_file(self):
-        # Integracja z SQLite - zapisuje dane do bazy
         backup_db = self.db_name + '.bak'
         try:
-            # Tworzenie kopii zapasowej bazy danych
             if os.path.exists(self.db_name):
                 shutil.copyfile(self.db_name, backup_db)
                 print("Kopia zapasowa bazy danych została utworzona.")
@@ -51,40 +54,42 @@ class Transactions:
                 for entry in self.transactions:
                     amount_in_grosze = int(round(entry['amount'] * 100))
                     cursor.execute(f'''
-                    INSERT INTO {self.table_name} (entry_type, amount, description, category, date)
-                    VALUES (?, ?, ?, ?, ?)
-                    ''', (entry['type'], amount_in_grosze, entry['description'], entry['category'], entry['date']))
-                # Zatwierdzenie transakcji
+                    INSERT INTO {self.table_name} (entry_type, amount, description, category, date, account_id)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (entry['type'], amount_in_grosze, entry['description'], entry['category'], entry['date'], entry['account_id']))
                 conn.commit()
-            # Usunięcie kopii zapasowej po pomyślnym zapisie
             os.remove(backup_db)
             print("Transakcje zostały zapisane do bazy danych.")
         except Exception as e:
             print(f"Błąd podczas zapisywania transakcji: {e}")
-            # Przywrócenie bazy danych z kopii zapasowej
             shutil.copyfile(backup_db, self.db_name)
             print("Przywrócono bazę danych z kopii zapasowej.")
 
     def load_budget_from_file(self):
-        #integracja z sqlitem - pobiera dane z bazy
         with self.create_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute(f"SELECT entry_type, amount, description, category, date FROM {self.table_name}")
+            cursor.execute(f"SELECT entry_type, amount, description, category, date, account_id FROM {self.table_name}")
             rows = cursor.fetchall()
             self.transactions = [{
                 'type': row[0],
-                'amount': row[1] / 100, # Groszy / złotówki
+                'amount': row[1] / 100,
                 'description': row[2],
                 'category': row[3],
-                'date': row[4]
+                'date': row[4],
+                'account_id': row[5]
             } for row in rows]
-        print("Tranzakcje zostały załadowane z bazy danych.")
+        print("Transakcje zostały załadowane z bazy danych.")
 
-    def add_budget_entry(self, entry_type, amount, description, category="brak kategorii"):
-        errors = [] #lista błędów
+    GENERIC_CURRENCY = {
+        "code": "XXX",
+        "base": 10,
+        "exponent": 2
+    }
+
+    def add_budget_entry(self, account_id, entry_type, amount, description, category="brak kategorii"):
+        errors = []
         if entry_type not in ["income", "outcome"]:
             errors.append("Błąd: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.")
-
         try:
             amount = float(amount)
             if amount <= 0:
@@ -94,6 +99,11 @@ class Transactions:
 
         if len(description) > 255:
             errors.append("Błąd: Opis jest za długi (maksymalnie 255 znaków).")
+        # Sprawdzenie czy konto istnieje
+        try:
+            AccountManager.check_record_existence(account_id)
+        except SQLError as e:
+            errors.append(str(e))
 
         if errors:
             for error in errors:
@@ -101,21 +111,35 @@ class Transactions:
             return
 
         amount_in_grosze = int(round(amount * 100))
-
         entry_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
         try:
             with self.create_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(f'''
-                INSERT INTO {self.table_name} (entry_type, amount, description, category, date)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (entry_type, amount_in_grosze, description, category, entry_date))
+                INSERT INTO {self.table_name} (entry_type, amount, description, category, date, account_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ''', (entry_type, amount_in_grosze, description, category, entry_date, account_id))
                 conn.commit()
+
             self.load_budget_from_file()
-            print(f"Pomyślnie dodano wpis: {entry_type}, - {amount:.2f} PLN, opis {description}, kategoria: {category}")
+            print(f"Pomyślnie dodano wpis: {entry_type}, - {amount:.2f}, opis: {description}, kategoria: {category}, konto: {account_id}")
+
+            temporary_currency = { #to tylko placeholder - bez waluty
+                "code": "XXX",
+                "base": 10,
+                "exponent": 2
+            }
+
+            minor_units = Monetary.major_to_minor_unit(amount, temporary_currency)
+            transaction_monetary = Monetary(minor_units, temporary_currency)
+
+            AccountManager.modify_balance(account_id, transaction_monetary, entry_type)
+
         except sqlite3.Error as e:
             print(f"Błąd podczas dodawania wpisu: {e}")
-
+        except SQLError as e:
+            print(f"Błąd podczas aktualizacji salda konta: {e}")
 
     def add_budget_entry_input(self):
         while True:
