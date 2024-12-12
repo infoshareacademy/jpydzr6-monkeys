@@ -58,9 +58,9 @@ class Transactions:
                 conn.commit()
             # Usunięcie kopii zapasowej po pomyślnym zapisie
             os.remove(backup_db)
-            print("Budżet został zapisany do bazy danych.")
+            print("Transakcje zostały zapisane do bazy danych.")
         except Exception as e:
-            print(f"Błąd podczas zapisywania budżetu: {e}")
+            print(f"Błąd podczas zapisywania transakcji: {e}")
             # Przywrócenie bazy danych z kopii zapasowej
             shutil.copyfile(backup_db, self.db_name)
             print("Przywrócono bazę danych z kopii zapasowej.")
@@ -78,7 +78,7 @@ class Transactions:
                 'category': row[3],
                 'date': row[4]
             } for row in rows]
-        print("Budżet został załadowany z bazy danych.")
+        print("Tranzakcje zostały załadowane z bazy danych.")
 
     def add_budget_entry(self, entry_type, amount, description, category="brak kategorii"):
         errors = [] #lista błędów
@@ -151,7 +151,7 @@ class Transactions:
 
     def show_budget(self):
         if not self.budget:
-            print("Brak danych - budżet jest pusty. ")
+            print("Brak danych - lista jest pusta. ")
         else:
             sorted_budget = sorted(self.budget, key=lambda x: x['date'])
             for i, entry in enumerate(sorted_budget, 1):
@@ -167,7 +167,7 @@ class Transactions:
             income = sum(entry['amount'] for entry in self.budget if entry['type'] == 'income')
             expenses = sum(entry['amount'] for entry in self.budget if entry['type'] == 'outcome')
             balance = income - expenses
-            print("Podsumowanie budżetu:")
+            print("Podsumowanie transakcji:")
             print(f" - Dochody: {income:.2f} PLN")
             print(f" - Wydatki: {expenses:.2f} PLN")
             print(f" - Saldo: {balance:.2f} PLN")
@@ -185,7 +185,7 @@ class Transactions:
             for i, entry in enumerate(incomes, 1):
                 print(f"{i}. Kwota: {entry['amount']:.2f} PLN, Opis: {entry['description']}, Data: {entry['date']}")
         except KeyError as e:
-            print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
+            print(f"Błąd: Brakuje klucza w danych transakcji: ({e}).")
         except Exception as e:
             print(f"Nieoczekiwany błąd: {e}")
     #Filtracja tylko wydatków
@@ -200,7 +200,7 @@ class Transactions:
             for i, entry in enumerate(outcomes, 1):
                 print(f"{i}. Kwota: {entry['amount']:.2f} PLN, Opis: {entry['description']}, Data: {entry['date']}")
         except KeyError as e:
-            print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
+            print(f"Błąd: Brakuje klucza w danych transakcji ({e}).")
         except Exception as e:
             print(f"Nieoczekiwany błąd: {e}")
 
@@ -216,7 +216,7 @@ class Transactions:
                 print(f"{i}. Kwota: {entry['amount']:.2f} PLN, Opis: {entry['description']}, Kategoria: "
                       f"{entry.get('category', 'Brak kategorii')}, Data: {entry['date']}")
         except KeyError as e:
-            print(f"Błąd: Brakuje klucza w danych budżetu ({e}). ")
+            print(f"Błąd: Brakuje klucza w danych transakcji ({e}). ")
         except Exception as e:
             print(f"Nieoczekiwany błąd: {e}")
     #TYLKO WYDATKI
@@ -231,7 +231,7 @@ class Transactions:
                 print(f"{i}. Kwota: {entry['amount']:.2f} PLN, Opis: {entry['description']}, "
                       f"Kategoria: {entry.get('category', 'Brak kategorii')}, Data: {entry['date']}")
         except KeyError as e:
-            print(f"Błąd: Brakuje klucza w danych budżetu ({e}).")
+            print(f"Błąd: Brakuje klucza w danych transakcji: ({e}).")
         except Exception as e:
             print(f"Nieoczekiwany błąd: {e}")
 
