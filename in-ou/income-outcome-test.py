@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from income_outcome import Transactions
 
-class TestBudgetManager(unittest.TestCase):
+class TestTransactions(unittest.TestCase):
     def setUp(self):
         self.test_db = 'test_budget.db'
         self.test_table = 'test_operations'
@@ -15,6 +15,7 @@ class TestBudgetManager(unittest.TestCase):
 
     def test_add_budget_entry(self):
         self.manager.add_budget_entry(
+            account_id=1,
             entry_type='income',
             amount=100.50,
             description='Test income',
@@ -28,6 +29,7 @@ class TestBudgetManager(unittest.TestCase):
 
     def test_delete_budget_entry(self):
         self.manager.add_budget_entry(
+            account_id=1,
             entry_type='income',
             amount=50,
             description='To delete',
@@ -38,12 +40,14 @@ class TestBudgetManager(unittest.TestCase):
 
     def test_show_budget_summary(self):
         self.manager.add_budget_entry(
+            account_id=1,
             entry_type='income',
             amount=200,
             description='Test income',
             category='Category1'
         )
         self.manager.add_budget_entry(
+            account_id=1,
             entry_type='outcome',
             amount=50,
             description='Test outcome',
@@ -59,12 +63,14 @@ class TestBudgetManager(unittest.TestCase):
 
     def test_edit_budget_entry(self):
         self.manager.add_budget_entry(
+            account_id=1,
             entry_type='income',
             amount=100,
             description='Initial description',
             category='Initial category'
         )
 
+        # Edytujemy wpis bezpośrednio w self.manager.transactions
         entry = self.manager.transactions[0]
         entry['type'] = 'outcome'
         entry['amount'] = 75.50
@@ -83,6 +89,7 @@ class TestBudgetManager(unittest.TestCase):
 
     def test_show_incomes(self):
         self.manager.add_budget_entry(
+            account_id=1,
             entry_type='income',
             amount=300,
             description='Income test',
@@ -94,6 +101,7 @@ class TestBudgetManager(unittest.TestCase):
 
     def test_show_outcomes(self):
         self.manager.add_budget_entry(
+            account_id=1,
             entry_type='outcome',
             amount=150,
             description='Outcome test',
