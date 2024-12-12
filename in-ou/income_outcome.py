@@ -3,18 +3,29 @@ import shutil
 import os
 from datetime import datetime
 import re
-from account.account import AccountManager, SQLError
+from account import AccountManager, SQLError
 from money import Monetary
+from peewee import IntegrityError, Model, CharField, BigIntegerField, ForeignKeyField
+from account import db, Account
+
+class Operations(Model):
+    entry_type = CharField()
+    amount = BigIntegerField()
+    description = CharField(null=True)
+    category = CharField(null=True)
+    date = CharField()
+    account_id = ForeignKeyField(Account, backref='operations', on_delete='CASCADE')
+
+    class Meta:
+        database = db
 
 class Transactions:
-
     def __init__(self, db_name='operations.db', table_name='operations'):
         if not re.match(r'^\w+$', table_name):  # bez znaków specjalnych w nazwie tabeli
             raise ValueError("Nazwa tabeli zawiera niedozwolone znaki.")
         self.db_name = db_name
         self.table_name = table_name
         self.transactions = []
-        self.create_table()
         self.load_budget_from_file()
 
     def create_connection(self):
@@ -68,19 +79,19 @@ class Transactions:
             print("Przywrócono bazę danych z kopii zapasowej.")
 
     def load_budget_from_file(self):
-        with self.create_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(f"SELECT entry_type, amount, description, category, date, account_id FROM {self.table_name}")
-            rows = cursor.fetchall()
+        try:
+            rows = Operations.select()
             self.transactions = [{
-                'type': row[0],
-                'amount': row[1] / 100,
-                'description': row[2],
-                'category': row[3],
-                'date': row[4],
-                'account_id': row[5]
+                'type': row.entry_type,
+                'amount': row.amount / 100,
+                'description': row.description,
+                'category': row.category,
+                'date': row.date,
+                'account_id': row.account_id.id
             } for row in rows]
-        print("Transakcje zostały załadowane z bazy danych.")
+            print(f"Załadowano transakcje: {self.transactions}")
+        except Exception as e:
+            print(f"Błąd podczas ładowania danych: {e}")
 
     GENERIC_CURRENCY = {
         "code": "XXX",
@@ -90,6 +101,7 @@ class Transactions:
 
     def add_budget_entry(self, account_id, entry_type, amount, description, category="brak kategorii"):
         errors = []
+
         if entry_type not in ["income", "outcome"]:
             errors.append("Błąd: Nieprawidłowy rodzaj wpisu. Wybierz 'income' lub 'outcome'.")
         try:
@@ -99,8 +111,11 @@ class Transactions:
         except ValueError:
             errors.append("Błąd: Kwota musi być liczbą.")
 
+        # Walidacja długości opisu
         if len(description) > 255:
             errors.append("Błąd: Opis jest za długi (maksymalnie 255 znaków).")
+
+        # Sprawdzenie, czy konto istnieje
         try:
             AccountManager.check_record_existence(account_id)
         except SQLError as e:
@@ -111,34 +126,30 @@ class Transactions:
                 print(error)
             return
 
+        # Konwersja kwoty na grosze (lub jednostkę minor)
         amount_in_grosze = int(round(amount * 100))
-        entry_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         try:
-            with self.create_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute(f'''
-                INSERT INTO {self.table_name} (entry_type, amount, description, category, date, account_id)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ''', (entry_type, amount_in_grosze, description, category, entry_date, account_id))
-                conn.commit()
+            # Tworzenie nowego wpisu w tabeli `Operations`
+            Operations.create(
+                entry_type=entry_type,
+                amount=amount_in_grosze,
+                description=description,
+                category=category,
+                date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                account_id=account_id
+            )
 
-            self.load_budget_from_file()
-            print(f"Pomyślnie dodano wpis: {entry_type}, - {amount:.2f}, opis: {description}, kategoria: {category}, konto: {account_id}")
-
-            temporary_currency = { #to tylko placeholder - bez waluty
-                "code": "XXX",
-                "base": 10,
-                "exponent": 2
-            }
-
-            minor_units = Monetary.major_to_minor_unit(amount, temporary_currency)
-            transaction_monetary = Monetary(minor_units, temporary_currency)
-
+            # Modyfikacja salda na koncie
+            from money import Monetary
+            transaction_monetary = Monetary(amount_in_grosze, {"code": "XXX", "base": 10, "exponent": 2})
             AccountManager.modify_balance(account_id, transaction_monetary, entry_type)
 
-        except sqlite3.Error as e:
-            print(f"Błąd podczas dodawania wpisu: {e}")
+            print(
+                f"Pomyślnie dodano wpis: {entry_type}, {amount:.2f} PLN, {description}, {category}, konto: {account_id}")
+
+        except IntegrityError as e:
+            print(f"Błąd: Wystąpił problem z bazą danych: {e}")
         except SQLError as e:
             print(f"Błąd podczas aktualizacji salda konta: {e}")
 
@@ -352,45 +363,31 @@ class Transactions:
         except Exception as e:
             print(f"Błąd: {e}")
 
-    def delete_budget_entry(self, index):
+    def delete_budget_entry(self, entry_id):
         try:
-            print(f"Próba usunięcia wpisu o indeksie: {index}")
-            entry = self.transactions.pop(index - 1)
+            entry = Operations.get_by_id(entry_id)  # Pobranie wpisu na podstawie ID
+            print(f"Próba usunięcia wpisu: {entry.entry_type} - {entry.amount / 100:.2f} PLN, {entry.description}")
 
-            entry_type = entry['type']
-            entry_amount = entry['amount']
-            account_id = entry['account_id']
+            account_id = entry.account_id.id
+            amount_in_grosze = entry.amount
+            transaction_type = entry.entry_type
 
-            with self.create_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute(f"DELETE FROM {self.table_name} WHERE id = ?", (entry.get('id'),))
-                conn.commit()
+            # Usuń wpis z bazy danych
+            entry.delete_instance()
 
-            balance_change = 0
-            if entry_type == 'income':
-                balance_change -= int(round(entry_amount * 100))  # Odwracamy wpływ dochodu
-            elif entry_type == 'outcome':
-                balance_change += int(round(entry_amount * 100))  # Odwracamy wpływ wydatku
+            # Aktualizuj saldo konta
+            from money import Monetary
+            transaction_monetary = Monetary(amount_in_grosze, {"code": "XXX", "base": 10, "exponent": 2})
 
-            if balance_change != 0:
-                transaction_monetary = Monetary(abs(balance_change), {"code": "XXX", "base": 10, "exponent": 2})
-
-                if balance_change > 0:
-                    transaction_type = 'income'
-                elif balance_change < 0:
-                    transaction_type = 'outcome'
-                else:
-                    transaction_type = None
-                if transaction_type:
-                    AccountManager.modify_balance(account_id, transaction_monetary, transaction_type)
+            if transaction_type == 'income':
+                AccountManager.modify_balance(account_id, transaction_monetary, 'outcome')
+            elif transaction_type == 'outcome':
+                AccountManager.modify_balance(account_id, transaction_monetary, 'income')
 
             self.load_budget_from_file()
-            print(f"Wpis usunięty: {entry['type']} - {entry['amount']:.2f} PLN, {entry['description']}")
-            print("Saldo konta zostało zaktualizowane.")
+            print(f"Wpis został pomyślnie usunięty i saldo konta zostało zaktualizowane.")
 
-        except IndexError:
-            print(f"Nie ma wpisu z podanym indeksem: {index}")
-        except SQLError as e:
-            print(f"Błąd podczas aktualizacji salda konta: {e}")
+        except Operations.DoesNotExist:  # Obsługa wyjątku, jeśli wpis nie istnieje
+            print(f"Nie znaleziono wpisu o ID: {entry_id}")
         except Exception as e:
-            print(f"Błąd: {e}")
+            print(f"Błąd podczas usuwania wpisu: {e}")
