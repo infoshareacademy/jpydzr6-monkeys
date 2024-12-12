@@ -267,10 +267,15 @@ class Transactions:
             print(f" - Kategoria: {entry['category']}")
 
             # Potwierdzenie zapisania zmian
-            confirm = input("Czy na pewno chcesz zapisać zmiany? (tak/nie): ").strip().lower()
-            if confirm != "tak":
-                print("Edycja anulowana.")
-                return
+            while True:
+                confirm = input("Czy na pewno chcesz zapisać zmiany? (tak/nie): ").strip().lower()
+                if confirm == "tak":
+                    break
+                elif confirm == "nie":
+                    print("Edycja anulowana.")
+                    return
+                else:
+                    print("Niepoprawny wybór. Wpisz 'tak' lub 'nie'.")
 
             # Aktualizacja daty i zapisanie zmian
             entry["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
