@@ -8,7 +8,7 @@ from money import Monetary
 
 class Transactions:
 
-    def __init__(self, db_name='budget.db', table_name='operations'):
+    def __init__(self, db_name='operations.db', table_name='operations'):
         if not re.match(r'^\w+$', table_name):  # bez znaków specjalnych w nazwie tabeli
             raise ValueError("Nazwa tabeli zawiera niedozwolone znaki.")
         self.db_name = db_name
@@ -18,7 +18,9 @@ class Transactions:
         self.load_budget_from_file()
 
     def create_connection(self):
-        return sqlite3.connect(self.db_name)
+        conn = sqlite3.connect(self.db_name)
+        conn.execute("PRAGMA foreign_keys = ON;")
+        return conn
 
     def create_table(self):
         with self.create_connection() as conn:
@@ -31,7 +33,8 @@ class Transactions:
                 description TEXT,
                 category TEXT,
                 date TEXT NOT NULL,
-                account_id INTEGER NOT NULL
+                account_id INTEGER NOT NULL,
+                FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
             )
             ''')
             conn.commit()
@@ -139,7 +142,7 @@ class Transactions:
         except SQLError as e:
             print(f"Błąd podczas aktualizacji salda konta: {e}")
 
-    def add_budget_entry_input(self):
+    def add_budget_entry_input(self, account_id=None):
         while True:
             entry_type = input(
                 "Wprowadź rodzaj wpisu ('income' dla dochodu lub 'outcome' dla wydatku, lub 'exit' aby zakończyć): ").strip().lower() # To samo co wyżej, może warto zmienić na I/O?
@@ -169,7 +172,7 @@ class Transactions:
         if not category:
             category = "Brak kategorii" # domyślna kategoria
 
-        self.add_budget_entry(entry_type, amount, description, category)
+        self.add_budget_entry(account_id, entry_type, amount, description, category)
 
     def show_budget(self):
         if not self.transactions:
@@ -262,9 +265,15 @@ class Transactions:
             entry = self.transactions[index - 1]
             print(f"Edycja wpisu: {entry['type']}: {entry['amount']:.2f} PLN, {entry['description']}")
 
+            old_type = entry['type']
+            old_amount = entry['amount']
+            account_id = entry['account_id']
+
             new_type = input("Nowy typ (income/outcome): ").strip().lower()
             if new_type in ["income", "outcome"]:
                 entry["type"] = new_type
+            else:
+                print("Nie zmieniono typu wpisu.")
 
             try:
                 new_amount_input = input("Nowa kwota: ").strip()
@@ -280,14 +289,12 @@ class Transactions:
             entry["description"] = input("Nowy opis: ").strip() or entry['description']
             entry["category"] = input("Nowa kategoria: ").strip() or entry.get('category', "Brak kategorii")
 
-            # Pokazanie zmian przed zapisaniem
             print("\nProponowane zmiany:")
             print(f" - Typ: {entry['type']}")
             print(f" - Kwota: {entry['amount']:.2f} PLN")
             print(f" - Opis: {entry['description']}")
             print(f" - Kategoria: {entry['category']}")
 
-            # Potwierdzenie zapisania zmian
             while True:
                 confirm = input("Czy na pewno chcesz zapisać zmiany? (tak/nie): ").strip().lower()
                 if confirm == "tak":
@@ -298,12 +305,50 @@ class Transactions:
                 else:
                     print("Niepoprawny wybór. Wpisz 'tak' lub 'nie'.")
 
-            # Aktualizacja daty i zapisanie zmian
             entry["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.save_budget_to_file()
-            print("Wpis został zaktualizowany.")
+
+            old_amount_grosze = int(round(old_amount * 100))
+            new_amount_grosze = int(round(entry['amount'] * 100))
+            balance_difference = 0
+
+            if old_type == 'income':
+                balance_difference -= old_amount_grosze
+            elif old_type == 'outcome':
+                balance_difference += old_amount_grosze
+
+            if entry['type'] == 'income':
+                balance_difference += new_amount_grosze
+            elif entry['type'] == 'outcome':
+                balance_difference -= new_amount_grosze
+
+            with self.create_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(f'''
+                UPDATE {self.table_name}
+                SET entry_type = ?, amount = ?, description = ?, category = ?, date = ?
+                WHERE id = ?
+                ''', (entry['type'], new_amount_grosze, entry['description'], entry['category'], entry['date'], entry['id']))
+                conn.commit()
+
+            transaction_monetary = Monetary(abs(balance_difference), {"code": "XXX", "base": 10, "exponent": 2})
+
+            if balance_difference > 0:
+                transaction_type = 'income'
+            elif balance_difference < 0:
+                transaction_type = 'outcome'
+            else:
+                transaction_type = None
+
+            if transaction_type:
+                AccountManager.modify_balance(account_id, transaction_monetary, transaction_type)
+
+            self.load_budget_from_file()
+            print("Wpis został zaktualizowany i saldo konta zmodyfikowane.")
+
         except IndexError:
             print("Nie znaleziono wpisu o podanym indeksie.")
+        except SQLError as e:
+            print(f"Błąd podczas aktualizacji salda konta: {e}")
         except Exception as e:
             print(f"Błąd: {e}")
 
@@ -311,7 +356,41 @@ class Transactions:
         try:
             print(f"Próba usunięcia wpisu o indeksie: {index}")
             entry = self.transactions.pop(index - 1)
-            self.save_budget_to_file()
+
+            entry_type = entry['type']
+            entry_amount = entry['amount']
+            account_id = entry['account_id']
+
+            with self.create_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(f"DELETE FROM {self.table_name} WHERE id = ?", (entry.get('id'),))
+                conn.commit()
+
+            balance_change = 0
+            if entry_type == 'income':
+                balance_change -= int(round(entry_amount * 100))  # Odwracamy wpływ dochodu
+            elif entry_type == 'outcome':
+                balance_change += int(round(entry_amount * 100))  # Odwracamy wpływ wydatku
+
+            if balance_change != 0:
+                transaction_monetary = Monetary(abs(balance_change), {"code": "XXX", "base": 10, "exponent": 2})
+
+                if balance_change > 0:
+                    transaction_type = 'income'
+                elif balance_change < 0:
+                    transaction_type = 'outcome'
+                else:
+                    transaction_type = None
+                if transaction_type:
+                    AccountManager.modify_balance(account_id, transaction_monetary, transaction_type)
+
+            self.load_budget_from_file()
             print(f"Wpis usunięty: {entry['type']} - {entry['amount']:.2f} PLN, {entry['description']}")
+            print("Saldo konta zostało zaktualizowane.")
+
         except IndexError:
             print(f"Nie ma wpisu z podanym indeksem: {index}")
+        except SQLError as e:
+            print(f"Błąd podczas aktualizacji salda konta: {e}")
+        except Exception as e:
+            print(f"Błąd: {e}")
