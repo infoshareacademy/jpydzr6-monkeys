@@ -20,11 +20,11 @@ class TestBudgetManager(unittest.TestCase):
             description='Test income',
             category='Test category'
         )
-        self.assertEqual(len(self.manager.budget), 1)
-        self.assertEqual(self.manager.budget[0]['type'], 'income')
-        self.assertEqual(self.manager.budget[0]['amount'], 100.50)
-        self.assertEqual(self.manager.budget[0]['description'], 'Test income')
-        self.assertEqual(self.manager.budget[0]['category'], 'Test category')
+        self.assertEqual(len(self.manager.transactions), 1)
+        self.assertEqual(self.manager.transactions[0]['type'], 'income')
+        self.assertEqual(self.manager.transactions[0]['amount'], 100.50)
+        self.assertEqual(self.manager.transactions[0]['description'], 'Test income')
+        self.assertEqual(self.manager.transactions[0]['category'], 'Test category')
 
     def test_delete_budget_entry(self):
         self.manager.add_budget_entry(
@@ -34,7 +34,7 @@ class TestBudgetManager(unittest.TestCase):
             category='Test'
         )
         self.manager.delete_budget_entry(1)
-        self.assertEqual(len(self.manager.budget), 0)
+        self.assertEqual(len(self.manager.transactions), 0)
 
     def test_show_budget_summary(self):
         self.manager.add_budget_entry(
@@ -49,8 +49,8 @@ class TestBudgetManager(unittest.TestCase):
             description='Test outcome',
             category='Category2'
         )
-        income = sum(entry['amount'] for entry in self.manager.budget if entry['type'] == 'income')
-        outcome = sum(entry['amount'] for entry in self.manager.budget if entry['type'] == 'outcome')
+        income = sum(entry['amount'] for entry in self.manager.transactions if entry['type'] == 'income')
+        outcome = sum(entry['amount'] for entry in self.manager.transactions if entry['type'] == 'outcome')
         balance = income - outcome
 
         self.assertEqual(income, 200)
@@ -65,7 +65,7 @@ class TestBudgetManager(unittest.TestCase):
             category='Initial category'
         )
 
-        entry = self.manager.budget[0]
+        entry = self.manager.transactions[0]
         entry['type'] = 'outcome'
         entry['amount'] = 75.50
         entry['description'] = 'Updated description'
@@ -75,7 +75,7 @@ class TestBudgetManager(unittest.TestCase):
         self.manager.save_budget_to_file()
         self.manager.load_budget_from_file()
 
-        edited_entry = self.manager.budget[0]
+        edited_entry = self.manager.transactions[0]
         self.assertEqual(edited_entry['type'], 'outcome')
         self.assertEqual(edited_entry['amount'], 75.50)
         self.assertEqual(edited_entry['description'], 'Updated description')
@@ -88,7 +88,7 @@ class TestBudgetManager(unittest.TestCase):
             description='Income test',
             category='Income category'
         )
-        incomes = [entry for entry in self.manager.budget if entry['type'] == 'income']
+        incomes = [entry for entry in self.manager.transactions if entry['type'] == 'income']
         self.assertEqual(len(incomes), 1)
         self.assertEqual(incomes[0]['amount'], 300)
 
@@ -99,7 +99,7 @@ class TestBudgetManager(unittest.TestCase):
             description='Outcome test',
             category='Outcome category'
         )
-        outcomes = [entry for entry in self.manager.budget if entry['type'] == 'outcome']
+        outcomes = [entry for entry in self.manager.transactions if entry['type'] == 'outcome']
         self.assertEqual(len(outcomes), 1)
         self.assertEqual(outcomes[0]['amount'], 150)
 

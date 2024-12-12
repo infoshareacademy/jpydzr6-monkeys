@@ -10,7 +10,7 @@ class Transactions:
             raise ValueError("Nazwa tabeli zawiera niedozwolone znaki.")
         self.db_name = db_name
         self.table_name = table_name
-        self.budget = []
+        self.transactions = []
         self.create_table()
         self.load_budget_from_file()
 
@@ -48,7 +48,7 @@ class Transactions:
                 cursor.execute('BEGIN TRANSACTION;')
                 cursor.execute(f"DELETE FROM {self.table_name}")
 
-                for entry in self.budget:
+                for entry in self.transactions:
                     amount_in_grosze = int(round(entry['amount'] * 100))
                     cursor.execute(f'''
                     INSERT INTO {self.table_name} (entry_type, amount, description, category, date)
@@ -71,7 +71,7 @@ class Transactions:
             cursor = conn.cursor()
             cursor.execute(f"SELECT entry_type, amount, description, category, date FROM {self.table_name}")
             rows = cursor.fetchall()
-            self.budget = [{
+            self.transactions = [{
                 'type': row[0],
                 'amount': row[1] / 100, # Groszy / złotówki
                 'description': row[2],
@@ -150,22 +150,22 @@ class Transactions:
         self.add_budget_entry(entry_type, amount, description, category)
 
     def show_budget(self):
-        if not self.budget:
+        if not self.transactions:
             print("Brak danych - lista jest pusta. ")
         else:
-            sorted_budget = sorted(self.budget, key=lambda x: x['date'])
+            sorted_budget = sorted(self.transactions, key=lambda x: x['date'])
             for i, entry in enumerate(sorted_budget, 1):
                 category = entry.get('category', 'Brak kategorii')
                 print(f"{i}. {entry['type']}: {entry['amount']:.2f} PLN, {entry['description']} "
                       f"(Kategoria: {category}, Data: {entry['date']})")
         # status konta ( wydatki, przychody, saldo )
     def show_budget_summary(self):
-        if not self.budget:
+        if not self.transactions:
             print("Brak danych do podsumowania.")
             return
         try:
-            income = sum(entry['amount'] for entry in self.budget if entry['type'] == 'income')
-            expenses = sum(entry['amount'] for entry in self.budget if entry['type'] == 'outcome')
+            income = sum(entry['amount'] for entry in self.transactions if entry['type'] == 'income')
+            expenses = sum(entry['amount'] for entry in self.transactions if entry['type'] == 'outcome')
             balance = income - expenses
             print("Podsumowanie transakcji:")
             print(f" - Dochody: {income:.2f} PLN")
@@ -176,7 +176,7 @@ class Transactions:
     #filtracja TYLKO przychodów zamiast ogólnych wpisów
     def show_incomes_by_category(self, category):
         try:
-            incomes = [entry for entry in self.budget if
+            incomes = [entry for entry in self.transactions if
                        entry.get('type') == 'income' and entry.get('category') == category]
             if not incomes:
                 print(f"Brak dochodów w kategorii '{category}'.")
@@ -191,8 +191,8 @@ class Transactions:
     #Filtracja tylko wydatków
     def show_outcomes_by_category(self, category):
         try:
-            outcomes = [entry for entry in self.budget if
-                       entry.get('type') == 'outcome' and entry.get('category') == category]
+            outcomes = [entry for entry in self.transactions if
+                        entry.get('type') == 'outcome' and entry.get('category') == category]
             if not outcomes:
                 print(f"Brak wydatków w kategorii '{category}'.")
                 return
@@ -207,7 +207,7 @@ class Transactions:
     #TYLKO PRZYCHODY
     def show_incomes(self):
         try:
-            incomes = [entry for entry in self.budget if entry.get('type') == 'income']
+            incomes = [entry for entry in self.transactions if entry.get('type') == 'income']
             if not incomes:
                 print("Brak dochodów do wyświetlenia")
                 return
@@ -222,7 +222,7 @@ class Transactions:
     #TYLKO WYDATKI
     def show_outcomes(self):
         try:
-            outcomes = [entry for entry in self.budget if entry.get('type') == 'outcome']
+            outcomes = [entry for entry in self.transactions if entry.get('type') == 'outcome']
             if not outcomes:
                 print("Brak wydatków do wyświetlenia")
                 return
@@ -237,7 +237,7 @@ class Transactions:
 
     def edit_budget_entry(self, index):
         try:
-            entry = self.budget[index - 1]
+            entry = self.transactions[index - 1]
             print(f"Edycja wpisu: {entry['type']}: {entry['amount']:.2f} PLN, {entry['description']}")
 
             #Tu użytkownik wpisuje nowe dane, Value Error wystarczy czy coś więcej?
@@ -289,7 +289,7 @@ class Transactions:
     def delete_budget_entry(self, index):
         try:
             print(f"Próba usunięcia wpisu o indeksie: {index}")
-            entry = self.budget.pop(index - 1)
+            entry = self.transactions.pop(index - 1)
             self.save_budget_to_file()
             print(f"Wpis usunięty: {entry['type']} - {entry['amount']:.2f} PLN, {entry['description']}")
         except IndexError:
