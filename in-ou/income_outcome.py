@@ -23,7 +23,6 @@ class Transactions:
     def create_table(self):
         with self.create_connection() as conn:
             cursor = conn.cursor()
-            # Dodajemy kolumnę account_id, aby móc modyfikować saldo konta powiązanego z transakcją
             cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS {self.table_name} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,7 +98,6 @@ class Transactions:
 
         if len(description) > 255:
             errors.append("Błąd: Opis jest za długi (maksymalnie 255 znaków).")
-        # Sprawdzenie czy konto istnieje
         try:
             AccountManager.check_record_existence(account_id)
         except SQLError as e:
@@ -264,7 +262,6 @@ class Transactions:
             entry = self.transactions[index - 1]
             print(f"Edycja wpisu: {entry['type']}: {entry['amount']:.2f} PLN, {entry['description']}")
 
-            #Tu użytkownik wpisuje nowe dane, Value Error wystarczy czy coś więcej?
             new_type = input("Nowy typ (income/outcome): ").strip().lower()
             if new_type in ["income", "outcome"]:
                 entry["type"] = new_type
