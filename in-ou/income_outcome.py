@@ -4,7 +4,7 @@ import shutil
 import sqlite3
 from datetime import datetime
 from peewee import IntegrityError, Model, CharField, BigIntegerField, ForeignKeyField
-from account import AccountManager, SQLError, db, Account, CURRENCY_MAP
+from account.account import AccountManager, SQLError, db, Account, CURRENCY_MAP
 from money import Monetary
 
 
