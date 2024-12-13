@@ -385,7 +385,7 @@ class Transactions:
             elif entry.entry_type == 'outcome':
                 balance_difference -= entry.amount
 
-            transaction_monetary = Monetary(abs(balance_difference), {"code": "XXX", "base": 10, "exponent": 2})
+            transaction_monetary = Monetary(abs(balance_difference), {"code": "PLN", "base": 10, "exponent": 2})
 
             if balance_difference > 0:
                 AccountManager.modify_balance(account_id, transaction_monetary, 'income')
@@ -416,7 +416,7 @@ class Transactions:
 
             entry.delete_instance()
 
-            transaction_monetary = Monetary(amount_in_grosze, {"code": "XXX", "base": 10, "exponent": 2})
+            transaction_monetary = Monetary(amount_in_grosze, {"code": "PLN", "base": 10, "exponent": 2})
             if transaction_type == 'income':
                 AccountManager.modify_balance(account_id, transaction_monetary, 'outcome')
             elif transaction_type == 'outcome':
