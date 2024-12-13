@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from account.account import AccountManager, SQLError, ACCOUNT_PARAMETERS
 from helper import Helper, InvalidData
 
-
 class MenuItem(ABC):
 
     @property
