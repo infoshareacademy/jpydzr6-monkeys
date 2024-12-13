@@ -2,7 +2,7 @@ import unittest
 import os
 from datetime import datetime
 from income_outcome import Transactions, Operations
-from account import db, Account
+from account.account import db, Account
 
 
 class TestTransactions(unittest.TestCase):
