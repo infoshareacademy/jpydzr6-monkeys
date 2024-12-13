@@ -7,7 +7,7 @@ class MenuItem(ABC):
 
     @property
     @abstractmethod
-    def name(self):  # dodanie nazwy submenu, która będzie wyświetlona  menu głównym
+    def name(self):  # dodanie nazwy submenu, która będzie wyświetlona menu głównym
         pass
 
     @property
@@ -53,55 +53,80 @@ class AccountHandling(MenuItem):
         match choice:
             case 'D':
                 while True:
-                    # todo popraw walidację istnienia konta, żeby była od razu
+                    account_number_choice = input('Czy chcesz podać numer konta? T/N').upper()
+                    if account_number_choice not in ('T', 'N'):
+                        print('\nNieprawidłowy wybór.')
+                        continue
+                    break
+                while True:
+                    if account_number_choice == 'N':
+                        account_number = None
+                        break
                     account_number = input('Podaj numer konta: ')
-                    try: #todo trzeba ustawić odpowiednią długośc numeru konta
-                        validation.check_length(account_number,4,'Nieprawidłowa długość numeru konta')
+                    try:
                         validation.check_value(account_number, int,'Numer konta powinien składać się z liczb')
-                    except InvalidData as e: # todo dodaj check_value, żeby na 100% to był str
+                        account_manager.check_account_number_existence(account_number)
+                    except InvalidData as e:
                         print(f'\nNieprawidłowe dane: {e}')
+                        continue
+                    except SQLError as e:
+                        print(f'Wystąpił błąd: {e}')
                         continue
                     break
                 while True:
                     balance = input('Podaj aktualny stan konta: ')
                     try:
-                        balance = validation.check_value(balance, float, 'Stan konta powinien być podany jako liczba.')
+                        balance = validation.check_value(balance, float, 'Stan konta powinien być podany jako liczba z kropką jako separatorem.')
                     except InvalidData as e:
                         print(f'\nNieprawidłowe dane: {e}')
                         continue
                     break
-                while True:
-#todo konieczne sprawdzenia istnienia użytkownika w bazie danych
-                    user_id = input('Podaj ID właściciela konta: ')
-                    try:
-                        user_id = validation.check_value(user_id, int, 'Podano nieprawidłowe ID')
-                    except InvalidData as e:
-                        print(f'\nNieprawidłowe dane: {e}')
-                        continue
-                    break
-                while True:
-                    currency = input('Podaj w jaką walutę obsługuje konto: ').upper()
-                    if currency.upper() not in ['PLN', 'USD', 'EUR']:
-                        print('\nPodano nieprawidłową walutę.')
-                        continue
-                    break
-                account_name = input('Nadaj kontu nazwę: ')
 
-                account_manager.add_account(
-                    account_number=account_number,
-                    account_name=account_name,
-                    balance=balance,
-                    user_id=user_id,
-                    currency_id=currency
-                )
-            case 'U':
-                account_id = input('Podaj numer ID konta do usunięcia: ')
+                while True:
+                    currency_id = input('Podaj w jaką walutę obsługuje konto: ').upper()
+                    try:
+                        validation.check_currency(currency_id, 'Podano nieprawidłową walutę.')
+                    except InvalidData as e:
+                        print(f'Wystąpił błąd: {e}')
+                        continue
+                    break
+
+                account_name = input('Nadaj kontu nazwę: ')
                 try:
-                    account_manager.delete_account(account_id=account_id)
+                    account_manager.add_account(
+                        account_number=account_number,
+                        account_name=account_name,
+                        balance=balance,
+                        currency_id=currency_id
+                    )
                 except SQLError as e:
                     print(f'Wystąpił błąd: {e}')
 
-            case 'E': #todo dodaj wyswietlenie kont
+            case 'U':
+                try:
+                    account_manager.show_account('')
+                except SQLError as e:
+                    print(f'\nWystąpił błąd: {e}')
+                while True:
+                    account_id = input('Podaj numer ID konta do usunięcia: ')
+                    try:
+                        account_id_int = validation.check_value(account_id, int, 'Numer ID konta powinien być liczbą.')
+                        account_manager.check_record_existence(account_id_int)
+                        account_manager.delete_account(account_id=account_id_int)
+                    except SQLError as e:
+                        print(f'Wystąpił błąd: {e}')
+                        continue
+                    except InvalidData as e:
+                        print(f'Wystąpił błąd: {e}')
+                        continue
+                    break
+
+
+            case 'E':
+                try:
+                    account_manager.show_account('')
+                except SQLError as e:
+                    print(f'\nWystąpił błąd: {e}')
                 while True:
                     try:
                         account_id = input('Podaj ID konta, które chcesz edytować lub porzuć edycję [Q]: ')
@@ -112,19 +137,18 @@ class AccountHandling(MenuItem):
                         print(f'\nWystąpił błąd: {e}')
                         continue
                     try:
-                        AccountManager().check_record_existence(account_id=account_id)
+                        account_manager.check_record_existence(account_id=account_id)
                     except SQLError as e:
                         print(f'\nWystąpił błąd: {e}')
                         continue
                     break
 
-                print('Możliwe do zmiany parametry konta:')
+                print('\nMożliwe do zmiany parametry konta:\n')
                 print('1 - numer konta\n'
                       '2 - nazwa konta\n'
                       '3 - stan konta\n'
-                      '4 - ID użytkownika\n'
-                      '5 - waluta\n'
-                      'Q - porzuć edycję')
+                      '4 - waluta\n'
+                      'Q - porzuć edycję\n')
 
                 while True:
                     param_to_change_from_user = input('Podaj jaki parametr konta chcesz zmienić: ')
@@ -139,7 +163,7 @@ class AccountHandling(MenuItem):
                 while True:
                     new_value = input('Podaj nową wartość: ')
                     match param_to_change_from_user:
-                        case '1' | '4':
+                        case '1':
                             try:
                                 validation.check_value(new_value, int, 'podana wartość powinna być liczbą całkowitą.')
                             except InvalidData as e:
@@ -153,19 +177,31 @@ class AccountHandling(MenuItem):
                                 print(f'\nWystąpił błąd: {e}')
                                 continue
                             break
-                        case '5':
-                            if new_value.upper() not in ['PLN', 'USD', 'EUR']:
-                                print('\nPodano nieprawidłową walutę.')
+                        case '4':
+                            new_value = new_value.upper()
+                            try:
+                                validation.check_currency(new_value, 'Podano nieprawidłową walutę.')
+                            except InvalidData as e:
+                                print(f'Wystąpił błąd: {e}')
                                 continue
                             break
                     break
                 try:
-                    account_manager.edit_account(account_id, parameter_to_change, new_value)
+                    account_manager.edit_account(account_id, parameter_to_change, new_value, param_to_change_from_user)
                 except SQLError as e:
                     print(f'\nWystąpił błąd: {e}')
-                print('Zmiana została wykonana.')
+                print('\nZmiana została wykonana.')
             case 'P':
-                account_id = input('Podaj numer id konta, którego szczegóły chcesz wyświetlić lub wciśnij enter, żeby zobaczyć wszystkie konta.')
+                while True:
+                    account_id = input(
+                        'Podaj numer id konta, którego szczegóły chcesz wyświetlić lub wciśnij enter, żeby zobaczyć wszystkie konta.')
+                    if account_id:
+                        try:
+                            account_id = validation.check_value(account_id, int, 'ID powinno być liczbą.')
+                        except InvalidData as e:
+                            print(f'Wystąpił błąd: {e}')
+                            continue
+                    break
                 try:
                     account_manager.show_account(account_id)
                 except SQLError as e:
