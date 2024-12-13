@@ -205,3 +205,77 @@ class AccountHandling(MenuItem):
                     account_manager.show_account(account_id)
                 except SQLError as e:
                     print(f'\nWystąpił błąd: {e}')
+
+class TransactionHandling(MenuItem):
+
+    @property
+    def name(self):
+        return 'Zarządzanie transakcjami'
+
+    @property
+    def letter(self):
+        return 'T'
+
+    @property
+    def submenu_name(self):
+        return 'Menu obsługi transakcji'
+
+    def get_submenu_items(self) -> dict[str, str]:
+        return {
+            'A': 'Dodaj transakcję',
+            'E': 'Edytuj transakcję',
+            'D': 'Usuń transakcję',
+            'S': 'Pokaż transakcje',
+            'M': 'Podsumowanie transakcji'
+        }
+
+    def do_action(self, choice: str) -> None:
+        transactions = Transactions()
+        helper = Helper()
+
+        try:
+            transactions.create_table()
+        except Exception as e:
+            print(f"Błąd podczas inicjalizacji tabeli: {e}")
+            return
+
+        match choice.upper():
+            case 'A':
+                transactions.add_budget_entry_input()
+            case 'E':
+                entry_id = input('Podaj ID transakcji do edycji: ').strip()
+                try:
+                    entry_id = helper.check_value(entry_id, int, 'ID transakcji powinno być liczbą całkowitą.')
+                except InvalidData as e:
+                    print(f'\nNieprawidłowe dane: {e}')
+                    return
+                new_entry_type = input("Nowy rodzaj wpisu ('income' lub 'outcome'): ").strip().lower()
+                new_amount = input("Nowa kwota: ").strip()
+                new_description = input("Nowy opis ( lub wciśnij ENTER - bez opisu ): ").strip()
+                new_category = input("Nowa kategoria: ").strip()
+                transactions.edit_budget_entry(
+                    entry_id=entry_id,
+                    new_entry_type=new_entry_type or None,
+                    new_amount=new_amount or None,
+                    new_description=new_description or None,
+                    new_category=new_category or None
+                )
+            case 'D':
+                entry_id = input('Podaj ID transakcji do usunięcia: ').strip()
+                try:
+                    entry_id = helper.check_value(entry_id, int, 'ID transakcji powinno być liczbą całkowitą.')
+                    transactions.delete_budget_entry(entry_id=entry_id)
+                except InvalidData as e:
+                    print(f'\nNieprawidłowe dane: {e}')
+            case 'S':
+                account_id = input(
+                    'Podaj ID konta lub pozostaw puste, aby wyświetlić wszystkie: ').strip()
+                try:
+                    account_id = int(account_id) if account_id else None
+                    transactions.show_budget(account_id=account_id)
+                except ValueError:
+                    print("ID konta musi być liczbą całkowitą.")
+            case 'M':
+                transactions.show_budget_summary()
+            case _:
+                print("Nieprawidłowy wybór. Spróbuj ponownie.")
