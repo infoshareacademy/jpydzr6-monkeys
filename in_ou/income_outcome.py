@@ -1,7 +1,6 @@
 import os
 import re
 import shutil
-import sqlite3
 from datetime import datetime
 from peewee import IntegrityError, Model, CharField, BigIntegerField, ForeignKeyField
 from account.account import AccountManager, SQLError, db, Account, CURRENCY_MAP
@@ -10,6 +9,7 @@ from money import Monetary
 
 class Operations(Model):
     DoesNotExist = None
+    id = BigIntegerField(primary_key=True)
     entry_type = CharField()
     amount = BigIntegerField()
     description = CharField(null=True)
@@ -20,87 +20,91 @@ class Operations(Model):
     class Meta:
         database = db
 
-
 class Transactions:
-    def __init__(self, db_name='operations.db', table_name='operations'):
+    GENERIC_CURRENCY = {
+        "code": "PLN",
+        "base": 10,
+        "exponent": 2
+    }
+
+    def __init__(self, table_name='operations'):
         if not re.match(r'^\w+$', table_name):  # bez znaków specjalnych w nazwie tabeli
             raise ValueError("Nazwa tabeli zawiera niedozwolone znaki.")
-        self.db_name = db_name
         self.table_name = table_name
         self.transactions = []
         self.load_budget_from_file()
 
-    def create_connection(self):
-        conn = sqlite3.connect(self.db_name)
-        conn.execute("PRAGMA foreign_keys = ON;")
-        return conn
 
     def create_table(self):
-        with self.create_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(f'''
-            CREATE TABLE IF NOT EXISTS {self.table_name} (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                entry_type TEXT NOT NULL,
-                amount BIGINT NOT NULL,
-                description TEXT,
-                category TEXT,
-                date TEXT NOT NULL,
-                account_id INTEGER NOT NULL,
-                FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
-            )
-            ''')
-            conn.commit()
+        try:
+            if not Operations.table_exists():
+                Operations.create_table()
+                print(f"Tabela {self.table_name} została utworzona.")
+            else:
+                print(f"Tabela {self.table_name} już istnieje.")
+        except Exception as e:
+            print(f"Błąd podczas tworzenia tabeli {self.table_name}: {e}")
 
     def save_budget_to_file(self):
-        backup_db = self.db_name + '.bak'
+        backup_db = 'budget.db.bak'
         try:
-            if os.path.exists(self.db_name):
-                shutil.copyfile(self.db_name, backup_db)
+            if os.path.exists('budget.db'):
+                shutil.copyfile('budget.db', backup_db)
                 print("Kopia zapasowa bazy danych została utworzona.")
-            else:
-                print("Plik bazy danych nie istnieje. Kopia zapasowa nie została utworzona.")
 
-            with self.create_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute('BEGIN TRANSACTION;')
-                cursor.execute(f"DELETE FROM {self.table_name}")
-
+            with db.atomic():
+                Operations.delete().execute()
                 for entry in self.transactions:
                     amount_in_grosze = int(round(entry['amount'] * 100))
-                    cursor.execute(f'''
-                    INSERT INTO {self.table_name} (entry_type, amount, description, category, date, account_id)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ''', (entry['type'], amount_in_grosze, entry['description'], entry['category'], entry['date'],
-                          entry['account_id']))
-                conn.commit()
-            os.remove(backup_db)
+                    Operations.create(
+                        entry_type=entry['type'],
+                        amount=amount_in_grosze,
+                        description=entry['description'],
+                        category=entry['category'],
+                        date=entry['date'],
+                        account_id=entry['account_id']
+                    )
             print("Transakcje zostały zapisane do bazy danych.")
         except Exception as e:
             print(f"Błąd podczas zapisywania transakcji: {e}")
-            shutil.copyfile(backup_db, self.db_name)
-            print("Przywrócono bazę danych z kopii zapasowej.")
+            if os.path.exists(backup_db):
+                shutil.copyfile(backup_db, 'budget.db')
+                print("Przywrócono bazę danych z kopii zapasowej.")
 
     def load_budget_from_file(self):
         try:
             rows = Operations.select()
-            self.transactions = [{
-                'type': row.entry_type,
-                'amount': row.amount / 100,
-                'description': row.description,
-                'category': row.category,
-                'date': row.date,
-                'account_id': row.account_id.account_id
-            } for row in rows]
+            self.transactions = []
+
+            for row in rows:
+                try:
+                    currency_code = row.account_id.currency_id
+                    transaction_currency = CURRENCY_MAP.get(currency_code, self.GENERIC_CURRENCY)
+
+                    self.transactions.append({
+                        'id': row.id,
+                        'type': row.entry_type,
+                        'amount': Monetary(row.amount, transaction_currency).amount / 100,
+                        'description': row.description,
+                        'category': row.category,
+                        'date': row.date,
+                        'account_id': row.account_id.account_id
+                    })
+                except KeyError as e:
+                    print(f"Błąd: Nie znaleziono waluty w mapowaniu CURRENCY_MAP ({e}). Użyto waluty domyślnej.")
+                    self.transactions.append({
+                        'id': row.id,
+                        'type': row.entry_type,
+                        'amount': row.amount / 100,
+                        'description': row.description,
+                        'category': row.category,
+                        'date': row.date,
+                        'account_id': row.account_id.account_id
+                    })
+
             print(f"Załadowano transakcje: {self.transactions}")
         except Exception as e:
             print(f"Błąd podczas ładowania danych: {e}")
-
-    GENERIC_CURRENCY = {
-        "code": "XXX",
-        "base": 10,
-        "exponent": 2
-    }
 
     def add_budget_entry(self, account_id, entry_type, amount, description, category="brak kategorii"):
         errors = []
@@ -157,10 +161,25 @@ class Transactions:
         except KeyError as e:
             print(f"Błąd: Nie znaleziono waluty w mapowaniu CURRENCY_MAP: {e}")
 
-    def add_budget_entry_input(self, account_id=None):
+    def add_budget_entry_input(self):
+        while True:
+            account_id = input("Podaj ID konta (lub wpisz 'exit', aby zakończyć): ").strip()
+            if account_id.lower() == "exit":
+                print("Wpis nie został dodany.")
+                return
+            try:
+                account_id = int(account_id)
+                AccountManager.check_record_existence(account_id)
+                break
+            except ValueError:
+                print("ID konta powinno być liczbą całkowitą.")
+            except SQLError as e:
+                print(f"Błąd: {e}")
+
         while True:
             entry_type = input(
-                "Wprowadź rodzaj wpisu ('income' dla dochodu lub 'outcome' dla wydatku, lub 'exit' aby zakończyć): ").strip().lower()  # To samo co wyżej, może warto zmienić na I/O?
+                "Wprowadź rodzaj wpisu ('income' dla dochodu lub 'outcome' dla wydatku, lub 'exit' aby zakończyć): "
+            ).strip().lower()
             if entry_type in ["income", "outcome"]:
                 break
             elif entry_type == "exit":
@@ -181,24 +200,54 @@ class Transactions:
 
         description = input("Wprowadź opis wpisu: ").strip()
         if not description:
-            description = "Brak opisu"  # domyślny opis
+            description = "Brak opisu"  # Domyślny opis
 
         category = input("Wprowadź kategorię wpisu: ").strip()
         if not category:
-            category = "Brak kategorii"  # domyślna kategoria
+            category = "Brak kategorii"  # Domyślna kategoria
 
         self.add_budget_entry(account_id, entry_type, amount, description, category)
 
-    def show_budget(self):
-        if not self.transactions:
-            print("Brak danych - lista jest pusta. ")
-        else:
-            sorted_budget = sorted(self.transactions, key=lambda x: x['date'])
-            for i, entry in enumerate(sorted_budget, 1):
+    def show_budget(self, account_id=None):
+        try:
+            if account_id:
+                budgets = [{
+                    'id': row.id,
+                    'type': row.entry_type,
+                    'amount': row.amount / 100,
+                    'description': row.description,
+                    'category': row.category,
+                    'date': row.date,
+                    'account_id': row.account_id.account_id
+                } for row in Operations.select().where(Operations.account_id == account_id)]
+
+                if not budgets:
+                    print(f"Brak transakcji dla konta o ID {account_id}.")
+                    return
+            else:
+                budgets = [{
+                    'id': row.id,
+                    'type': row.entry_type,
+                    'amount': row.amount / 100,
+                    'description': row.description,
+                    'category': row.category,
+                    'date': row.date,
+                    'account_id': row.account_id.account_id
+                } for row in Operations.select()]
+
+            if not budgets:
+                print("Brak transakcji do wyświetlenia.")
+                return
+
+            print("Lista transakcji:")
+            sorted_budgets = sorted(budgets, key=lambda x: x['date'])
+            for i, entry in enumerate(sorted_budgets, 1):
                 category = entry.get('category', 'Brak kategorii')
-                print(f"{i}. {entry['type']}: {entry['amount']:.2f} PLN, {entry['description']} "
-                      f"(Kategoria: {category}, Data: {entry['date']})")
-        # status konta ( wydatki, przychody, saldo )
+                print(f"ID: {entry['id']}, {entry['type']}: {entry['amount']:.2f} PLN, {entry['description']} "
+                      f"(Kategoria: {category}, Data: {entry['date']}, Konto: {entry['account_id']})")
+
+        except Exception as e:
+            print(f"Błąd podczas wyświetlania transakcji: {e}")
 
     def show_budget_summary(self):
         if not self.transactions:
@@ -282,9 +331,21 @@ class Transactions:
     def edit_budget_entry(self, entry_id, new_entry_type=None, new_amount=None, new_description=None,
                           new_category=None):
         try:
+            # Sprawdzenie, czy lista transakcji jest pusta
+            if not self.transactions:
+                print("Lista transakcji jest pusta. Powrót do menu.")
+                return
+
+            # Sprawdzenie, czy transakcja o podanym ID istnieje
+            if not Operations.select().where(Operations.id == entry_id).exists():
+                print(f"Nie znaleziono wpisu o ID: {entry_id}. Powrót do menu.")
+                return
+
+            # Pobranie transakcji
             entry = Operations.get_by_id(entry_id)
             print(
-                f"Edycja wpisu: {entry.entry_type} - {entry.amount / 100:.2f} PLN, {entry.description}, {entry.category}")
+                f"Edycja wpisu: {entry.entry_type} - {entry.amount / 100:.2f} PLN, {entry.description}, {entry.category}"
+            )
 
             old_type = entry.entry_type
             old_amount = entry.amount
@@ -324,7 +385,6 @@ class Transactions:
             elif entry.entry_type == 'outcome':
                 balance_difference -= entry.amount
 
-            from money import Monetary
             transaction_monetary = Monetary(abs(balance_difference), {"code": "XXX", "base": 10, "exponent": 2})
 
             if balance_difference > 0:
@@ -334,7 +394,6 @@ class Transactions:
 
             self.load_budget_from_file()
             print("Wpis został zaktualizowany i saldo konta zostało zmodyfikowane.")
-
         except Operations.DoesNotExist:
             print(f"Nie znaleziono wpisu o ID: {entry_id}")
         except Exception as e:
@@ -342,14 +401,21 @@ class Transactions:
 
     def delete_budget_entry(self, entry_id):
         try:
+            if not self.transactions:
+                print("Lista transakcji jest pusta. Powrót do menu.")
+                return
+
+            if not Operations.select().where(Operations.id == entry_id).exists():
+                print(f"Nie znaleziono wpisu o ID: {entry_id}. Powrót do menu.")
+                return
+
             entry = Operations.get_by_id(entry_id)
-            account_id = entry.account_id.account_id  # Użycie poprawnego klucza obcego
+            account_id = entry.account_id.account_id
             amount_in_grosze = entry.amount
             transaction_type = entry.entry_type
 
             entry.delete_instance()
 
-            # Aktualizacja salda na koncie
             transaction_monetary = Monetary(amount_in_grosze, {"code": "XXX", "base": 10, "exponent": 2})
             if transaction_type == 'income':
                 AccountManager.modify_balance(account_id, transaction_monetary, 'outcome')
