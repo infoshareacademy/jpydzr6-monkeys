@@ -3,4 +3,3 @@ from .models import MoneyAccount
 
 # Register your models here.
 admin.site.register(MoneyAccount)
-
