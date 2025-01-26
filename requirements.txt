@@ -1,2 +1,4 @@
 peewee~=3.16.1
 Django==5.1.4
+pytest
+pytest-django
