@@ -30,6 +30,7 @@ class Transactions:
         self.table_name = table_name
         self.transactions = []
         self.load_budget_from_file()
+        self.__entry_types = ('income', 'outcome')
 
 
     def create_table(self):
