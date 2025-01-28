@@ -4,7 +4,8 @@ import shutil
 from datetime import datetime
 from peewee import IntegrityError, Model, CharField, BigIntegerField, ForeignKeyField
 from account.account import AccountManager, SQLError, db, Account, CURRENCY_MAP
-from money import Monetary
+from money import Monetary, Currency
+from currencies import PLN
 
 
 class Operations(Model):
