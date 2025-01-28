@@ -16,9 +16,11 @@ class MoneyAccount(models.Model):
     currency_codes = [('PLN', 'złotówki') , ('USD', 'dolary'), ('EUR', 'euro')]
     currency_code = models.CharField(choices=currency_codes, max_length=3, default='PLN') #ISO4217 np. PLN, USD
     description = models.TextField(max_length=512) # dłuższy opis konta dodawany przez użytkownika
-    number = models.CharField(max_length=50, default=None, null=True) # numer konta dodawany przez użytkownika,
-                                                                    # w zamyśle pełen numer konta bankowego lub
-                                                                    # brak np. dla gotówki czy bonów
+
+    def __str__(self):
+        return f'{self.name}: {self.balance} {self.currency_code}'
+
+
     class Meta:
         app_label = 'monkey_budget'
         verbose_name = 'Money Account'

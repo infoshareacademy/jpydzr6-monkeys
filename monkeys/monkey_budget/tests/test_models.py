@@ -32,9 +32,3 @@ def test_money_account_description_data_type():
     MoneyAccount = apps.get_model('monkey_budget', 'MoneyAccount')
     description = MoneyAccount._meta.get_field('description')
     assert isinstance(description, models.TextField)
-
-@pytest.mark.django_db
-def test_money_account_number_data_type():
-    MoneyAccount = apps.get_model('monkey_budget', 'MoneyAccount')
-    number = MoneyAccount._meta.get_field('number')
-    assert isinstance(number, models.CharField)
