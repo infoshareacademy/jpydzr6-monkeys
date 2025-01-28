@@ -2,7 +2,7 @@ from cgi import print_arguments
 
 from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, IntegrityError, \
     DoesNotExist, OperationalError
-from money import Monetary
+from money import Monetary, Currency
 import currencies
 
 CURRENCY_MAP = {
@@ -128,3 +128,14 @@ class AccountManager:
             Account.update({Account.balance: new_value}).where(Account.account_id == account_id).execute()
         except (IntegrityError, OperationalError):
             raise SQLError('Wystąpił błąd bazy danych.') from None
+
+    @staticmethod
+    def get_account_currency(self, account_id: int) -> Currency:
+        if account_id:
+            try:
+                record = Account.select().where(Account.account_id == account_id).get()
+            except DoesNotExist:
+                raise SQLError('Konto o podanym ID nie istnieje.') from None
+            else:
+                account = Account.get(Account.account_id == account_id)
+                return CURRENCY_MAP[account.currency_id]
