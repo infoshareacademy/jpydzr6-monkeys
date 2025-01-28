@@ -22,11 +22,7 @@ class Operations(Model):
         database = db
 
 class Transactions:
-    GENERIC_CURRENCY = {
-        "code": "PLN",
-        "base": 10,
-        "exponent": 2
-    }
+    GENERIC_CURRENCY = PLN
 
     def __init__(self, table_name='operations'):
         if not re.match(r'^\w+$', table_name):  # bez znaków specjalnych w nazwie tabeli
