@@ -1,4 +1,6 @@
 from typing import Any, Callable
+import currencies
+from money import Currency
 
 
 class InvalidData(Exception):
@@ -19,3 +21,10 @@ class Helper:
         if len(data) == length:
             return data
         raise InvalidData(error_message) from None
+
+    @staticmethod
+    def check_currency(currency_id: str, error_message: str) -> Any:
+        if currency_id not in currencies.__all__:
+            raise InvalidData(error_message) from None
+        else:
+            return currency_id
