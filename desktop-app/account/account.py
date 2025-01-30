@@ -2,8 +2,8 @@ from cgi import print_arguments
 
 from peewee import SqliteDatabase, Model, AutoField, BigIntegerField, CharField, IntegrityError, \
     DoesNotExist, OperationalError
-from money import Monetary, Currency
-import currencies
+from ..money import Monetary, Currency
+from .. import currencies
 
 CURRENCY_MAP = {
     'EUR': currencies.EUR,
@@ -130,7 +130,7 @@ class AccountManager:
             raise SQLError('Wystąpił błąd bazy danych.') from None
 
     @staticmethod
-    def get_account_currency(self, account_id: int) -> Currency:
+    def get_account_currency(account_id: int) -> Currency:
         if account_id:
             try:
                 record = Account.select().where(Account.account_id == account_id).get()
