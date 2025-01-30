@@ -117,3 +117,7 @@ class Monetary:
             return currency_dict
         except AttributeError:
             print(f"No such a currency with code {code}")
+
+    @staticmethod
+    def get_currencies_set() -> list[tuple[str, str]]:
+        return [(currency["code"], currency["code"]) for currency in currencies.currencies_tuple]
