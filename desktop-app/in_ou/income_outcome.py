@@ -409,7 +409,7 @@ class Transactions:
                 return
 
             entry = Operations.get_by_id(entry_id)
-            account_id = entry.get('account_id')
+            account_id = entry.account_id
             amount = entry.amount
             currency = AccountManager.get_account_currency(account_id)
             transaction_type = entry.entry_type
