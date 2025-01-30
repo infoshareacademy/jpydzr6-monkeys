@@ -1,4 +1,4 @@
-from money.currency import Currency
+from ..currency import Currency
 
 PLN: Currency = {
     "code": "PLN",
