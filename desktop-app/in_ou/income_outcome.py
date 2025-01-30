@@ -338,7 +338,7 @@ class Transactions:
             entry = Operations.get_by_id(entry_id)
             account_id = entry.account_id
             currency = AccountManager.get_account_currency(account_id)
-            amount = Monetary.major_to_minor_unit(entry.get('amount'), currency)
+            amount = Monetary.major_to_minor_unit(entry.amount, currency)
             old_entry_monetary = Monetary(amount, currency)
 
             print(
