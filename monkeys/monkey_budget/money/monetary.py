@@ -1,6 +1,7 @@
 from __future__ import annotations
 from math import floor
 
+from . import currencies
 from .currency import Currency
 
 
@@ -108,3 +109,11 @@ class Monetary:
             raise AttributeError("The currencies does not match")
         else:
             return True
+
+    @staticmethod
+    def get_currency_by_its_code(code: str = None) -> Currency:
+        try:
+            currency_dict = getattr(currencies, code)
+            return currency_dict
+        except AttributeError:
+            print(f"No such a currency with code {code}")
