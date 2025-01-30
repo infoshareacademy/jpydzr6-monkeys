@@ -1,4 +1,4 @@
-from money.currency import Currency
+from ..money.currency import Currency
 
 EUR: Currency = {
     "code": "EUR",
