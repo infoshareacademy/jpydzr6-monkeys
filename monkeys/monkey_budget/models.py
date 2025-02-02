@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import BigIntegerField
 from django.contrib.auth.models import User
+from .money import CurrencyHelper
 
 
 # Create your models here.
@@ -13,8 +14,7 @@ class MoneyAccount(models.Model):
     balance = BigIntegerField()
     types = [('BA', 'konto bankowe'), ('CA', 'gotówka'), ('CO', 'bony'), ('AN', 'inne')] # typy przechowywania pieniędzy do wybrania przez użytkownika
     type = models.CharField(choices=types, max_length=50, default='konto bankowe') # typ konta do wybrania z pośród podanych kategorii
-    currency_codes = [('PLN', 'złotówki') , ('USD', 'dolary'), ('EUR', 'euro')]
-    currency_code = models.CharField(choices=currency_codes, max_length=3, default='PLN') #ISO4217 np. PLN, USD
+    currency_code = models.CharField(choices=CurrencyHelper.get_currencies_set(), max_length=3, default='PLN') #ISO4217 np. PLN, USD
     description = models.TextField(max_length=512) # dłuższy opis konta dodawany przez użytkownika
 
     def __str__(self):
