@@ -21,7 +21,7 @@ class Currency(TypedDict):
 
 class CurrencyHelper:
     @staticmethod
-    def get_currency_by_its_code(code: str = None) -> Currency:
+    def get_currency_by_its_code(code: str = None) -> Currency | None:
         try:
             currency_dict = getattr(currencies, code)
             return currency_dict
