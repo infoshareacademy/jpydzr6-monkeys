@@ -5,14 +5,15 @@
     <title>Pokaż konta</title>
 </head>
 <body>
-    <div>
+    <header>
       <h1>Moje konta</h1>
-    </div>
+    </header>
     <div>
         {% for account in accounts %}
-            <h3><br>{{account}}</h3>
-        {%endfor%}
+        <a href="konto/pokaz-konto" target="_blank">{{account}}</a>
+            {%endfor%}
     </div>
+
 
 </body>
 </html>
