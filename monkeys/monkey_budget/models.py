@@ -1,6 +1,11 @@
+import datetime
+from random import choices
+
+import django.utils.timezone
 from django.db import models
 from django.db.models import BigIntegerField
 from django.contrib.auth.models import User
+
 from .money import CurrencyHelper
 
 
@@ -24,3 +29,22 @@ class MoneyAccount(models.Model):
     class Meta:
         app_label = 'monkey_budget'
         verbose_name = 'Money Account'
+
+
+class Transaction(models.Model):
+    # TODO: Jeżeli konto miałoby zostać kiedyś usunięte to w przypadku, gdy posiada transakcje, być może powinno one
+    #  zostać zarchiwizowane (dla raportów, w zależności jak będa one generowane lub dla zachowania faktur/paragonów
+    #  związanych z gwarancją)
+    account_id = models.ForeignKey(MoneyAccount, on_delete=models.deletion.CASCADE, related_name='transaction')
+    date = models.DateTimeField(default=django.utils.timezone.now())
+    total = models.BigIntegerField()
+    transaction_directions = [('IN', 'income'), ('OUT', 'outcome')]
+    transaction_direction = models.CharField(choices=transaction_directions, max_length=3, default='OUT')
+    balance_after_transaction = models.BigIntegerField()
+    description = models.CharField(max_length=100, default='')
+
+class SubTransaction(models.Model):
+    main_transaction_id = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE, related_name='sub_transaction')
+    amount = models.BigIntegerField()
+    description = models.CharField(max_length=100, default='')
+
