@@ -20,6 +20,9 @@ class MoneyAccount(models.Model):
     def __str__(self):
         return f'{self.name}: {self.balance} {self.currency_code}'
 
+    def get_type_display_name(self):
+        return dict(self.types).get(self.type, self.type)
+
 
     class Meta:
         app_label = 'monkey_budget'
