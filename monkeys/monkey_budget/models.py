@@ -18,7 +18,7 @@ class MoneyAccount(models.Model):
     description = models.TextField(max_length=512) # dłuższy opis konta dodawany przez użytkownika
 
     def __str__(self):
-        return f'{self.name}: {self.balance} {self.currency_code}'
+        return f'{self.name}: {self.balance} {CurrencyHelper.get_currency_by_its_code(self.currency_code)["code"]}'
 
 
     class Meta:
