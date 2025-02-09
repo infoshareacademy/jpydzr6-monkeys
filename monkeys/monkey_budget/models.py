@@ -1,15 +1,10 @@
-import datetime
-from random import choices
-
-import django.utils.timezone
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import BigIntegerField
 from django.contrib.auth.models import User
+import django.utils.timezone
 
-from .money import CurrencyHelper
-
-
-# Create your models here.
+from .money import Monetary, CurrencyHelper
 
 
 class MoneyAccount(models.Model):
