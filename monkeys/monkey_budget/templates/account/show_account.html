@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Szczegóły konta</title>
+</head>
+<body>
+    <div>
+        <h1>Konto: {{account.name}} </h1>
+    </div>
+    <div>
+        <h3><br> Stan konta: {{account.balance}} {{account.currency_code}}</h3>
+        <h3><br> Typ: {{account.get_type_display_name}}</h3>
+        <h3><br> Opis: {{account.description}}</h3>
+    </div>
+
+</body>
+</html>
