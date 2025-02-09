@@ -35,7 +35,7 @@ class Transaction(models.Model):
     # TODO: Jeżeli konto miałoby zostać kiedyś usunięte to w przypadku, gdy posiada transakcje, być może powinno one
     #  zostać zarchiwizowane (dla raportów, w zależności jak będa one generowane lub dla zachowania faktur/paragonów
     #  związanych z gwarancją)
-    account_id = models.ForeignKey(MoneyAccount, on_delete=models.deletion.CASCADE, related_name='transaction')
+    account = models.ForeignKey(MoneyAccount, on_delete=models.deletion.CASCADE, related_name='transaction')
     date = models.DateTimeField(default=django.utils.timezone.now())
     total = models.BigIntegerField()
     transaction_directions = [('IN', 'income'), ('OUT', 'outcome')]
@@ -44,7 +44,8 @@ class Transaction(models.Model):
     description = models.CharField(max_length=100, default='')
 
 class SubTransaction(models.Model):
-    main_transaction_id = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE, related_name='sub_transaction')
-    amount = models.BigIntegerField()
-    description = models.CharField(max_length=100, default='')
+    main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
+                                         related_name='sub_transaction')
+    amount = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
+    description = models.CharField(max_length=100, blank=True)
 
