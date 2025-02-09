@@ -36,7 +36,11 @@ class Transaction(models.Model):
     transaction_directions = [('IN', 'income'), ('OUT', 'outcome')]
     transaction_direction = models.CharField(choices=transaction_directions, max_length=3, default='OUT')
     balance_after_transaction = models.BigIntegerField()
-    description = models.CharField(max_length=100, default='')
+    description = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        money = Monetary(int(self.total), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
+        return f"{self.transaction_direction} transaction of {money}"
 
 class SubTransaction(models.Model):
     main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
@@ -44,3 +48,6 @@ class SubTransaction(models.Model):
     amount = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
     description = models.CharField(max_length=100, blank=True)
 
+    def __str__(self):
+        money = Monetary(int(self.amount), CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
+        return f"Transaction component ({money})"
