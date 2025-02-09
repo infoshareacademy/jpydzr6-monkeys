@@ -1,4 +1,5 @@
 from typing import TypedDict
+from . import currencies
 
 
 class Currency(TypedDict):
@@ -16,3 +17,17 @@ class Currency(TypedDict):
     code: str
     base: int
     exponent: int
+
+
+class CurrencyHelper:
+    @staticmethod
+    def get_currency_by_its_code(code: str = None) -> Currency | None:
+        try:
+            currency_dict = getattr(currencies, code)
+            return currency_dict
+        except AttributeError:
+            print(f"No such a currency with code {code}")
+
+    @staticmethod
+    def get_currencies_set() -> list[tuple[str, str]]:
+        return [(currency["code"], currency["code"]) for currency in currencies.currencies_tuple]

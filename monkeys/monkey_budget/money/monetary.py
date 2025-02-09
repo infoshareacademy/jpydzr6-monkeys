@@ -1,6 +1,7 @@
 from __future__ import annotations
 from math import floor
 
+from . import currencies
 from .currency import Currency
 
 
