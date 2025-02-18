@@ -31,7 +31,7 @@ class Transaction(models.Model):
     #  zostać zarchiwizowane (dla raportów, w zależności jak będa one generowane lub dla zachowania faktur/paragonów
     #  związanych z gwarancją)
     account = models.ForeignKey(MoneyAccount, on_delete=models.deletion.CASCADE, related_name='transaction')
-    date = models.DateTimeField(default=django.utils.timezone.now())
+    date = models.DateTimeField(default=django.utils.timezone.now)
     total = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
     transaction_directions = [('IN', 'income'), ('OUT', 'outcome')]
     transaction_direction = models.CharField(choices=transaction_directions, max_length=3, default='OUT')
