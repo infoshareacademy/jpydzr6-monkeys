@@ -1,6 +1,6 @@
 # jpydzr6-monkeys
 
-# Set SECRET_KEY
+# Set the SECRET_KEY
 
 The secret key is not included in the repository, the user must provide it itself following these steps:
 - In the directory `monkeys/monkeys/` create an `.env` file
