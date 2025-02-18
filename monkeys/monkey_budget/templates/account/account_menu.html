@@ -1,25 +1,32 @@
 <!DOCTYPE html>
 {% load static %}
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Pokaż konta</title>
-    <link rel="stylesheet" href="{% static 'account/account_menu.css' %}">
+    {% load bootstrap5 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
 </head>
 <body>
-    <header>
-      <h1>Moje konta</h1>
-    </header>
-    <div>
-        {% if accounts %}
-            <ul>
-                {% for account in accounts %}
-                <a href="konta/{{account.id}}" target="_blank">{{account}}</a>
+    <div class="offcanvas offcanvas-start" id="demo">
+      <div class="offcanvas-header">
+        <h1 class="offcanvas-title">Moje konta</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+          {% for account in accounts %}
+                <a class='btn btn-primary' href="{% url 'pokaz-konto' account.id%}">{{account}}</a>
                 <br>
-                {%endfor%}
-            </ul>
-        {%else%}
-            <p>Brak kont do wyświetlenia</p>
-        {%endif%}
+          {% endfor %}
+      </div>
     </div>
+
+<div class="container-fluid mt-3">
+      <h3>Zarządzanie kontami</h3>
+  <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#demo">
+    Otwórz spis kont
+  </button>
+</div>
 </body>
 </html>

@@ -4,7 +4,7 @@ from .models import MoneyAccount
 
 
 # Create your views here.
-# TODO - brak informacji o id użytkownika, jest wpisane na sztywno
+# TODO - brak informacji o id użytkownika, jest wpisane na sztywno do zmiany po dodaniu możliwości logowania
 def money_accounts(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2)
     context = {'accounts': all_accounts}
@@ -12,7 +12,8 @@ def money_accounts(request):
 
 def show_money_account(request, account_id):
     chosen_account = get_object_or_404(MoneyAccount, pk=account_id)
-    context = {'account': chosen_account}
+    all_accounts = MoneyAccount.objects.filter(user_id=2)
+    context = {'account': chosen_account, 'accounts': all_accounts}
     return render(request, 'account/show_account.html', context)
 
 def add_money_account(request):
