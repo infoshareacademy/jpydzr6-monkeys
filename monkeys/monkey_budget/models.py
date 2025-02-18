@@ -1,10 +1,10 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import BigIntegerField
 from django.contrib.auth.models import User
-from .money import CurrencyHelper
+import django.utils.timezone
 
-
-# Create your models here.
+from .money import Monetary, CurrencyHelper
 
 
 class MoneyAccount(models.Model):
@@ -18,9 +18,36 @@ class MoneyAccount(models.Model):
     description = models.TextField(max_length=512) # dłuższy opis konta dodawany przez użytkownika
 
     def __str__(self):
-        return f'{self.name}: {self.balance} {self.currency_code}'
+        return f'{self.name}: {self.balance} {CurrencyHelper.get_currency_by_its_code(self.currency_code)["code"]}'
 
 
     class Meta:
         app_label = 'monkey_budget'
         verbose_name = 'Money Account'
+
+
+class Transaction(models.Model):
+    # TODO: Jeżeli konto miałoby zostać kiedyś usunięte to w przypadku, gdy posiada transakcje, być może powinno one
+    #  zostać zarchiwizowane (dla raportów, w zależności jak będa one generowane lub dla zachowania faktur/paragonów
+    #  związanych z gwarancją)
+    account = models.ForeignKey(MoneyAccount, on_delete=models.deletion.CASCADE, related_name='transaction')
+    date = models.DateTimeField(default=django.utils.timezone.now)
+    total = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
+    transaction_directions = [('IN', 'income'), ('OUT', 'outcome')]
+    transaction_direction = models.CharField(choices=transaction_directions, max_length=3, default='OUT')
+    balance_after_transaction = models.BigIntegerField()
+    description = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        money = Monetary(int(self.total), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
+        return f"{self.transaction_direction} transaction of {money}"
+
+class SubTransaction(models.Model):
+    main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
+                                         related_name='sub_transaction')
+    amount = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
+    description = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        money = Monetary(int(self.amount), CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
+        return f"Transaction component ({money})"
