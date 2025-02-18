@@ -1,4 +1,5 @@
-from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
 
 from .models import MoneyAccount
 
@@ -22,5 +23,8 @@ def add_money_account(request):
 def edit_money_account(request):
     return render(request, 'account/edit_account.html')
 
-def delete_money_account(request):
-    return render(request, 'account/delete_account.html')
+def delete_money_account(request, account_id):
+    # account = get_object_or_404(MoneyAccount, id=account_id, user_id=request.user)
+    # account.delete()
+    MoneyAccount.objects.get(pk=account_id).delete()
+    return redirect('konta')
