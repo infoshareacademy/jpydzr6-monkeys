@@ -1,5 +1,11 @@
 # jpydzr6-monkeys
 
+# Set SECRET_KEY
+
+The secret key is not included in the repository, the user must provide it itself following these steps:
+- In the directory `monkeys/monkeys/` create an `.env` file
+- In this file save the key: `SECRET_KEY='your_secret_key'`. Remember the single quotation mark for the key itself.  
+
 # Monetary class
 
 This is a class for basic monetary/money operations. In its core it operates in the smallest unit of a currency (called
