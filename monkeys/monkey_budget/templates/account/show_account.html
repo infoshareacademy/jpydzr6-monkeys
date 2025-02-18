@@ -1,44 +1,39 @@
-<!DOCTYPE html>
-{% load static %}
+{% extends "account/base.html" %}
 <html lang="en">
+
+{% block head %}
 <head>
     <meta charset="UTF-8">
-    <title>Szczegóły konta</title>
+    <title>{% block title %}Konta{% endblock %}</title>
     {% load bootstrap5 %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
 </head>
+{% endblock head %}
+
 <body>
-    <div class="offcanvas offcanvas-start" id="demo">
-      <div class="offcanvas-header">
-        <h1 class="offcanvas-title">Moje konta</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-      </div>
-      <div class="offcanvas-body">
-          {% for account in accounts %}
-                <a href="{% url 'pokaz-konto' account.id%}">{{account}}</a>
-                <br>
-          {% endfor %}
-      </div>
-    </div>
+    {% block side-menu %}
+        {{ block.super }}
+    {% endblock side-menu%}
 
+    {% block show-side-menu %}
+    {{ block.super }}
+    {% endblock show-side-menu %}
 
-    <div class="container-fluid mt-3">
-      <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#demo">
-        Otwórz spis kont
-      </button>
-    </div>
-        <div>
-            <h1>Szczegóły konta: {{account.name}} </h1>
-        </div>
-        <div>
-            <h3><br> Stan konta: {{account.balance}} {{account.currency_code}}</h3>
-            <h3><br> Typ: {{account.get_type_display_name}}</h3>
-            <h3><br> Opis: {{account.description}}</h3>
-        </div>
+    {% block content %}
+            <div>
+                <h1>Szczegóły konta: {{account.name}} </h1>
+            </div>
+            <div>
+                <h3><br> Stan konta: {{account.balance}} {{account.currency_code}}</h3>
+                <h3><br> Typ: {{account.get_type_display_name}}</h3>
+                <h3><br> Opis: {{account.description}}</h3>
+            </div>
 
-    <a class="btn btn-danger delete-account" href="{% url 'usun-konto' account.id %}">Usuń konto</a>
-
-
+        <form action="{% url 'usun-konto' account.id %}" method="post" onsubmit="return confirm('Czy na pewno chcesz usunąć konto?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Usuń konto</button>
+        </form>
+    {% endblock content %}
 </body>
 </html>
