@@ -3,6 +3,11 @@ from .models import MoneyAccount
 
 
 # Create your views here.
+def dashboard(request):
+    all_accounts = MoneyAccount.objects.filter(user_id=2)
+    context = {'accounts': all_accounts}
+    return render(request, 'account/base.html', context)
+
 # TODO - brak informacji o id użytkownika, jest wpisane na sztywno do zmiany po dodaniu możliwości logowania
 def money_accounts(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2)

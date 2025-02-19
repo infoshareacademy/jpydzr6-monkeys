@@ -1,3 +1,4 @@
+{% load static %}
 <html lang="en">
 {% block head %}
 <head>
@@ -22,6 +23,12 @@
                         <br>
                   {% endfor %}
                   <a class='btn btn-info' href="{% url 'dodaj-konto'%}">Dodaj konto</a>
+                  <br>
+                  <h1 class="offcanvas-title">Transakcje</h1>
+                  <br>
+<!--                  trzeba dodać odnośniki do odpowiednich widoków transakcji-->
+                  <a class='btn btn-info' href="{% url 'dodaj-konto'%}">Dodaj transakcję</a><br>
+                  <a class='btn btn-info' href="{% url 'dodaj-konto'%}">Wyświetl transakcje</a><br>
               </div>
             </div>
         </div>
@@ -31,13 +38,16 @@
         <div class="container-fluid mt-3">
             <div class="bg-info p-3">
               <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#demo">
-                Otwórz spis kont
+                Otwórz menu
               </button>
             </div>
         </div>
     {% endblock show-side-menu %}
 
     {% block content %}
+    <br>
+    <h1 class="display-1 lead text-center" style="font-family: 'Papyrus', cursive">Monkey Budget</h1>
+    <img src="{% static 'images/money.jpg' %}" class="d-block mx-auto" alt="Centered Image" width="500" height="600">
     {% endblock content %}
 
 </body>
