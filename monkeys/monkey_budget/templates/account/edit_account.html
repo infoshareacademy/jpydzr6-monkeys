@@ -1,10 +1,27 @@
-<!DOCTYPE html>
+{% extends "account/base.html" %}
 <html lang="en">
+
+{% block head %}
 <head>
     <meta charset="UTF-8">
-    <title>Edycja konta</title>
+    <title>{% block title %}Konta{% endblock %}</title>
+    {% load bootstrap5 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
 </head>
+{% endblock head %}
+
 <body>
+    {% block side-menu %}
+        {{ block.super }}
+    {% endblock side-menu%}
+
+    {% block show-side-menu %}
+    {{ block.super }}
+    {% endblock show-side-menu %}
+
+    {% block content %}
+    {% endblock content %}
 
 </body>
 </html>

@@ -30,8 +30,11 @@ def add_money_account(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2)
     return render(request, 'account/add_account.html', {'form': form, 'accounts': all_accounts})
 
-def edit_money_account(request):
-    return render(request, 'account/edit_account.html')
+def edit_money_account(request, account_id):
+    chosen_account = get_object_or_404(MoneyAccount, pk=account_id)
+    all_accounts = MoneyAccount.objects.filter(user_id=2)
+    context = {'account': chosen_account, 'accounts': all_accounts}
+    return render(request, 'account/edit_account.html', context)
 
 def delete_money_account(request, account_id):
     account = get_object_or_404(MoneyAccount, id=account_id)

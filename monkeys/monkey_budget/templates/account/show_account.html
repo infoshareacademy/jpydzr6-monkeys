@@ -31,11 +31,16 @@
                     <h4 style="font-family: 'Papyrus', cursive"><br> Typ: {{account.get_type_display_name}}</h4>
                     <h5 style="font-family: 'Papyrus', cursive"><br> Opis: {{account.description}}</h5>
                 </div>
-
-                <form action="{% url 'usun-konto' account.id %}" method="post" onsubmit="return confirm('Czy na pewno chcesz usunąć konto?');">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Usuń konto</button>
-                </form>
+                <div style="display: inline-flex;">
+                    <form action="{% url 'usun-konto' account.id %}" method="post" onsubmit="return confirm('Czy na pewno chcesz usunąć konto?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Usuń konto</button>
+                    </form>
+                    <form action="{% url 'edytuj-konto' account.id %}" method="get">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Edytuj konto</button>
+                    </form>
+                </div>
             </div>
         </div>
     {% endblock content %}
