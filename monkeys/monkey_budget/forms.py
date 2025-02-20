@@ -14,7 +14,7 @@ class MoneyAccountForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'placeholder': 'Podaj nazwę konta'})
     )
     balance = forms.IntegerField(
-        label="Początkowy stan konta jako liczbę całkowitą",
+        label="Początkowy stan konta (liczba całkowita)",
         widget=forms.NumberInput()
     )
     type = forms.ChoiceField(

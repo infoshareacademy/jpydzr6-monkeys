@@ -24,7 +24,7 @@ def add_money_account(request):
             account = form.save(commit=False)
             account.user_id = User.objects.get(pk=2)
             account.save()
-            return redirect('dashboard')
+            return redirect(f'/monkey-budget/konta/{account.id}')
     else:
         form = MoneyAccountForm()
     all_accounts = MoneyAccount.objects.filter(user_id=2)
