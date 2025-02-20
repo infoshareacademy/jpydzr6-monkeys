@@ -14,7 +14,7 @@
         <div class="bg-secondary p-3 mb-3">
             <div class="offcanvas offcanvas-start" id="demo">
               <div class="offcanvas-header">
-                <h1 class="offcanvas-title">Moje konta</h1>
+                <h1 class="offcanvas-title" style="font-family: 'Papyrus', cursive">Moje konta</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
               </div>
               <div class="offcanvas-body">
@@ -24,11 +24,13 @@
                   {% endfor %}
                   <a class='btn btn-info' href="{% url 'dodaj-konto'%}">Dodaj konto</a>
                   <br>
-                  <h1 class="offcanvas-title">Transakcje</h1>
+                  <h1 class="offcanvas-title" style="font-family: 'Papyrus', cursive">Transakcje</h1>
                   <br>
 <!--                  trzeba dodać odnośniki do odpowiednich widoków transakcji-->
                   <a class='btn btn-info' href="{% url 'dodaj-konto'%}">Dodaj transakcję</a><br>
                   <a class='btn btn-info' href="{% url 'dodaj-konto'%}">Wyświetl transakcje</a><br>
+                  <br><br><br>
+                  <a class='btn btn-secondary' href="{% url 'dashboard'%}">Powrót do strony głównej</a><br>
               </div>
             </div>
         </div>
