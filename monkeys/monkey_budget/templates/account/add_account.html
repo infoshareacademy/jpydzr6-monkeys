@@ -23,38 +23,53 @@
     <br>
     <h1 class="display-3 lead text-center" style="font-family: 'Papyrus', cursive">Tworzenie nowego konta</h1>
     <div class="container">
-        <form>
-          <div class="mb-3" style=width:50%>
-            <label for="name" class="form-label">Nazwa konta</label>
-            <input type="text" class="form-control" id="name" placeholder="Nazwa konta" required>
-          </div>
-          <div class="mb-3" style=width:50%>
-            <label for="balance" class="form-label">Początkowy stan konta</label>
-            <input type="number" class="form-control" id="balance" placeholder="00000" required>
-          </div>
-            <div class="mb-3" style=width:50%>
-              <label for="name" class="form-label">Typ konta</label>
-                <select class="form-select" id="type" name="account_type">
-                  <option>1</option>
-                  <option>2</option>
-                  <option>3</option>
-                  <option>4</option>
-                </select>
-          </div>
-          <div class="mb-3" style=width:50%>
-              <label for="currency" class="form-label">Waluta</label>
-              <select class="form-select" id="currency" name="currency_id">
-                  <option>1</option>
-                  <option>2</option>
-                  <option>3</option>
-                  <option>4</option>
-              </select>
-          </div>
-            <div class="mb-3" style=width:50%>
-                <label for="currency" class="form-label">Opis konta</label>
-                <input type="text" class="form-control" id="description" placeholder="Opis konta">
-          </div>
-          <button type="submit" class="btn btn-primary">Dodaj konto</button>
+<!--        <form>-->
+<!--          <div class="mb-3" style=width:50%>-->
+<!--            <label for="name" class="form-label">Nazwa konta</label>-->
+<!--            <input type="text" class="form-control" id="name" placeholder="Nazwa konta" required>-->
+<!--          </div>-->
+<!--          <div class="mb-3" style=width:50%>-->
+<!--            <label for="balance" class="form-label">Początkowy stan konta</label>-->
+<!--            <input type="number" class="form-control" id="balance" placeholder="00000" required>-->
+<!--          </div>-->
+<!--            <div class="mb-3" style=width:50%>-->
+<!--              <label for="name" class="form-label">Typ konta</label>-->
+<!--                <select class="form-select" id="type" name="account_type">-->
+<!--                  <option>1</option>-->
+<!--                  <option>2</option>-->
+<!--                  <option>3</option>-->
+<!--                  <option>4</option>-->
+<!--                </select>-->
+<!--          </div>-->
+<!--          <div class="mb-3" style=width:50%>-->
+<!--              <label for="currency" class="form-label">Waluta</label>-->
+<!--              <select class="form-select" id="currency" name="currency_id">-->
+<!--                  <option>1</option>-->
+<!--                  <option>2</option>-->
+<!--                  <option>3</option>-->
+<!--                  <option>4</option>-->
+<!--              </select>-->
+<!--          </div>-->
+<!--            <div class="mb-3" style=width:50%>-->
+<!--                <label for="currency" class="form-label">Opis konta</label>-->
+<!--                <input type="text" class="form-control" id="description" placeholder="Opis konta">-->
+<!--          </div>-->
+<!--          <button type="submit" class="btn btn-primary">Dodaj konto</button>-->
+<!--        </form>-->
+<!--        <form method="post">-->
+<!--            {% csrf_token %}-->
+<!--            {{ form.as_p }}-->
+<!--            <button type="submit">Utwórz konta</button>-->
+<!--        </form>-->
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-3" style=width:50%>
+                        {{ field.label_tag }}
+                        {{ field }}
+                    </div>
+                {% endfor %}
+            <button type="submit">Utwórz konta</button>
         </form>
     </div>
     {% endblock content %}

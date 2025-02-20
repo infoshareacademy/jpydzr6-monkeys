@@ -1,5 +1,7 @@
+from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import MoneyAccount
+from .forms import MoneyAccountForm
 
 
 # Create your views here.
@@ -16,10 +18,17 @@ def show_money_account(request, account_id):
     return render(request, 'account/show_account.html', context)
 
 def add_money_account(request):
+    if request.method == 'POST':
+        form = MoneyAccountForm(request.POST)
+        if form.is_valid():
+            account = form.save(commit=False)
+            account.user_id = User.objects.get(pk=2)
+            account.save()
+            return redirect('dashboard')
+    else:
+        form = MoneyAccountForm()
     all_accounts = MoneyAccount.objects.filter(user_id=2)
-
-    context = {'accounts': all_accounts}
-    return render(request, 'account/add_account.html', context)
+    return render(request, 'account/add_account.html', {'form': form, 'accounts': all_accounts})
 
 def edit_money_account(request):
     return render(request, 'account/edit_account.html')
