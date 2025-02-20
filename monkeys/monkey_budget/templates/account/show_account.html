@@ -24,12 +24,12 @@
         <div class="container-fluid mt-3">
             <div class="bg-info p-3">
                 <div>
-                    <h1>Szczegóły konta: {{account.name}} </h1>
+                    <h1 style="font-family: 'Papyrus', cursive">Szczegóły konta: {{account.name}} </h1>
                 </div>
                 <div>
-                    <h3><br> Stan konta: {{account.balance}} {{account.currency_code}}</h3>
-                    <h4><br> Typ: {{account.get_type_display_name}}</h4>
-                    <h5><br> Opis: {{account.description}}</h5>
+                    <h3 style="font-family: 'Papyrus', cursive"><br> Stan konta: {{account.balance}} {{account.currency_code}}</h3>
+                    <h4 style="font-family: 'Papyrus', cursive"><br> Typ: {{account.get_type_display_name}}</h4>
+                    <h5 style="font-family: 'Papyrus', cursive"><br> Opis: {{account.description}}</h5>
                 </div>
 
                 <form action="{% url 'usun-konto' account.id %}" method="post" onsubmit="return confirm('Czy na pewno chcesz usunąć konto?');">
