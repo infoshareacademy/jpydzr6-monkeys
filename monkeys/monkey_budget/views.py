@@ -17,6 +17,7 @@ def show_money_account(request, account_id):
 
 def add_money_account(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2)
+
     context = {'accounts': all_accounts}
     return render(request, 'account/add_account.html', context)
 
