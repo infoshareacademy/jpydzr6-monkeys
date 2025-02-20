@@ -20,7 +20,33 @@
     {% endblock show-side-menu %}
 
     {% block content %}
-    {% endblock content %}
-
+    <br>
+    <h1 class="display-3 lead text-center" style="font-family: 'Papyrus', cursive">Tworzenie nowego konta</h1>
+    <div class="container">
+        <form>
+          <div class="form-floating mb-3 mb-3" style=width:50%>
+            <input type="text" class="form-control" id="name" placeholder="Nazwa konta">
+              <label for="name" class="form-label">Nazwa konta</label>
+          </div>
+          <div class="form-floating mb-3 mb-3" style=width:50%>
+            <input type="number" class="form-control" id="balance" placeholder="00000">
+              <label for="balance" class="form-label">Początkowy stan konta</label>
+          </div>
+            <div class="form-floating mb-3 mb-3" style=width:50%>
+            <input type="text" class="form-control" id="type" placeholder="Nazwa konta">
+              <label for="name" class="form-label">Typ konta</label>
+          </div>
+          <div class="form-floating mb-3 mb-3" style=width:50%>
+            <input type="text" class="form-control" id="currency" placeholder="00000">
+              <label for="currency" class="form-label">Waluta</label>
+          </div>
+            <div class="form-floating mb-3 mb-3" style=width:50%>
+            <input type="text" class="form-control" id="description" placeholder="00000">
+              <label for="currency" class="form-label">Opis konta</label>
+          </div>
+          <button type="submit" class="btn btn-primary">Dodaj konto</button>
+        </form>
+    </div>
+        {% endblock content %}
 </body>
 </html>
