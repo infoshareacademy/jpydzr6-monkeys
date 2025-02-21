@@ -63,13 +63,10 @@
 <!--        </form>-->
             <form method="post">
                 {% csrf_token %}
-                {% for field in form %}
-                    <div class="mb-3" style=width:50%>
-                        {{ field.label_tag }}
-                        {{ field }}
-                    </div>
-                {% endfor %}
-            <button type="submit">Utwórz konta</button>
+                {% bootstrap_form form %}
+                    {{ field.label_tag }}
+                    {{ field }}
+            <button type="submit">Utwórz konto</button>
         </form>
     </div>
     {% endblock content %}
