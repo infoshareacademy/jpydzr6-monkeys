@@ -1,10 +1,7 @@
 from django.contrib import admin
-from django.core.exceptions import ValidationError
-from django.db import transaction
-from django.db.transaction import commit
-from django.forms import BaseInlineFormSet
 from .models import MoneyAccount, Transaction, SubTransaction
 from .forms import TransactionForm, SubtransactionFormSet
+from .money import Monetary, CurrencyHelper
 
 admin.site.register(MoneyAccount)
 
@@ -37,8 +34,16 @@ class SubTransactionInline(admin.TabularInline):
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     form = TransactionForm
-    list_display = ['total', 'transaction_direction', 'account']
+    list_display = ['total_display', 'transaction_direction', 'account']
     search_fields = ['account']
     list_filter = ['transaction_direction', 'date']
     inlines = [SubTransactionInline]
-    readonly_fields = ['total', 'balance_after_transaction']
+    readonly_fields = ['total_display', 'balance_after_transaction_display']
+
+    def total_display(self, obj):
+        currency = CurrencyHelper.get_currency_by_its_code(obj.account.currency_code)
+        return Monetary(obj.total, currency)
+
+    def balance_after_transaction_display(self, obj):
+        currency = CurrencyHelper.get_currency_by_its_code(obj.account.currency_code)
+        return Monetary(obj.balance, currency)
