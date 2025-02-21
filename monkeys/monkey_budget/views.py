@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import MoneyAccount
-from .forms import MoneyAccountForm
+from .forms import AddMoneyAccountForm
 
 
 # Create your views here.
@@ -19,21 +19,30 @@ def show_money_account(request, account_id):
 
 def add_money_account(request):
     if request.method == 'POST':
-        form = MoneyAccountForm(request.POST)
+        form = AddMoneyAccountForm(request.POST)
         if form.is_valid():
             account = form.save(commit=False)
             account.user_id = User.objects.get(pk=2)
             account.save()
             return redirect(f'/monkey-budget/konta/{account.id}')
     else:
-        form = MoneyAccountForm()
+        form = AddMoneyAccountForm()
     all_accounts = MoneyAccount.objects.filter(user_id=2)
     return render(request, 'account/add_account.html', {'form': form, 'accounts': all_accounts})
 
 def edit_money_account(request, account_id):
+    if request.method == 'POST':
+        form = AddMoneyAccountForm(request.POST)
+        if form.is_valid():
+            account = form.save(commit=False)
+            account.user_id = User.objects.get(pk=2)
+            account.save()
+            return redirect(f'/monkey-budget/konta/{account.id}')
+    else:
+        form = AddMoneyAccountForm()
     chosen_account = get_object_or_404(MoneyAccount, pk=account_id)
     all_accounts = MoneyAccount.objects.filter(user_id=2)
-    context = {'account': chosen_account, 'accounts': all_accounts}
+    context = {'account': chosen_account, 'accounts': all_accounts, 'form': form}
     return render(request, 'account/edit_account.html', context)
 
 def delete_money_account(request, account_id):
