@@ -21,7 +21,7 @@ class MoneyAccount(models.Model):
     description = models.TextField(max_length=512)
 
     def __str__(self):
-        return f'{self.name}: {self.show_balance()} {CurrencyHelper.get_currency_by_its_code(self.currency_code)["code"]}'
+        return f'{self.name}: {self.show_balance()}'
 
     def show_balance(self):
         money = Monetary(int(self.balance), CurrencyHelper.get_currency_by_its_code(self.currency_code))
