@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import MoneyAccount
 from .forms import MoneyAccountForm
@@ -45,6 +46,8 @@ def edit_money_account(request, account_id):
     return render(request, 'account/edit_account.html', context)
 
 def delete_money_account(request, account_id):
-    account = get_object_or_404(MoneyAccount, id=account_id)
-    account.delete()
-    return redirect('dashboard')
+    if request.method == 'POST':
+        account = get_object_or_404(MoneyAccount, id=account_id)
+        account.delete()
+        return JsonResponse({'success': True, 'message': 'Konto zostało usunięte.'})
+    return JsonResponse({'success': False, 'message': 'Nieprawidłowe żądanie.'})

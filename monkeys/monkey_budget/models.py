@@ -21,11 +21,16 @@ class MoneyAccount(models.Model):
     description = models.TextField(max_length=512)
 
     def __str__(self):
-        return f'{self.name}: {self.show_balance()}'
+        return f'{self.name}: {self.balance_float}'
 
-    def show_balance(self):
+    @property
+    def balance_float(self) -> Monetary:
         money = Monetary(int(self.balance), CurrencyHelper.get_currency_by_its_code(self.currency_code))
         return money
+
+    @balance_float.setter
+    def balance_float(self, amount: str) -> None:
+        self.balance = str(Monetary(int(amount), CurrencyHelper.get_currency_by_its_code(self.currency_code)))
 
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)

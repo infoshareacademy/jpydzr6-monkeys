@@ -3,12 +3,12 @@ from .models import MoneyAccount
 
 
 class MoneyAccountForm(forms.ModelForm):
+    balance = forms.FloatField(label='Saldo')
     class Meta:
         model = MoneyAccount
         fields = ['name', 'balance', 'type', 'currency_code', 'description']
         labels = {
             'name': 'Nazwa',
-            'balance': 'Saldo',
             'type': 'Typ',
             'currency_code': 'Kod waluty',
             'description': 'Opis',

@@ -20,6 +20,7 @@
     {{ block.super }}
     {% endblock show-side-menu %}
 
+
     {% block content %}
         <div class="container-fluid mt-3">
             <div class="bg-info p-3">
@@ -27,14 +28,14 @@
                     <h1 style="font-family: 'Papyrus', cursive">Szczegóły konta: {{account.name}} </h1>
                 </div>
                 <div>
-                    <h3 style="font-family: 'Papyrus', cursive"><br> Stan konta: {{account.show_balance}}</h3>
+                    <h3 style="font-family: 'Papyrus', cursive"><br> Stan konta: {{account.balance_float}}</h3>
                     <h4 style="font-family: 'Papyrus', cursive"><br> Typ: {{account.get_type_display_name}}</h4>
                     <h5 style="font-family: 'Papyrus', cursive"><br> Opis: {{account.description}}</h5>
                 </div>
                 <div style="display: inline-flex;">
-                    <form action="{% url 'usun-konto' account.id %}" method="post" onsubmit="return confirm('Czy na pewno chcesz usunąć konto?');">
+                    <form id="deleteForm" action="{% url 'usun-konto' account.id %}" method="post">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">Usuń konto</button>
+                        <button type="button" class="btn btn-danger" onclick="deleteAccount()">Usuń konto</button>
                     </form>
                     <form action="{% url 'edytuj-konto' account.id %}" method="get">
                         {% csrf_token %}
@@ -43,6 +44,34 @@
                 </div>
             </div>
         </div>
+
+        <script>
+        function deleteAccount() {
+            if (confirm('Czy na pewno chcesz usunąć konto?')) {
+                fetch('{% url "usun-konto" account.id %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.href = '{% url "dashboard" %}';
+                    } else {
+                        alert('Wystąpił błąd podczas usuwania konta.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Wystąpił błąd podczas usuwania konta.');
+                });
+            }
+        }
+        </script>
     {% endblock content %}
+
 </body>
 </html>
