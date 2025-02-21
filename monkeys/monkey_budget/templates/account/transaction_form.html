@@ -1,0 +1,29 @@
+{% extends 'account/base.html' %}
+{% load static %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    Zarządzanie transakcjami
+{% endblock title %}
+
+{% block content %}
+    <h1>{{ transaction.id|default:"Nowa transakcja" }}</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <h3>Główna transakcja</h3>
+        {% bootstrap_form form %}
+
+        <h3>Pozycje transakcji</h3>
+        {{ formset.management_form }}
+
+        {% for f in formset.forms %}
+            <div class="border p-3 mb-3 bg-light rounded">
+                {% bootstrap_form f %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-success">Zapisz</button>
+    </form>
+{% endblock content %}
