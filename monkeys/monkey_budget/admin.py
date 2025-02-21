@@ -5,24 +5,6 @@ from .money import Monetary, CurrencyHelper
 
 admin.site.register(MoneyAccount)
 
-
-# class SubTransactionInlineFormset(BaseInlineFormSet):
-#
-#     def clean(self):
-#         # breakpoint()
-#         super().clean()
-#
-#         if not self.is_valid():
-#             raise ValidationError("SubTransaction forms must have been validated")
-#
-#         if not self.cleaned_data:
-#             raise ValidationError('You must supply at least one subtransaction')
-#
-#         for subtransaction in self.cleaned_data:
-#             if not subtransaction:
-#                 raise ValidationError('Subtransaction must be filled')
-
-
 class SubTransactionInline(admin.TabularInline):
     model = SubTransaction
     formset = SubtransactionFormSet
