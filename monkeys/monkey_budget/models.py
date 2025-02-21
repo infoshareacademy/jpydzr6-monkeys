@@ -1,6 +1,7 @@
-from django.core.validators import MinValueValidator
-from django.db import models
+from django.core.validators import ValidationError, MinValueValidator
+from django.db import models, transaction
 from django.db.models import BigIntegerField
+from django.db.models import Sum
 from django.contrib.auth.models import User
 import django.utils.timezone
 
@@ -32,22 +33,64 @@ class Transaction(models.Model):
     #  związanych z gwarancją)
     account = models.ForeignKey(MoneyAccount, on_delete=models.deletion.CASCADE, related_name='transaction')
     date = models.DateTimeField(default=django.utils.timezone.now)
-    total = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
+    total = models.BigIntegerField(
+        validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')], default=0,
+        editable=False)
     transaction_directions = [('IN', 'income'), ('OUT', 'outcome')]
     transaction_direction = models.CharField(choices=transaction_directions, max_length=3, default='OUT')
-    balance_after_transaction = models.BigIntegerField()
+    balance_after_transaction = models.BigIntegerField(editable=False, default=0)
     description = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        app_label = 'monkey_budget'
 
     def __str__(self):
         money = Monetary(int(self.total), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
-        return f"{self.transaction_direction} transaction of {money}"
+        return f"{self.transaction_direction} transaction of total {money}"
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if not self.pk:
+                # Zapisz transakcję, aby dostać primary key
+                # Nie liczymy sumy subtransakcji, bo one nie dostały jeszcze przypisanego klucza głównej transakcji
+                super().save(*args, **kwargs)
+            else:
+                # Główna transakcja już jest zapisana w bazie, więc subtransakcję znają jej primary key.
+                # Oblicz sumę subtransackji. Zwracane jest 0, jeśli nie ma subtransakcji, ale to jest tylko dla admina.W formularzu użytkownika zawsze musi byc jedna subtransakcja
+                # Zaaktualizuj główną transakcję
+                self.total = self.subtransactions.aggregate(Sum('amount'))['amount__sum'] or 0
+                super().save(*args, **kwargs)
+
 
 class SubTransaction(models.Model):
     main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
-                                         related_name='sub_transaction')
-    amount = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
+                                         related_name='subtransactions')
+    amount = models.BigIntegerField(
+        validators=[MinValueValidator(limit_value=0, message='Subtransaction amount must be nonnegative')],
+        blank=False)
     description = models.CharField(max_length=100, blank=True)
 
+    class Meta:
+        app_label = 'monkey_budget'
+
     def __str__(self):
-        money = Monetary(int(self.amount), CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
-        return f"Transaction component ({money})"
+        money = Monetary(int(self.amount),
+                         CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
+        return f"Transaction part of ({money})"
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if not self.main_transaction.pk:
+                # Zapisz główną transakcję, aby mieć jej primary key
+                self.main_transaction.save()
+            # Zapisz subtransakcje
+            super().save(*args, **kwargs)
+            # Zaaktualizuj główną transakcję
+            self.main_transaction.save()
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            main_transaction = self.main_transaction
+
+            super().delete(*args, **kwargs)
+            main_transaction.save()
