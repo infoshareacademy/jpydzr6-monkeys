@@ -30,13 +30,15 @@ def delete_money_account(request, account_id):
 
 #zaklepuje poniższe linijki pod transakcje
 
-def transaction_create_or_update(request, account_id, pk=None):
+def transaction_create_or_update(request, account_id=None, pk=None):
     if pk:
         transaction = get_object_or_404(Transaction, pk=pk)
+        account = transaction.account
     else:
         transaction = Transaction()
+        account = get_object_or_404(MoneyAccount, pk=account_id)
 
-    if request.metho == "POST":
+    if request.method == "POST":
         form = TransactionForm(request.POST, instance=transaction)
         formset = SubTransactionFormset(request.POST, instance=transaction)
 
@@ -44,21 +46,36 @@ def transaction_create_or_update(request, account_id, pk=None):
             sub_form_data = formset.cleaned_data
             active_subs = [f for f in sub_form_data if not f.get('DELETE', False) and f.get('amount') is not None]
 
-        if not active_subs:
-            formset.add_error(None, "Transakcja musi posiadać co najmniej jedną subtransakcję.")
-        else:
-            transaction = form.save(commit=False) # zapisuje transakcję bez total i balance_after_transaction
-
-            formset.save() # zapisuje subtransakcje
-
-            total_sum = sum(sub.amount for sub in transaction.sub_transaction.all())
-            transaction.total = total_sum
-
-            current_account_balance = transaction.account.current_balance
-            if transaction.transaction_direction == 'IN':
-                transaction.balance_after_transaction = current_account_balance + total_sum
+            if not active_subs:
+                formset.add_error(None, "Transakcja musi posiadać co najmniej jedną subtransakcję.")
             else:
-                transaction.balance_after_transaction = current_account_balance - total_sum
+                transaction = form.save(commit=False)
+                transaction.account = account
 
-            transaction.account.current_balance = transaction.balance_after_transaction
-            transaction.account.save()
+                subtransactions = formset.save(commit=False)
+                total_sum = sum(sub.amount for sub in subtransactions)
+
+                transaction.total = total_sum
+
+                if transaction.transaction_direction == 'IN':
+                    transaction.balance_after_transaction = account.balance + total_sum
+                else:
+                    transaction.balance_after_transaction = account.balance - total_sum
+
+                account.balance = transaction.balance_after_transaction
+                account.save()
+
+                transaction.save()
+
+                for sub in subtransactions:
+                    sub.main_transaction = transaction
+                    sub.save()
+
+                return redirect('nowa-transakcja', account_id=account.id)
+
+    else:
+        form = TransactionForm(instance=transaction)
+        formset = SubTransactionFormset(instance=transaction)
+
+    return render(request, 'account/transaction_form.html', {'form': form, 'formset': formset})
+
