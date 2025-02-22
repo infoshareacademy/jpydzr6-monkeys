@@ -36,44 +36,42 @@ def transaction_create_or_update(request, pk=None):
     else:
         transaction = Transaction()
 
-    if request.method == "POST":
+    if request.method == 'POST':
         form = TransactionForm(request.POST, instance=transaction)
         formset = SubtransactionFormSet(request.POST, instance=transaction)
 
         if form.is_valid() and formset.is_valid():
-            sub_form_data = formset.cleaned_data
-            active_subs = [f for f in sub_form_data if not f.get('DELETE', False) and f.get('amount') is not None]
+            transaction = form.save(commit=False)
 
-            if not active_subs:
-                formset.add_error(None, "Transakcja musi posiadać co najmniej jedną subtransakcję.")
+            subtransactions = formset.save(commit=False)
+
+            total_sum = sum(sub.amount for sub in subtransactions if sub.amount)
+
+            transaction.total = total_sum
+
+            account = transaction.account
+            if transaction.transaction_direction == 'IN':
+                transaction.balance_after_transaction = account.balance + total_sum
             else:
-                transaction = form.save(commit=False)
-                account = transaction.account
+                transaction.balance_after_transaction = account.balance - total_sum
 
-                subtransactions = formset.save(commit=False)
-                total_sum = sum(sub.amount for sub in subtransactions)
+            account.balance = transaction.balance_after_transaction
+            account.save()
 
-                transaction.total = total_sum
+            transaction.save()
 
-                if transaction.transaction_direction == 'IN':
-                    transaction.balance_after_transaction = account.balance + total_sum
-                else:
-                    transaction.balance_after_transaction = account.balance - total_sum
+            for sub in subtransactions:
+                sub.main_transaction = transaction
+                sub.save()
 
-                account.balance = transaction.balance_after_transaction
-                account.save()
+            formset.save()
 
-                transaction.save()
-
-                for sub in subtransactions:
-                    sub.main_transaction = transaction
-                    sub.save()
-
-                return redirect('nowa-transakcja')
-
+            return redirect('nowa-transakcja')
     else:
         form = TransactionForm(instance=transaction)
         formset = SubtransactionFormSet(instance=transaction)
 
-    return render(request, 'account/transaction_form.html', {'form': form, 'formset': formset})
-
+    return render(request, 'account/transaction_form.html', {
+        'form': form,
+        'formset': formset,
+    })
