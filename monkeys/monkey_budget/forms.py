@@ -14,7 +14,10 @@ class TransactionForm(forms.ModelForm):
 
     class Meta:
         model = Transaction
-        fields = ['account', 'date', 'transaction_direction', 'description']
+        fields = ['account', 'date', 'transaction_direction', 'description', 'total_display']
+        widgets = {
+            'description': forms.Textarea,
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,6 +47,10 @@ class SubTransactionForm(forms.ModelForm):
     class Meta:
         model = SubTransaction
         fields = ['amount', 'description']
+        widgets = {
+            'amount': forms.TextInput(),
+            'description': forms.Textarea,
+        }
 
     def clean(self):
         cleaned_data = super().clean()

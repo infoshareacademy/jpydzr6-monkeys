@@ -12,7 +12,6 @@ class SubTransactionInline(admin.TabularInline):
     min_num = 1
     extra = 0
     can_delete = True
-    # fields =
 
 
 @admin.register(Transaction)
