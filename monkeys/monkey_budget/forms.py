@@ -1,23 +1,43 @@
 from django import forms
 from django.forms.models import inlineformset_factory
+from .money import Monetary, CurrencyHelper
 from .models import Transaction, SubTransaction
 
 
 class TransactionForm(forms.ModelForm):
+    total_display = forms.CharField(label='Total amount', required=False, widget=forms.TextInput(
+        attrs={'readonly': 'readonly', 'disabled': 'disabled', 'style': 'border: none; background: transparent;'}))
+    balance_after_transaction_display = forms.CharField(label='Balance after transaction', required=False,
+                                                        widget=forms.TextInput(
+                                                            attrs={'readonly': 'readonly', 'disabled': 'disabled',
+                                                                   'style': 'border: none; background: transparent;'}))
+
     class Meta:
         model = Transaction
         fields = ['account', 'date', 'transaction_direction', 'description']
 
-        def clean(self):
-            cleaned_data = super().clean()
-            main_transaction = self.instance
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-            # Parent musi mieć przynajmniej jedną subtransakcję
-            if main_transaction.pk:
-                if not main_transaction.subtransactions.exists():
-                    raise forms.ValidationError('The transaction must consist of at least one subtransaction')
+        if self.instance.pk:
+            currency = CurrencyHelper.get_currency_by_its_code(self.instance.account.currency_code)
+            self.fields['total_display'].initial = Monetary(self.instance.total, currency)
+            self.fields['balance_after_transaction_display'].initial = Monetary(self.instance.balance_after_transaction,
+                                                                                currency)
+        else:
+            self.fields['total_display'].widget = forms.HiddenInput()
+            self.fields['balance_after_transaction_display'].widget = forms.HiddenInput()
 
-            return cleaned_data
+    def clean(self):
+        cleaned_data = super().clean()
+        main_transaction = self.instance
+
+        # Parent musi mieć przynajmniej jedną subtransakcję
+        if main_transaction.pk:
+            if not main_transaction.subtransactions.exists():
+                raise forms.ValidationError('The transaction must consist of at least one subtransaction')
+
+        return cleaned_data
 
 
 class SubTransactionForm(forms.ModelForm):

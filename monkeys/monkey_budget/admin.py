@@ -5,12 +5,14 @@ from .money import Monetary, CurrencyHelper
 
 admin.site.register(MoneyAccount)
 
+
 class SubTransactionInline(admin.TabularInline):
     model = SubTransaction
     formset = SubtransactionFormSet
     min_num = 1
     extra = 0
     can_delete = True
+    # fields =
 
 
 @admin.register(Transaction)
@@ -20,12 +22,7 @@ class TransactionAdmin(admin.ModelAdmin):
     search_fields = ['account']
     list_filter = ['transaction_direction', 'date']
     inlines = [SubTransactionInline]
-    readonly_fields = ['total_display', 'balance_after_transaction_display']
 
     def total_display(self, obj):
         currency = CurrencyHelper.get_currency_by_its_code(obj.account.currency_code)
         return Monetary(obj.total, currency)
-
-    def balance_after_transaction_display(self, obj):
-        currency = CurrencyHelper.get_currency_by_its_code(obj.account.currency_code)
-        return Monetary(obj.balance, currency)
