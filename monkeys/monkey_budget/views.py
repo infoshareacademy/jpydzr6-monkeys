@@ -30,17 +30,15 @@ def delete_money_account(request, account_id):
 
 #zaklepuje poniższe linijki pod transakcje
 
-def transaction_create_or_update(request, account_id=None, pk=None):
+def transaction_create_or_update(request, pk=None):
     if pk:
         transaction = get_object_or_404(Transaction, pk=pk)
-        account = transaction.account
     else:
         transaction = Transaction()
-        account = get_object_or_404(MoneyAccount, pk=account_id)
 
     if request.method == "POST":
         form = TransactionForm(request.POST, instance=transaction)
-        formset = SubTransactionFormset(request.POST, instance=transaction)
+        formset = SubtransactionFormSet(request.POST, instance=transaction)
 
         if form.is_valid() and formset.is_valid():
             sub_form_data = formset.cleaned_data
@@ -50,7 +48,7 @@ def transaction_create_or_update(request, account_id=None, pk=None):
                 formset.add_error(None, "Transakcja musi posiadać co najmniej jedną subtransakcję.")
             else:
                 transaction = form.save(commit=False)
-                transaction.account = account
+                account = transaction.account
 
                 subtransactions = formset.save(commit=False)
                 total_sum = sum(sub.amount for sub in subtransactions)
@@ -71,11 +69,11 @@ def transaction_create_or_update(request, account_id=None, pk=None):
                     sub.main_transaction = transaction
                     sub.save()
 
-                return redirect('nowa-transakcja', account_id=account.id)
+                return redirect('nowa-transakcja')
 
     else:
         form = TransactionForm(instance=transaction)
-        formset = SubTransactionFormset(instance=transaction)
+        formset = SubtransactionFormSet(instance=transaction)
 
     return render(request, 'account/transaction_form.html', {'form': form, 'formset': formset})
 
