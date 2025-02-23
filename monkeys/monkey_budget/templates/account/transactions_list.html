@@ -59,7 +59,7 @@ Lista transakcji
                     <table class="table table-bordered">
                         <thead>
                         <tr>
-                            <th>ID sub</th>
+<!--                            <th>ID sub</th>-->
                             <th>Kwota PLN</th>
                             <th>Opis</th>
                         </tr>
@@ -67,7 +67,7 @@ Lista transakcji
                         <tbody>
                         {% for sub in transaction.sub_transaction.all %}
                             <tr>
-                                <td>{{ sub.id }}</td>
+<!--                                <td>{{ sub.id }}</td>-->
                                 <td>{{ sub.amount_float }}</td>
                                 <td>{{ sub.description }}</td>
                             </tr>
