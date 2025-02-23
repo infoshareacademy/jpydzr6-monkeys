@@ -1,6 +1,9 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
+from django.db import transaction
+
 from .models import MoneyAccount, Transaction, SubTransaction
-from .forms import TransactionForm, SubtransactionFormSet
+from .forms import TransactionForm, SubTransactionFormSet, SubTransactionForm
 from .money import Monetary, CurrencyHelper
 
 admin.site.register(MoneyAccount)
@@ -8,7 +11,8 @@ admin.site.register(MoneyAccount)
 
 class SubTransactionInline(admin.TabularInline):
     model = SubTransaction
-    formset = SubtransactionFormSet
+    form = SubTransactionForm
+    formset = SubTransactionFormSet
     min_num = 1
     extra = 0
     can_delete = True
@@ -23,5 +27,9 @@ class TransactionAdmin(admin.ModelAdmin):
     inlines = [SubTransactionInline]
 
     def total_display(self, obj):
-        currency = CurrencyHelper.get_currency_by_its_code(obj.account.currency_code)
-        return Monetary(obj.total, currency)
+        return Monetary(obj.total, obj.account.currency)
+
+
+@admin.register(SubTransaction)
+class SubTransactionAdmin(admin.ModelAdmin):
+    form = SubTransactionForm
