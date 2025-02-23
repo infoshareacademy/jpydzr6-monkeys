@@ -19,7 +19,11 @@ class MoneyAccount(models.Model):
     description = models.TextField(max_length=512) # dłuższy opis konta dodawany przez użytkownika
 
     def __str__(self):
-        return f'{self.name}: {self.balance} {CurrencyHelper.get_currency_by_its_code(self.currency_code)["code"]}'
+        return f'{self.name}: {self.balance} {self.currency["code"]}'
+
+    @property
+    def currency(self):
+        return CurrencyHelper.get_currency_by_its_code(self.currency_code)
 
 
     class Meta:
@@ -45,8 +49,12 @@ class Transaction(models.Model):
         app_label = 'monkey_budget'
 
     def __str__(self):
-        money = Monetary(int(self.total), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
+        money = Monetary(int(self.total), self.currency)
         return f"{self.transaction_direction} transaction of total {money}"
+
+    @property
+    def currency(self):
+        return self.account.currency
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -67,15 +75,14 @@ class SubTransaction(models.Model):
                                          related_name='subtransactions')
     amount = models.BigIntegerField(
         validators=[MinValueValidator(limit_value=0, message='Subtransaction amount must be nonnegative')],
-        blank=False)
+        blank=False, default=0)
     description = models.CharField(max_length=100, blank=True)
 
     class Meta:
         app_label = 'monkey_budget'
 
     def __str__(self):
-        money = Monetary(int(self.amount),
-                         CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
+        money = Monetary(int(self.amount), self.main_transaction.currency)
         return f"Transaction part of ({money})"
 
     def save(self, *args, **kwargs):
