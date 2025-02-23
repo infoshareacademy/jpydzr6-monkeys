@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
 
-</body>
-</html>
+{% block title %}
+Lista transakcji
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Lista transakcji</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>id</th>
+            <th>Konto</th>
+            <th>Data</th>
+            <th>Kwota</th>
+            <th>Opis</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.id }}</td>
+                <td>{{ transaction.account.name }}</td>
+                <!-- Закрыта кавычка в фильтре даты -->
+                <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
+                <td>{{ transaction.total }}</td>
+                <td>{{ transaction.description }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}
