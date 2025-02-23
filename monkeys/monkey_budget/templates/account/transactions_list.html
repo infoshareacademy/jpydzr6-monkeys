@@ -15,6 +15,7 @@ Lista transakcji
             <th>id</th>
             <th>Konto</th>
             <th>Data</th>
+            <th>Rodzaj transakcji</th>
             <th>Kwota</th>
             <th>Opis</th>
         </tr>
@@ -24,8 +25,8 @@ Lista transakcji
             <tr>
                 <td>{{ transaction.id }}</td>
                 <td>{{ transaction.account.name }}</td>
-                <!-- Закрыта кавычка в фильтре даты -->
                 <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
+                <td>{{ transaction.get_transaction_direction_display }}</td>
                 <td>{{ transaction.total }}</td>
                 <td>{{ transaction.description }}</td>
             </tr>
