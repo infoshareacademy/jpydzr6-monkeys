@@ -27,7 +27,13 @@ Lista transakcji
                 <td>{{ transaction.id }}</td>
                 <td>{{ transaction.account.name }}</td>
                 <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
-                <td>{{ transaction.get_transaction_direction_display }}</td>
+<!--                <td>{{ transaction.get_transaction_direction_display }}</td>-->
+                <td>{% if transaction.transaction_direction == 'IN' %}
+                        Przychód
+                    {% elif transaction.transaction_direction == 'OUT' %}
+                        Wydatek
+                    {% endif %}
+                </td>
                 <td>
                     {% if transaction.transaction_direction == 'IN' %}
                         +{{ transaction.total_float }}
