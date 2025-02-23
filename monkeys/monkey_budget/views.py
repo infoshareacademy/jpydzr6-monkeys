@@ -66,14 +66,13 @@ def transaction_create_or_update(request, pk=None):
 
     if request.method == 'POST':
         form = TransactionForm(request.POST, instance=transaction)
-        form = TransactionForm(instance=transaction)
         form.fields.get('account').label = 'Konto'
         form.fields.get('date').label = 'Data'
         form.fields.get('transaction_direction').label = 'Rodzaj transakcji'
         form.fields.get('description').label = 'Opis'
 
         formset = SubTransactionFormSet(request.POST, instance=transaction)
-        formset.form.base_fields.get('amount').label = 'Kwota składowa'
+        formset.form.base_fields.get('amount').label = 'Kwota składowa (w groszach)'
         formset.form.base_fields.get('description').label = 'Opis'
 
         if form.is_valid() and formset.is_valid():
@@ -111,7 +110,7 @@ def transaction_create_or_update(request, pk=None):
         form.fields.get('description').label = 'Opis'
 
         formset = SubTransactionFormSet(instance=transaction)
-        formset.form.base_fields.get('amount').label = 'Kwota składowa'
+        formset.form.base_fields.get('amount').label = 'Kwota składowa (w groszach)'
         formset.form.base_fields.get('description').label = 'Opis'
 
     return render(request, 'account/transaction_form.html', {
