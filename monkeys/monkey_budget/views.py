@@ -100,3 +100,9 @@ def transaction_create_or_update(request, pk=None):
         'formset': formset,
         'accounts': all_accounts,
     })
+
+def transaction_list(request):
+    transactions = Transaction.objects.all().order_by('-date')
+    return render(request, 'account/transactions_list.html', {
+        'transactions': transactions,
+    })

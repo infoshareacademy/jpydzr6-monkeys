@@ -1,0 +1,79 @@
+{% extends 'account/base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+Lista transakcji
+{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <h1>Lista transakcji</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Konto</th>
+            <th>Data</th>
+            <th>Rodzaj transakcji</th>
+            <th>Kwota PLN</th>
+            <th>Stan konta po transakcji</th>
+            <th>Opis</th>
+            <th>Subtransakcje</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.id }}</td>
+                <td>{{ transaction.account.name }}</td>
+                <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
+                <td>{{ transaction.get_transaction_direction_display }}</td>
+                <td>
+                    {% if transaction.transaction_direction == 'IN' %}
+                        +{{ transaction.total }}
+                    {% else %}
+                        -{{ transaction.total }}
+                    {% endif %}
+                </td>
+                <td>{{ transaction.balance_after_transaction }}</td>
+                <td>{{ transaction.description }}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#subs-{{ transaction.pk }}"
+                            aria-expanded="false"
+                            aria-controls="subs-{{ transaction.pk }}">
+                        Wyświetl/Ukryj
+                    </button>
+                </td>
+            </tr>
+            <tr id="subs-{{ transaction.pk }}" class="collapse">
+                <td colspan="8">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>ID sub</th>
+                            <th>Kwota PLN</th>
+                            <th>Opis</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for sub in transaction.sub_transaction.all %}
+                            <tr>
+                                <td>{{ sub.id }}</td>
+                                <td>{{ sub.amount }}</td>
+                                <td>{{ sub.description }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="3">Brak subtransakcji</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}
