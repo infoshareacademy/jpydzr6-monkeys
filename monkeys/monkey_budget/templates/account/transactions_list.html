@@ -30,12 +30,12 @@ Lista transakcji
                 <td>{{ transaction.get_transaction_direction_display }}</td>
                 <td>
                     {% if transaction.transaction_direction == 'IN' %}
-                        +{{ transaction.total }}
+                        +{{ transaction.total_float }}
                     {% else %}
-                        -{{ transaction.total }}
+                        -{{ transaction.total_float }}
                     {% endif %}
                 </td>
-                <td>{{ transaction.balance_after_transaction }}</td>
+                <td>{{ transaction.balance_after_transaction_float }}</td>
                 <td>{{ transaction.description }}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary"
@@ -62,7 +62,7 @@ Lista transakcji
                         {% for sub in transaction.sub_transaction.all %}
                             <tr>
                                 <td>{{ sub.id }}</td>
-                                <td>{{ sub.amount }}</td>
+                                <td>{{ sub.amount_float }}</td>
                                 <td>{{ sub.description }}</td>
                             </tr>
                         {% empty %}

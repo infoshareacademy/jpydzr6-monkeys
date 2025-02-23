@@ -56,6 +56,14 @@ class Transaction(models.Model):
         money = Monetary(int(self.total), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
         return f"{self.transaction_direction} transaction of {money}"
 
+    @property
+    def total_float(self) -> Monetary:
+        return Monetary(int(self.total), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
+
+    @property
+    def balance_after_transaction_float(self) -> Monetary:
+        return Monetary(int(self.balance_after_transaction), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
+
 class SubTransaction(models.Model):
     main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
                                          related_name='sub_transaction')
@@ -65,3 +73,7 @@ class SubTransaction(models.Model):
     def __str__(self):
         money = Monetary(int(self.amount), CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
         return f"Transaction component ({money})"
+
+    @property
+    def amount_float(self) -> Monetary:
+        return Monetary(int(self.amount), CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
