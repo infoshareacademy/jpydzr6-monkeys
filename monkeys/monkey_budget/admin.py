@@ -28,8 +28,3 @@ class TransactionAdmin(admin.ModelAdmin):
 
     def total_display(self, obj):
         return Monetary(obj.total, obj.account.currency)
-
-
-@admin.register(SubTransaction)
-class SubTransactionAdmin(admin.ModelAdmin):
-    form = SubTransactionForm
