@@ -2,7 +2,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
 import django.utils.timezone
-
 from .money import Monetary, CurrencyHelper
 
 
@@ -22,7 +21,16 @@ class MoneyAccount(models.Model):
     description = models.TextField(max_length=512)
 
     def __str__(self):
-        return f'{self.name}: {self.balance} {CurrencyHelper.get_currency_by_its_code(self.currency_code)["code"]}'
+        return f'{self.name}: {self.balance_float}'
+
+    @property
+    def balance_float(self) -> Monetary:
+        money = Monetary(int(self.balance), CurrencyHelper.get_currency_by_its_code(self.currency_code))
+        return money
+
+    @balance_float.setter
+    def balance_float(self, amount: str) -> None:
+        self.balance = str(Monetary(int(amount), CurrencyHelper.get_currency_by_its_code(self.currency_code)))
 
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)

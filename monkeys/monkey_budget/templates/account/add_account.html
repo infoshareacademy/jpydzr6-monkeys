@@ -20,6 +20,17 @@
     {% endblock show-side-menu %}
 
     {% block content %}
+    <br>
+    <h1 class="display-3 lead text-center" style="font-family: 'Papyrus', cursive">Tworzenie nowego konta</h1>
+    <div class="container">
+            <form method="post">
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                    {{ field.label_tag }}
+                    {{ field }}
+            <button type="submit">Utwórz konto</button>
+        </form>
+    </div>
     {% endblock content %}
 
 </body>
