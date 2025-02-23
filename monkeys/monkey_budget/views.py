@@ -54,6 +54,7 @@ def delete_money_account(request, account_id):
 #zaklepuje poniższe linijki pod transakcje
 
 def transaction_create_or_update(request, pk=None):
+    all_accounts = MoneyAccount.objects.filter(user_id=2)
     if pk:
         transaction = get_object_or_404(Transaction, pk=pk)
     else:
@@ -61,7 +62,7 @@ def transaction_create_or_update(request, pk=None):
 
     if request.method == 'POST':
         form = TransactionForm(request.POST, instance=transaction)
-        formset = SubtransactionFormSet(request.POST, instance=transaction)
+        formset = SubTransactionFormSet(request.POST, instance=transaction)
 
         if form.is_valid() and formset.is_valid():
             transaction = form.save(commit=False)
@@ -92,9 +93,10 @@ def transaction_create_or_update(request, pk=None):
             return redirect('nowa-transakcja')
     else:
         form = TransactionForm(instance=transaction)
-        formset = SubtransactionFormSet(instance=transaction)
+        formset = SubTransactionFormSet(instance=transaction)
 
     return render(request, 'account/transaction_form.html', {
         'form': form,
         'formset': formset,
+        'accounts': all_accounts,
     })
