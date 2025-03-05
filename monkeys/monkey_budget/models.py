@@ -1,8 +1,9 @@
-from django.core.validators import MinValueValidator
-from django.db import models
+from django.core.validators import ValidationError, MinValueValidator
+from django.db import models, transaction
 from django.contrib.auth.models import User
 import django.utils.timezone
-from .money import Monetary, CurrencyHelper
+
+from .money import Monetary, CurrencyHelper, Currency
 
 
 class MoneyAccount(models.Model):
@@ -21,16 +22,24 @@ class MoneyAccount(models.Model):
     description = models.TextField(max_length=512)
 
     def __str__(self):
-        return f'{self.name}: {self.balance_float}'
+        return f'{self.name}: {self.balance_formatted}'
 
     @property
-    def balance_float(self) -> Monetary:
-        money = Monetary(int(self.balance), CurrencyHelper.get_currency_by_its_code(self.currency_code))
-        return money
+    def currency(self) -> Currency:
+        return CurrencyHelper.get_currency_by_its_code(self.currency_code)
 
-    @balance_float.setter
-    def balance_float(self, amount: str) -> None:
-        self.balance = str(Monetary(int(amount), CurrencyHelper.get_currency_by_its_code(self.currency_code)))
+    @property
+    def balance_formatted(self) -> Monetary:
+        return Monetary(self.balance, self.currency)
+
+    # @property
+    # def balance_float(self) -> Monetary:
+    #     money = Monetary(int(self.balance), CurrencyHelper.get_currency_by_its_code(self.currency_code))
+    #     return money
+
+    # @balance_float.setter
+    # def balance_float(self, amount: str) -> None:
+    #     self.balance = str(Monetary(int(amount), CurrencyHelper.get_currency_by_its_code(self.currency_code)))
 
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)
