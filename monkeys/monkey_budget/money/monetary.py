@@ -1,5 +1,6 @@
 from __future__ import annotations
 from math import floor
+from decimal import Decimal, localcontext
 
 from . import currencies
 from .currency import Currency
@@ -55,10 +56,8 @@ class Monetary:
         return f"{self.__class__.__name__}({self.amount}, {self.currency})"
 
     def __str__(self):
-        factor = pow(self.__currency.get("base"), self.__currency.get("exponent"))
-        major = self.amount / factor
-        exponent = self.__currency.get("exponent")
-        return f"{self.currency} {major:.{exponent}f}"
+        # breakpoint()
+        return f"{self.currency} {str(self.decimal)}"
 
     @property
     def amount(self) -> int:
@@ -67,6 +66,14 @@ class Monetary:
     @property
     def currency(self) -> str:
         return self.__currency.get("code")
+
+    @property
+    def decimal(self) -> Decimal:
+        factor = Decimal(self.__currency.get("base")) ** Decimal(self.__currency.get("exponent"))
+        major = Decimal(self.amount) / factor
+        quantizer = Decimal(10) ** -self.__currency.get("exponent")
+        formatted = major.quantize(quantizer)
+        return formatted
 
     @staticmethod
     def __validate_amount_type(amount) -> bool:
