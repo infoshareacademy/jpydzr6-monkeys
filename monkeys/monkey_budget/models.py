@@ -61,16 +61,20 @@ class Transaction(models.Model):
         app_label = 'monkey_budget'
 
     def __str__(self):
-        money = Monetary(int(self.total), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
-        return f"{self.transaction_direction} transaction of {money}"
+        money = Monetary(int(self.total), self.currency)
+        return f"{self.transaction_direction} transaction of total {money}"
 
     @property
-    def total_float(self) -> Monetary:
-        return Monetary(int(self.total), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
+    def currency(self):
+        return self.account.currency
 
     @property
-    def balance_after_transaction_float(self) -> Monetary:
-        return Monetary(int(self.balance_after_transaction), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
+    def total_formatted(self) -> Monetary:
+        return Monetary(self.total, self.currency)
+
+    @property
+    def balance_after_transaction_formatted(self) -> Monetary:
+        return Monetary(self.balance_after_transaction, self.currency)
 
 class SubTransaction(models.Model):
     main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
@@ -83,5 +87,9 @@ class SubTransaction(models.Model):
         return f"Transaction component ({money})"
 
     @property
-    def amount_float(self) -> Monetary:
-        return Monetary(int(self.amount), CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
+    def currency(self):
+        return self.main_transaction.currency
+
+    @property
+    def amount_formatted(self) -> Monetary:
+        return Monetary(self.amount, self.currency)
