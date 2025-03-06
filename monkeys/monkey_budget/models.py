@@ -32,15 +32,6 @@ class MoneyAccount(models.Model):
     def balance_formatted(self) -> Monetary:
         return Monetary(self.balance, self.currency)
 
-    # @property
-    # def balance_float(self) -> Monetary:
-    #     money = Monetary(int(self.balance), CurrencyHelper.get_currency_by_its_code(self.currency_code))
-    #     return money
-
-    # @balance_float.setter
-    # def balance_float(self, amount: str) -> None:
-    #     self.balance = str(Monetary(int(amount), CurrencyHelper.get_currency_by_its_code(self.currency_code)))
-
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)
 
@@ -63,8 +54,11 @@ class Transaction(models.Model):
         editable=False)
     transaction_directions = [('IN', 'income'), ('OUT', 'outcome')]
     transaction_direction = models.CharField(choices=transaction_directions, max_length=3, default='OUT')
-    balance_after_transaction = models.BigIntegerField()
+    balance_after_transaction = models.BigIntegerField(editable=False, default=0)
     description = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        app_label = 'monkey_budget'
 
     def __str__(self):
         money = Monetary(int(self.total), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
