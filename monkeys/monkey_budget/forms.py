@@ -24,12 +24,16 @@ from decimal import Decimal
 
 
 class TransactionForm(forms.ModelForm):
-    total_display = forms.CharField(label='Total amount', required=False, widget=forms.TextInput(
-        attrs={'readonly': 'readonly', 'disabled': 'disabled', 'style': 'border: none; background: transparent;'}))
-    balance_after_transaction_display = forms.CharField(label='Balance after transaction', required=False,
-                                                        widget=forms.TextInput(
-                                                            attrs={'readonly': 'readonly', 'disabled': 'disabled',
-                                                                   'style': 'border: none; background: transparent;'}))
+    total_display = forms.CharField(
+        label='Total amount',
+        required=False,
+        widget=forms.TextInput(
+            attrs={'readonly': 'readonly', 'disabled': 'disabled', 'style': 'border: none; background: transparent;'}))
+    balance_after_transaction_display = forms.CharField(
+        label='Balance after transaction',
+        required=False,
+        widget=forms.TextInput(
+            attrs={'readonly': 'readonly', 'disabled': 'disabled', 'style': 'border: none; background: transparent;'}))
 
     class Meta:
         model = Transaction
@@ -43,8 +47,9 @@ class TransactionForm(forms.ModelForm):
 
         if self.instance.pk:
             self.fields['total_display'].initial = Monetary(self.instance.total, self.instance.currency)
-            self.fields['balance_after_transaction_display'].initial = Monetary(self.instance.balance_after_transaction,
-                                                                                self.instance.currency)
+            self.fields['balance_after_transaction_display'].initial = Monetary(
+                self.instance.balance_after_transaction,
+                self.instance.currency)
         else:
             self.fields['total_display'].widget = forms.HiddenInput()
             self.fields['balance_after_transaction_display'].widget = forms.HiddenInput()
