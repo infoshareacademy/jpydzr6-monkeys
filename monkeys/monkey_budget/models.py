@@ -129,8 +129,10 @@ class Transaction(models.Model):
 
 
 class SubTransaction(models.Model):
-    main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
-                                         related_name='sub_transaction')
+    main_transaction = models.ForeignKey(
+        Transaction,
+        on_delete=models.deletion.CASCADE,
+        related_name='subtransactions')
     amount = models.BigIntegerField(
         validators=[MinValueValidator(
             limit_value=0,
