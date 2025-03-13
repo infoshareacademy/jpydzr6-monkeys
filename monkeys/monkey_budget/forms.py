@@ -3,7 +3,7 @@ from .models import MoneyAccount
 
 
 class MoneyAccountForm(forms.ModelForm):
-    balance = forms.FloatField(label='Saldo')
+
     class Meta:
         model = MoneyAccount
         fields = ['name', 'balance', 'type', 'currency_code', 'description']
@@ -11,10 +11,12 @@ class MoneyAccountForm(forms.ModelForm):
             'name': 'Nazwa',
             'type': 'Typ',
             'currency_code': 'Kod waluty',
-            'description': 'Opis',
         }
+    balance = forms.FloatField(label='Saldo')
+    description = forms.CharField(widget=forms.Textarea, required=False, label='Opis', max_length=512)
+    def __init__(self, *args, **kwargs):
+        super(MoneyAccountForm, self).__init__(*args, **kwargs)
 
-    description = forms.CharField(widget=forms.Textarea, required=False)
 
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
