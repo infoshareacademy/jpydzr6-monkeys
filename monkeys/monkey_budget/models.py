@@ -119,6 +119,9 @@ class SubTransaction(models.Model):
     amount = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
     description = models.CharField(max_length=100, blank=True)
 
+    class Meta:
+        app_label = 'monkey_budget'
+
     def __str__(self):
         money = Monetary(int(self.amount), CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
         return f"Transaction component ({money})"
