@@ -116,7 +116,10 @@ class Transaction(models.Model):
 class SubTransaction(models.Model):
     main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
                                          related_name='sub_transaction')
-    amount = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
+    amount = models.BigIntegerField(
+        validators=[MinValueValidator(
+            limit_value=0,
+            message='Transaction total value must be nonnegative')])
     description = models.CharField(max_length=100, blank=True)
 
     class Meta:
