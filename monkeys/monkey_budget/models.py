@@ -1,8 +1,9 @@
-from django.core.validators import MinValueValidator
-from django.db import models
+from django.core.validators import ValidationError, MinValueValidator
+from django.db import models, transaction
 from django.contrib.auth.models import User
 import django.utils.timezone
-from .money import Monetary, CurrencyHelper
+
+from .money import Monetary, CurrencyHelper, Currency
 
 
 class MoneyAccount(models.Model):
@@ -21,16 +22,15 @@ class MoneyAccount(models.Model):
     description = models.TextField(max_length=512)
 
     def __str__(self):
-        return f'{self.name}: {self.balance_float}'
+        return f'{self.name}: {self.balance_formatted}'
 
     @property
-    def balance_float(self) -> Monetary:
-        money = Monetary(int(self.balance), CurrencyHelper.get_currency_by_its_code(self.currency_code))
-        return money
+    def currency(self) -> Currency:
+        return CurrencyHelper.get_currency_by_its_code(self.currency_code)
 
-    @balance_float.setter
-    def balance_float(self, amount: str) -> None:
-        self.balance = str(Monetary(int(amount), CurrencyHelper.get_currency_by_its_code(self.currency_code)))
+    @property
+    def balance_formatted(self) -> Monetary:
+        return Monetary(self.balance, self.currency)
 
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)
@@ -46,15 +46,35 @@ class Transaction(models.Model):
     #  związanych z gwarancją)
     account = models.ForeignKey(MoneyAccount, on_delete=models.deletion.CASCADE, related_name='transaction')
     date = models.DateTimeField(default=django.utils.timezone.now)
-    total = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
+    total = models.BigIntegerField(
+        validators=[MinValueValidator(
+            limit_value=0,
+            message='Transaction total value must be nonnegative')],
+        default=0,
+        editable=False)
     transaction_directions = [('IN', 'income'), ('OUT', 'outcome')]
     transaction_direction = models.CharField(choices=transaction_directions, max_length=3, default='OUT')
-    balance_after_transaction = models.BigIntegerField()
+    balance_after_transaction = models.BigIntegerField(editable=False, default=0)
     description = models.CharField(max_length=100, blank=True)
 
+    class Meta:
+        app_label = 'monkey_budget'
+
     def __str__(self):
-        money = Monetary(int(self.total), CurrencyHelper.get_currency_by_its_code(self.account.currency_code))
-        return f"{self.transaction_direction} transaction of {money}"
+        money = Monetary(int(self.total), self.currency)
+        return f"{self.transaction_direction} transaction of total {money}"
+
+    @property
+    def currency(self):
+        return self.account.currency
+
+    @property
+    def total_formatted(self) -> Monetary:
+        return Monetary(self.total, self.currency)
+
+    @property
+    def balance_after_transaction_formatted(self) -> Monetary:
+        return Monetary(self.balance_after_transaction, self.currency)
 
 class SubTransaction(models.Model):
     main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
@@ -65,3 +85,11 @@ class SubTransaction(models.Model):
     def __str__(self):
         money = Monetary(int(self.amount), CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
         return f"Transaction component ({money})"
+
+    @property
+    def currency(self):
+        return self.main_transaction.currency
+
+    @property
+    def amount_formatted(self) -> Monetary:
+        return Monetary(self.amount, self.currency)

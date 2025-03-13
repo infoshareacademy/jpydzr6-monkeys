@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import MoneyAccount, Transaction, SubTransaction
+from django.template.loader import render_to_string
 from .forms import *
 
 # Create your views here.
@@ -12,9 +13,12 @@ def dashboard(request):
     return render(request, 'account/base.html', context)
 
 def show_money_account(request, account_id):
+    account_related_transactions = Transaction.objects.filter(account_id=account_id)
+    transactions_context = {'transactions': account_related_transactions}
+    transactions_list_html = render_to_string('account/transactions_list_for_include.html', transactions_context)
     chosen_account = get_object_or_404(MoneyAccount, pk=account_id)
     all_accounts = MoneyAccount.objects.filter(user_id=2)
-    context = {'account': chosen_account, 'accounts': all_accounts}
+    context = {'account': chosen_account, 'accounts': all_accounts, 'transactions_list_html': transactions_list_html}
     return render(request, 'account/show_account.html', context)
 
 def add_money_account(request):
@@ -54,6 +58,7 @@ def delete_money_account(request, account_id):
 #zaklepuje poniższe linijki pod transakcje
 
 def transaction_create_or_update(request, pk=None):
+    all_accounts = MoneyAccount.objects.filter(user_id=2)
     if pk:
         transaction = get_object_or_404(Transaction, pk=pk)
     else:
@@ -61,7 +66,14 @@ def transaction_create_or_update(request, pk=None):
 
     if request.method == 'POST':
         form = TransactionForm(request.POST, instance=transaction)
-        formset = SubtransactionFormSet(request.POST, instance=transaction)
+        form.fields.get('account').label = 'Konto'
+        form.fields.get('date').label = 'Data'
+        form.fields.get('transaction_direction').label = 'Rodzaj transakcji'
+        form.fields.get('description').label = 'Opis'
+
+        formset = SubTransactionFormSet(request.POST, instance=transaction)
+        formset.form.base_fields.get('amount').label = 'Kwota składowa (w groszach)'
+        formset.form.base_fields.get('description').label = 'Opis'
 
         if form.is_valid() and formset.is_valid():
             transaction = form.save(commit=False)
@@ -92,9 +104,25 @@ def transaction_create_or_update(request, pk=None):
             return redirect('nowa-transakcja')
     else:
         form = TransactionForm(instance=transaction)
-        formset = SubtransactionFormSet(instance=transaction)
+        form.fields.get('account').label = 'Konto'
+        form.fields.get('date').label = 'Data'
+        form.fields.get('transaction_direction').label = 'Rodzaj transakcji'
+        form.fields.get('description').label = 'Opis'
+
+        formset = SubTransactionFormSet(instance=transaction)
+        formset.form.base_fields.get('amount').label = 'Kwota składowa (w groszach)'
+        formset.form.base_fields.get('description').label = 'Opis'
 
     return render(request, 'account/transaction_form.html', {
         'form': form,
         'formset': formset,
+        'accounts': all_accounts,
+    })
+
+def transaction_list(request):
+    all_accounts = MoneyAccount.objects.filter(user_id=2)
+    transactions = Transaction.objects.all().order_by('-date')
+    return render(request, 'account/transactions_list.html', {
+        'transactions': transactions,
+        'accounts': all_accounts,
     })
