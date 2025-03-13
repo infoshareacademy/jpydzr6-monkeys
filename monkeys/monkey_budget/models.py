@@ -2,6 +2,7 @@ import decimal
 from decimal import Decimal
 from django.core.validators import ValidationError, MinValueValidator
 from django.db import models, transaction
+from django.db.models import Sum
 from django.contrib.auth.models import User
 import django.utils.timezone
 from .money import Monetary, CurrencyHelper, Currency
@@ -113,6 +114,20 @@ class Transaction(models.Model):
     def balance_after_transaction_formatted(self) -> Monetary:
         return Monetary(self.balance_after_transaction, self.currency)
 
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if not self.pk:
+                # Zapisz transakcję, aby dostać primary key
+                # Nie liczymy sumy subtransakcji, bo one nie dostały jeszcze przypisanego klucza głównej transakcji
+                super().save(*args, **kwargs)
+            else:
+                # Główna transakcja już jest zapisana w bazie, więc subtransakcję znają jej primary key.
+                # Oblicz sumę subtransackji. Zwracane jest 0, jeśli nie ma subtransakcji, ale to jest tylko dla admina.W formularzu użytkownika zawsze musi byc jedna subtransakcja
+                # Zaaktualizuj główną transakcję
+                self.total = self.subtransactions.aggregate(Sum('amount'))['amount__sum'] or 0
+                super().save(*args, **kwargs)
+
+
 class SubTransaction(models.Model):
     main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
                                          related_name='sub_transaction')
@@ -136,3 +151,20 @@ class SubTransaction(models.Model):
     @property
     def amount_formatted(self) -> Monetary:
         return Monetary(self.amount, self.currency)
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if not self.main_transaction.pk:
+                # Zapisz główną transakcję, aby mieć jej primary key
+                self.main_transaction.save()
+            # Zapisz subtransakcje
+            super().save(*args, **kwargs)
+            # Zaaktualizuj główną transakcję
+            self.main_transaction.save()
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            main_transaction = self.main_transaction
+
+            super().delete(*args, **kwargs)
+            main_transaction.save()
