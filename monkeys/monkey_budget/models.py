@@ -123,8 +123,8 @@ class SubTransaction(models.Model):
         app_label = 'monkey_budget'
 
     def __str__(self):
-        money = Monetary(int(self.amount), CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
-        return f"Transaction component ({money})"
+        money = Monetary(int(self.amount), self.currency)
+        return f"Transaction part of ({money})"
 
     @property
     def currency(self):
