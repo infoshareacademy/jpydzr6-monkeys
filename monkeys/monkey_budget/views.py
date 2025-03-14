@@ -5,7 +5,7 @@ from .models import MoneyAccount, Transaction, SubTransaction
 from django.template.loader import render_to_string
 from .forms import *
 
-# Create your views here.
+
 # TODO - brak informacji o id użytkownika, jest wpisane na sztywno do zmiany po dodaniu możliwości logowania
 def dashboard(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
