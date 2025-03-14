@@ -2,7 +2,7 @@ from django import forms
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
-from .money import Monetary, CurrencyHelper
+from .money import Monetary
 from .models import Transaction, SubTransaction
 from decimal import Decimal
 
@@ -63,12 +63,16 @@ class TransactionForm(forms.ModelForm):
         label='Total amount',
         required=False,
         widget=forms.TextInput(
-            attrs={'readonly': 'readonly', 'disabled': 'disabled', 'style': 'border: none; background: transparent;'}))
+            attrs={'readonly': 'readonly',
+                   'disabled': 'disabled',
+                   'style': 'border: none;background: transparent;'}))
     balance_after_transaction_display = forms.CharField(
         label='Balance after transaction',
         required=False,
         widget=forms.TextInput(
-            attrs={'readonly': 'readonly', 'disabled': 'disabled', 'style': 'border: none; background: transparent;'}))
+            attrs={'readonly': 'readonly',
+                   'disabled': 'disabled',
+                   'style': 'border: none; background: transparent;'}))
 
     class Meta:
         model = Transaction
@@ -142,14 +146,12 @@ class SubTransactionForm(forms.ModelForm):
 
     def clean_amount(self):
         if self.instance.pk:
-            decimal_value = self.cleaned_data.get('amount')
-            currency = self.instance.main_transaction.currency
             try:
-                amount = float(decimal_value)
-                amount = Monetary.major_to_minor_unit(amount, currency)
+                amount = Monetary.major_to_minor_unit(
+                    self.cleaned_data.get('amount'),
+                    self.instance.main_transaction.currency)
             except ValueError:
                 raise forms.ValidationError("Amount must be a valid number.")
-
             return amount
         else:
             return self.cleaned_data.get('amount')
@@ -162,6 +164,10 @@ class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
             raise forms.ValidationError('The subtransaction must consist of at least one subtransaction')
 
 
-SubTransactionFormSet = inlineformset_factory(Transaction, SubTransaction, form=SubTransactionForm,
-                                              formset=SubTransactionBaseInlineFormSet, min_num=1,
-                                              can_delete=True)
+SubTransactionFormSet = inlineformset_factory(
+    Transaction,
+    SubTransaction,
+    form=SubTransactionForm,
+    formset=SubTransactionBaseInlineFormSet,
+    min_num=1,
+    can_delete=True)
