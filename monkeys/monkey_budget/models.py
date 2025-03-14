@@ -124,7 +124,16 @@ class Transaction(models.Model):
                 # Główna transakcja już jest zapisana w bazie, więc subtransakcję znają jej primary key.
                 # Oblicz sumę subtransackji. Zwracane jest 0, jeśli nie ma subtransakcji, ale to jest tylko dla admina.W formularzu użytkownika zawsze musi byc jedna subtransakcja
                 # Zaaktualizuj główną transakcję
+                previous_total = self.total
                 self.total = self.subtransactions.aggregate(Sum('amount'))['amount__sum'] or 0
+                if self.transaction_direction == 'IN':
+                    self.account.balance -= previous_total
+                    self.balance_after_transaction = self.account.balance + self.total
+                else:
+                    self.account.balance += previous_total
+                    self.balance_after_transaction = self.account.balance - self.total
+                self.account.balance = self.balance_after_transaction
+                self.account.save()
                 super().save(*args, **kwargs)
 
 
