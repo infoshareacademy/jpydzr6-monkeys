@@ -57,7 +57,7 @@ class Monetary:
 
     def __str__(self):
         # breakpoint()
-        return f"{self.currency} {str(self.decimal)}"
+        return f"{self.currency} {str(self.amount_as_decimal)}"
 
     @property
     def amount(self) -> int:
@@ -68,7 +68,7 @@ class Monetary:
         return self.__currency.get("code")
 
     @property
-    def decimal(self) -> Decimal:
+    def amount_as_decimal(self) -> Decimal:
         factor = Decimal(self.__currency.get("base")) ** Decimal(self.__currency.get("exponent"))
         major = Decimal(self.amount) / factor
         quantizer = Decimal(10) ** -self.__currency.get("exponent")
