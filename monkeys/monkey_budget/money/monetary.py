@@ -1,6 +1,6 @@
 from __future__ import annotations
 from math import floor
-from decimal import Decimal, localcontext
+from decimal import Decimal
 
 from . import currencies
 from .currency import Currency
