@@ -89,9 +89,6 @@ class TransactionForm(forms.ModelForm):
             self.fields['balance_after_transaction_display'].initial = Monetary(
                 self.instance.balance_after_transaction,
                 self.instance.currency)
-        else:
-            self.fields['total_display'].widget = forms.HiddenInput()
-            self.fields['balance_after_transaction_display'].widget = forms.HiddenInput()
 
 
 class DecimalWithDynamicPlacesWidget(forms.NumberInput):
