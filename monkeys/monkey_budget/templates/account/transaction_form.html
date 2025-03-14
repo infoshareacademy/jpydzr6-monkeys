@@ -16,23 +16,19 @@
             <h3>Główna transakcja</h3>
             <div class="border p-3 mb-3 bg-light rounded">
                {% bootstrap_form form %}
-
-                {{ form.total_display }}
-                {{ form.balance_after_transaction_display }}
             </div>
 
             <h3>Pozycje transakcji</h3>
             {{ formset.management_form }}
 
-            {% for f in formset.forms %}
-                <div class="border p-3 mb-3 bg-light rounded">
-                    {% bootstrap_form f %}
+<!--            {% bootstrap_formset formset %}-->
 
-                    {% if formset.can_delete and f.instance.pk %}
-                        <div class="form-check">
-                            {{ f.DELETE }}
-                            <label class="form-check-label text-danger">Usuń pozycję</label>
-                        </div>
+            {% for f in formset %}
+                <div class="border p-3 mb-3 bg-light rounded">
+                    {% bootstrap_form f exclude='DELETE'  %}
+
+                    {% if formset.can_delete %}
+                        {% bootstrap_field f.DELETE label_class='text-danger' %}
                     {% endif %}
                 </div>
             {% endfor %}
