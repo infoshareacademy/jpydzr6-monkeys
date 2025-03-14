@@ -144,7 +144,7 @@ class SubTransaction(models.Model):
 
     def __str__(self):
         money = Monetary(int(self.amount), self.currency)
-        return f"Transaction part of ({money})"
+        return f"Part of transaction ({money})"
 
     @property
     def currency(self):
