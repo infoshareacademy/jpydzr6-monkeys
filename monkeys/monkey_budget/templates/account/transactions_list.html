@@ -24,7 +24,7 @@ Lista transakcji
         <tbody>
         {% for transaction in transactions %}
             <tr>
-                <td>{{ transaction.id }}</td>
+                <td><a href="{% url 'edytuj-transakcje' transaction.id %}">{{ transaction.id }}</a></td>
                 <td>{{ transaction.account.name }}</td>
                 <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
 <!--                <td>{{ transaction.get_transaction_direction_display }}</td>-->
