@@ -91,7 +91,6 @@ def transaction_update_view(request, transaction_id):
         if form.is_valid() and formset.is_valid():
             formset.save()
             return redirect('edytuj-transakcje', transaction_id)
-
     else:
         form = TransactionForm(instance=obj)
         formset = SubTransactionFormSet(instance=obj)
@@ -99,8 +98,7 @@ def transaction_update_view(request, transaction_id):
         context = {'form': form,
                    'formset': formset,
                    'all_accounts': all_accounts, }
-
-        return render(request, 'account/transaction_form.html', context)
+    return render(request, 'account/transaction_form.html', context)
 
 
 def transaction_list(request):
