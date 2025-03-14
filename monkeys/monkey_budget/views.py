@@ -62,6 +62,7 @@ def delete_money_account(request, account_id):
     return JsonResponse({'success': False, 'message': 'Nieprawidłowe żądanie.'})
 
 def transaction_create_view(request):
+    header = 'Nowa transakcja'
     if request.method == 'POST':
         form = TransactionForm(request.POST)
         formset = SubTransactionFormSet(request.POST)
@@ -72,22 +73,29 @@ def transaction_create_view(request):
         form = TransactionForm()
         formset = SubTransactionFormSet()
     all_accounts = MoneyAccount.objects.filter(user_id=2)
-    context = {'form': form,
-               'formset': formset,
-               'all_accounts': all_accounts,}
+    context = {
+        'header': header,
+        'form': form,
+        'formset': formset,
+        'all_accounts': all_accounts,
+    }
     return render(request, 'account/transaction_form.html', context)
 
 
 def transaction_update_view(request, transaction_id):
+    header = 'Edycja transakcji'
     obj = get_object_or_404(Transaction, id=transaction_id)
     all_accounts = MoneyAccount.objects.filter(user_id=2)
     if request.method == 'POST':
         form = TransactionForm(request.POST, instance=obj)
         formset = SubTransactionFormSet(request.POST, instance=obj)
         formset.extra = 0
-        context = {'form': form,
-                   'formset': formset,
-                   'all_accounts': all_accounts, }
+        context = {
+            'header': header,
+            'form': form,
+            'formset': formset,
+            'all_accounts': all_accounts,
+        }
         if form.is_valid() and formset.is_valid():
             formset.save()
             return redirect('edytuj-transakcje', transaction_id)
@@ -95,9 +103,12 @@ def transaction_update_view(request, transaction_id):
         form = TransactionForm(instance=obj)
         formset = SubTransactionFormSet(instance=obj)
         formset.extra = 0
-        context = {'form': form,
-                   'formset': formset,
-                   'all_accounts': all_accounts, }
+        context = {
+            'header': header,
+            'form': form,
+            'formset': formset,
+            'all_accounts': all_accounts,
+        }
     return render(request, 'account/transaction_form.html', context)
 
 

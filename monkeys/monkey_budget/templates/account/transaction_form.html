@@ -3,12 +3,12 @@
 {% load django_bootstrap5 %}
 
 {% block title %}
-    Zarządzanie transakcjami
+    {{ header }}
 {% endblock title %}
 
 {% block content %}
     <div class="container">
-        <h1 class="mt-3">{{ transaction.id|default:"Nowa transakcja" }}</h1>
+        <h1 class="mt-3">{{ header }}</h1>
 
         <form method="POST">
             {% csrf_token %}
