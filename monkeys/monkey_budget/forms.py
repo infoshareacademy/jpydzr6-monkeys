@@ -60,14 +60,14 @@ class MoneyAccountForm(forms.ModelForm):
 
 class TransactionForm(forms.ModelForm):
     total_display = forms.CharField(
-        label='Total amount',
+        label='Kwota łączna',
         required=False,
         widget=forms.TextInput(
             attrs={'readonly': 'readonly',
                    'disabled': 'disabled',
                    'style': 'border: none;background: transparent;'}))
     balance_after_transaction_display = forms.CharField(
-        label='Balance after transaction',
+        label='Balans po transakcji',
         required=False,
         widget=forms.TextInput(
             attrs={'readonly': 'readonly',
@@ -77,9 +77,16 @@ class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
         fields = ['account', 'date', 'transaction_direction', 'description', 'total_display']
+        labels = {
+            'account': 'Konto',
+            'date': 'Data',
+            'transaction_direction': 'Kierunek transakcji',
+            'description': 'Opis',
+        }
         widgets = {
             'description': forms.Textarea,
         }
+        Transaction._meta.get_field('transaction_direction').choices = [('IN', 'przychód'), ('OUT', 'wydatek')]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -112,6 +119,10 @@ class SubTransactionForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea,
         }
+        labels = {
+            'amount': 'Kwota',
+            'description': 'Opis',
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -122,7 +133,7 @@ class SubTransactionForm(forms.ModelForm):
             currency_exponent = currency.get('exponent')
 
             self.fields['amount'] = forms.DecimalField(
-                label='Amount',
+                label='amount',
                 max_digits=19,
                 decimal_places=currency_exponent,
                 required=True,
@@ -155,6 +166,11 @@ class SubTransactionForm(forms.ModelForm):
 
 
 class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
+    def add_fields(self, form, index):
+        super().add_fields(form, index)
+        if 'DELETE' in form.fields:
+            form.fields['DELETE'].label = "Usuń"
+
     def clean(self):
         super().clean()
         if self.total_form_count() == len(self.deleted_forms):
@@ -167,4 +183,5 @@ SubTransactionFormSet = inlineformset_factory(
     form=SubTransactionForm,
     formset=SubTransactionBaseInlineFormSet,
     min_num=1,
-    can_delete=True)
+    can_delete=True,
+)
