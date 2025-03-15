@@ -27,7 +27,7 @@ def add_money_account(request):
         if form.is_valid():
             account = form.save(commit=False)
             account.user_id = User.objects.get(pk=2)
-            account.balance = account.balance_float_to_int(form.cleaned_data['balance'])
+            account.balance = Monetary.major_to_minor_unit(form.cleaned_data['balance'], account.currency)
             account.save()
             return redirect(f'/monkey-budget/konta/{account.id}')
     else:
@@ -41,11 +41,14 @@ def edit_money_account(request, account_id):
         form = MoneyAccountForm(request.POST, instance=chosen_account)
         if form.is_valid():
             account = form.save(commit=False)
-            account.balance = account.balance_float_to_int(form.cleaned_data['balance'])
+            account.balance = Monetary.major_to_minor_unit(form.cleaned_data['balance'], account.currency)
             form.save()
             return redirect(f'/monkey-budget/konta/{chosen_account.id}')
     else:
-        form = MoneyAccountForm(instance=chosen_account)
+        initial_data = {
+            'balance': chosen_account.balance_int_to_float() # todo sposób zapisu jest ok, tylko ładnie zastosuj funkcję
+        }
+        form = MoneyAccountForm(instance=chosen_account, initial=initial_data)
 
     all_accounts = MoneyAccount.objects.filter(user_id=2)
     context = {'account': chosen_account, 'accounts': all_accounts, 'form': form}

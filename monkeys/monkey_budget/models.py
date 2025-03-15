@@ -32,12 +32,9 @@ class MoneyAccount(models.Model):
     def balance_formatted(self) -> Monetary:
         return Monetary(self.balance, self.currency)
 
-    @staticmethod
-    def balance_float_to_int(amount: float) -> int:
-        amount_str = str(amount)
-        major, minor = amount_str.split('.')
-        balance_int = int(major) * 100 + int(minor.ljust(2, '0')[:2])
-        return balance_int
+    def balance_int_to_float(self) -> float:
+        float_balance = self.balance / 100
+        return float_balance
 
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)
