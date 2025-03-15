@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import MoneyAccount, Transaction, SubTransaction
@@ -67,8 +68,11 @@ def transaction_create_view(request):
         form = TransactionForm(request.POST)
         formset = SubTransactionFormSet(request.POST)
         if all([form.is_valid(), formset.is_valid()]):
-            formset.save()
-            redirect('lista-transakcji')
+            with transaction.atomic():
+                transaction_form = form.save()
+                formset.instance = transaction_form
+                formset.save()
+                return redirect('lista-transakcji')
     else:
         form = TransactionForm()
         formset = SubTransactionFormSet()
@@ -96,8 +100,11 @@ def transaction_update_view(request, transaction_id):
             'formset': formset,
             'all_accounts': all_accounts,
         }
-        if form.is_valid() and formset.is_valid():
-            formset.save()
+        if all([form.is_valid(), formset.is_valid()]):
+            with transaction.atomic():
+                transaction_form = form.save()
+                formset.instance = transaction_form
+                formset.save()
             return redirect('edytuj-transakcje', transaction_id)
     else:
         form = TransactionForm(instance=obj)
