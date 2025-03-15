@@ -84,7 +84,9 @@ class TransactionForm(forms.ModelForm):
             'description': 'Opis',
         }
         widgets = {
-            'description': forms.Textarea,
+            'description': forms.Textarea(
+                attrs={'rows': '2'}
+            )
         }
         Transaction._meta.get_field('transaction_direction').choices = [('IN', 'przychód'), ('OUT', 'wydatek')]
 
@@ -117,7 +119,9 @@ class SubTransactionForm(forms.ModelForm):
         model = SubTransaction
         fields = ['amount', 'description']
         widgets = {
-            'description': forms.Textarea,
+            'description': forms.Textarea(
+                attrs={'rows': '2'}
+            )
         }
         labels = {
             'amount': 'Kwota',
