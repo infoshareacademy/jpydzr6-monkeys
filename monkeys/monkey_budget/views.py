@@ -27,6 +27,7 @@ def add_money_account(request):
         if form.is_valid():
             account = form.save(commit=False)
             account.user_id = User.objects.get(pk=2)
+            account.balance = account.balance_float_to_int(form.cleaned_data['balance'])
             account.save()
             return redirect(f'/monkey-budget/konta/{account.id}')
     else:
@@ -39,6 +40,8 @@ def edit_money_account(request, account_id):
     if request.method == 'POST':
         form = MoneyAccountForm(request.POST, instance=chosen_account)
         if form.is_valid():
+            account = form.save(commit=False)
+            account.balance = account.balance_float_to_int(form.cleaned_data['balance'])
             form.save()
             return redirect(f'/monkey-budget/konta/{chosen_account.id}')
     else:
