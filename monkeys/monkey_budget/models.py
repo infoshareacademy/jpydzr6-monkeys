@@ -34,15 +34,12 @@ class MoneyAccount(models.Model):
     def balance_formatted(self) -> Monetary:
         return Monetary(self.balance, self.currency)
 
-    # def balance_int_to_decimal(self) -> Decimal:
-    #     decimal_balance = Decimal(self.balance) / 100
-    #     return decimal_balance
-
-    def balance_decimal_to_int(self) -> int:
-        int_balance = int()
-
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)
+
+    def modify_balance(self, new_balance: int) -> None:
+        self.balance = new_balance
+        self.save()
 
     class Meta:
         app_label = 'monkey_budget'
