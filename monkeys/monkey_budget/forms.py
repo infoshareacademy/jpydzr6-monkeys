@@ -23,6 +23,19 @@ class MoneyAccountForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(MoneyAccountForm, self).__init__(*args, **kwargs)
 
+    def clean(self):
+        cleaned_data = super().clean()
+        balance = cleaned_data.get('balance')
+        allow_negative = cleaned_data.get('possibly_negative')
+
+        if balance is not None and not allow_negative:
+            if balance < 0:
+                self.add_error(
+                    'balance',
+                    "Ujemna wartość nie jest dozwolona dla tego konta."
+                )
+        return cleaned_data
+
 
 class TransactionForm(forms.ModelForm):
     total_display = forms.CharField(
