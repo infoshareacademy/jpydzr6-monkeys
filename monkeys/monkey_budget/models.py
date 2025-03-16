@@ -1,3 +1,4 @@
+import decimal
 from decimal import Decimal
 from django.core.validators import ValidationError, MinValueValidator
 from django.db import models, transaction
@@ -33,9 +34,12 @@ class MoneyAccount(models.Model):
     def balance_formatted(self) -> Monetary:
         return Monetary(self.balance, self.currency)
 
-    def balance_int_to_float(self) -> float:
-        decimal_value = Decimal(self.balance) / 100
-        return decimal_value
+    # def balance_int_to_decimal(self) -> Decimal:
+    #     decimal_balance = Decimal(self.balance) / 100
+    #     return decimal_balance
+
+    def balance_decimal_to_int(self) -> int:
+        int_balance = int()
 
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)

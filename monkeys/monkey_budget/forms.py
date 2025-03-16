@@ -18,9 +18,9 @@ class MoneyAccountForm(forms.ModelForm):
             'currency_code': 'Kod waluty',
             'possibly_negative': 'Możliowść przyjęcia ujemnej wartości'
         }
-    balance = forms.FloatField(label='Saldo')
-
+    balance = forms.DecimalField(label='Saldo', decimal_places=2)
     description = forms.CharField(widget=forms.Textarea, required=False, label='Opis', max_length=512)
+
     def __init__(self, *args, **kwargs):
         super(MoneyAccountForm, self).__init__(*args, **kwargs)
 
@@ -35,13 +35,6 @@ class MoneyAccountForm(forms.ModelForm):
                     'balance',
                     "Ujemna wartość nie jest dozwolona dla tego konta."
                 )
-
-        if len(str(balance).split('.')[-1]) > 2:
-            self.add_error(
-                'balance',
-                "Można podać maksymalnie dwa miejsca po przecinku."
-            )
-
         return cleaned_data
 
 
