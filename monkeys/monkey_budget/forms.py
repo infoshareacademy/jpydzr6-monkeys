@@ -6,11 +6,12 @@ class MoneyAccountForm(forms.ModelForm):
 
     class Meta:
         model = MoneyAccount
-        fields = ['name', 'balance', 'type', 'currency_code', 'description']
+        fields = ['name', 'balance', 'type', 'currency_code', 'description', 'possibly_negative']
         labels = {
             'name': 'Nazwa',
             'type': 'Typ',
             'currency_code': 'Kod waluty',
+            'possibly_negative': 'Możliowść przyjęcia ujemnej wartości'
         }
     balance = forms.FloatField(label='Saldo')
     description = forms.CharField(widget=forms.Textarea, required=False, label='Opis', max_length=512)
