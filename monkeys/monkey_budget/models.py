@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.validators import ValidationError, MinValueValidator
 from django.db import models, transaction
 from django.contrib.auth.models import User
@@ -33,8 +35,8 @@ class MoneyAccount(models.Model):
         return Monetary(self.balance, self.currency)
 
     def balance_int_to_float(self) -> float:
-        float_balance = self.balance / 100
-        return float_balance
+        decimal_value = Decimal(self.balance) / 100
+        return decimal_value
 
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)
