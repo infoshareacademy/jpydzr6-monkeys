@@ -1,5 +1,10 @@
 from django import forms
 from .models import MoneyAccount
+from django import forms
+from django.forms.models import inlineformset_factory, BaseInlineFormSet
+from .money import Monetary, CurrencyHelper
+from .models import Transaction, SubTransaction
+from decimal import Decimal
 
 
 class MoneyAccountForm(forms.ModelForm):
@@ -17,13 +22,6 @@ class MoneyAccountForm(forms.ModelForm):
     description = forms.CharField(widget=forms.Textarea, required=False, label='Opis', max_length=512)
     def __init__(self, *args, **kwargs):
         super(MoneyAccountForm, self).__init__(*args, **kwargs)
-
-
-from django import forms
-from django.forms.models import inlineformset_factory, BaseInlineFormSet
-from .money import Monetary, CurrencyHelper
-from .models import Transaction, SubTransaction
-from decimal import Decimal
 
 
 class TransactionForm(forms.ModelForm):
