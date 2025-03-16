@@ -84,15 +84,18 @@ class Monetary:
             return True
 
     @staticmethod
-    def major_to_minor_unit(major_value: int | float | str, currency: Currency) -> int:
+    def major_to_minor_unit(major_value: Decimal | int | float | str, currency: Currency) -> int:
         """
         Converts an amount of money in major unit to appropriate minor unit
-        :param major_value: Amount of money in major unit
+        :param major_value: Amount of money in major unit, preferred decimal
         :param currency: Currency on which basis the amount will be converted
         :return:
         """
         factor = pow(currency.get("base"), currency.get("exponent"))
         match major_value:
+            case Decimal():
+                factor = Decimal(currency.get("base")) ** Decimal(currency.get("exponent"))
+                return int(major_value * factor)
             case int():
                 return major_value * factor
             case float():
