@@ -2,3 +2,5 @@ peewee~=3.16.1
 Django==5.1.4
 pytest
 pytest-django
+django-bootstrap5
+django-environ==0.12.0
