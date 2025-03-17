@@ -37,10 +37,6 @@ class MoneyAccount(models.Model):
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)
 
-    def modify_balance(self, new_balance: int) -> None:
-        self.balance = new_balance
-        self.save()
-
     class Meta:
         app_label = 'monkey_budget'
         verbose_name = 'Money Account'
