@@ -2,7 +2,7 @@ from django import forms
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
-from .money import Monetary
+from .money import Monetary, Currency
 from .models import Transaction, SubTransaction
 from decimal import Decimal
 
@@ -98,6 +98,22 @@ class TransactionForm(forms.ModelForm):
             self.fields['balance_after_transaction_display'].initial = Monetary(
                 self.instance.balance_after_transaction,
                 self.instance.currency)
+
+
+class MonetaryField(forms.DecimalField):
+    def __init__(self, currency: Currency, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.currency = currency
+
+    def has_changed(self, initial, data):
+        super().has_changed(initial, data)
+        data = Monetary.major_to_minor_unit(data, self.currency)
+        # For purposes of seeing whether something has changed, None is
+        # the same as an empty string, if the data or initial value we get
+        # is None, replace it with ''.
+        initial_value = initial if initial is not None else ""
+        data_value = data if data is not None else ""
+        return initial_value != data_value
 
 
 class DecimalWithDynamicPlacesWidget(forms.NumberInput):
