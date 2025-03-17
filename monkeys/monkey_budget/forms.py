@@ -152,14 +152,18 @@ class SubTransactionForm(forms.ModelForm):
             currency = instance.main_transaction.currency
             currency_exponent = currency.get('exponent')
 
-            self.fields['amount'] = forms.DecimalField(
-                label='amount',
+            # self.fields['amount'] = forms.DecimalField(
+            self.fields['amount'] = MonetaryField(
+                label='Kwota',
                 max_digits=19,
                 decimal_places=currency_exponent,
                 required=True,
-                widget=DecimalWithDynamicPlacesWidget(decimal_places=currency_exponent)
+                widget=DecimalWithDynamicPlacesWidget(decimal_places=currency_exponent),
+                currency=currency
+                # initial=Decimal(instance.amount) / Decimal(10 ** currency_exponent)
             )
-            self.fields['amount'].initial = Decimal(instance.amount / 10 ** currency_exponent)
+            self.fields['amount'].initial = Decimal(instance.amount) / Decimal(10 ** currency_exponent)
+                # Decimal(instance.amount / 10 ** currency_exponent))
 
     def clean(self):
         cleaned_data = super().clean()
