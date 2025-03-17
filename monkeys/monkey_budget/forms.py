@@ -144,8 +144,10 @@ class SubTransactionForm(forms.ModelForm):
             'description': 'Opis',
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, transaction_form_cleaned_data=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.transaction_form_cleaned_data=transaction_form_cleaned_data
 
         instance = self.instance
         if instance.pk:
