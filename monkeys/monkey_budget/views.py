@@ -1,9 +1,12 @@
+from pyexpat.errors import messages
+
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import MoneyAccount, Transaction, SubTransaction
 from django.template.loader import render_to_string
+from django.contrib import messages
 from .forms import *
 
 
@@ -105,6 +108,7 @@ def transaction_update_view(request, transaction_id):
                 transaction_form = form.save()
                 formset.instance = transaction_form
                 formset.save()
+            messages.success(request, 'Edycja transakcji udana!')
             return redirect('edytuj-transakcje', transaction_id)
     else:
         form = TransactionForm(instance=obj)
