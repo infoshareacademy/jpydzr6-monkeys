@@ -13,7 +13,7 @@ def dashboard(request):
     return render(request, 'account/base.html', context)
 
 def show_money_account(request, account_id):
-    account_related_transactions = Transaction.objects.filter(account_id=account_id)
+    account_related_transactions = Transaction.objects.filter(account_id=account_id).order_by('-date')
     transactions_context = {'transactions': account_related_transactions}
     transactions_list_html = render_to_string('account/transactions_list_for_include.html', transactions_context)
     chosen_account = get_object_or_404(MoneyAccount, pk=account_id)
