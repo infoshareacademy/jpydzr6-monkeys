@@ -67,7 +67,7 @@ class TransactionForm(forms.ModelForm):
                    'disabled': 'disabled',
                    'style': 'border: none;background: transparent;'}))
     balance_after_transaction_display = forms.CharField(
-        label='Balans po transakcji',
+        label='Saldo po transakcji',
         required=False,
         widget=forms.TextInput(
             attrs={'readonly': 'readonly',
