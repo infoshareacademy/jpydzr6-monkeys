@@ -79,7 +79,7 @@ def transaction_create_view(request):
     else:
         form = TransactionForm()
         formset = SubTransactionFormSet()
-    all_accounts = MoneyAccount.objects.filter(user_id=2)
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     context = {
         'header': header,
         'form': form,
@@ -92,7 +92,7 @@ def transaction_create_view(request):
 def transaction_update_view(request, transaction_id):
     header = 'Edycja transakcji'
     obj = get_object_or_404(Transaction, id=transaction_id)
-    all_accounts = MoneyAccount.objects.filter(user_id=2)
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     if request.method == 'POST':
         form = TransactionForm(request.POST, instance=obj)
         formset = SubTransactionFormSet(request.POST, instance=obj)
