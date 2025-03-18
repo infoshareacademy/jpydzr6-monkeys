@@ -84,7 +84,7 @@ def transaction_create_view(request):
         'header': header,
         'form': form,
         'formset': formset,
-        'all_accounts': all_accounts,
+        'accounts': all_accounts,
     }
     return render(request, 'account/transaction_form.html', context)
 
@@ -101,7 +101,7 @@ def transaction_update_view(request, transaction_id):
             'header': header,
             'form': form,
             'formset': formset,
-            'all_accounts': all_accounts,
+            'accounts': all_accounts,
         }
         if all([form.is_valid(), formset.is_valid()]):
             with transaction.atomic():
@@ -118,7 +118,7 @@ def transaction_update_view(request, transaction_id):
             'header': header,
             'form': form,
             'formset': formset,
-            'all_accounts': all_accounts,
+            'accounts': all_accounts,
         }
     return render(request, 'account/transaction_form.html', context)
 
