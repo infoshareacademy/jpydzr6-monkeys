@@ -8,6 +8,11 @@ from decimal import Decimal
 
 
 class MoneyAccountForm(forms.ModelForm):
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': '5', 'maxlength': 512}),
+        required=False,
+    )
+    balance = forms.DecimalField(label='Saldo', decimal_places=2)
 
     class Meta:
         model = MoneyAccount
@@ -19,27 +24,6 @@ class MoneyAccountForm(forms.ModelForm):
             'description': 'Opis',
             'possibly_negative': 'Możliowść przyjęcia ujemnej wartości'
         }
-
-        balance = forms.DecimalField(label='Saldo', decimal_places=2)
-        # description = forms.CharField(
-        #     # widget=forms.Textarea,
-        #     required=False,
-        #     label='Opis',
-        #     max_length=512)
-
-        widgets = {
-            'description': forms.Textarea(
-                attrs={
-                    'rows': '5',
-                    # 'required': False,
-                    # 'maxlength': 512,
-                },
-
-
-            )
-        }
-
-
 
     def __init__(self, *args, **kwargs):
         super(MoneyAccountForm, self).__init__(*args, **kwargs)
