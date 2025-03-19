@@ -127,7 +127,7 @@ def transaction_create_or_update(request, pk=None):
 
 def transaction_list(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2)
-    transactions = Transaction.objects.all().order_by('-date')
+    transactions = Transaction.objects.all()
     return render(request, 'account/transactions_list.html', {
         'transactions': transactions,
         'accounts': all_accounts,
