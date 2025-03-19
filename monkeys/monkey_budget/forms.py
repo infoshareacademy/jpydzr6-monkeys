@@ -152,7 +152,7 @@ class SubTransactionForm(forms.ModelForm):
         if self.instance.pk and self.cleaned_data.get('DELETE', False):
             transaction = subtransaction.main_transaction
             if transaction.subtransactions.count() == 1:
-                raise forms.ValidationError('The transaction must consist of at least one subtransaction')
+                raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')
 
         return cleaned_data
 
@@ -163,7 +163,7 @@ class SubTransactionForm(forms.ModelForm):
                     self.cleaned_data.get('amount'),
                     self.instance.main_transaction.currency)
             except ValueError:
-                raise forms.ValidationError("Amount must be a valid number.")
+                raise forms.ValidationError("Kwota musi być poprawną liczbą.")
             return amount
         else:
             return self.cleaned_data.get('amount')
@@ -178,7 +178,7 @@ class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
         if self.total_form_count() == len(self.deleted_forms):
-            raise forms.ValidationError('The subtransaction must consist of at least one subtransaction')
+            raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')
 
 
 SubTransactionFormSet = inlineformset_factory(
