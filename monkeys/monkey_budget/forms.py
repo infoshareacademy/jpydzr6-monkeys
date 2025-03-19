@@ -1,4 +1,3 @@
-from django import forms
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
