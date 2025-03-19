@@ -30,6 +30,11 @@
                 <div>
                     <h3 style="font-family: 'Papyrus', cursive"><br> Stan konta: {{account.balance_formatted}}</h3>
                     <h4 style="font-family: 'Papyrus', cursive"><br> Typ: {{account.get_type_display_name}}</h4>
+                    {% if account.possibly_negative == True %}
+                        <h4 style="font-family: 'Papyrus', cursive"><br> Ujemne saldo: dozwolone</h4>
+                    {% elif account.possibly_negative == False %}
+                        <h4 style="font-family: 'Papyrus', cursive"><br> Ujemne saldo: niedozwolone</h4>
+                    {% endif %}
                     <h5 style="font-family: 'Papyrus', cursive"><br> Opis: {{account.description}}</h5>
                 </div>
                 <div style="display: inline-flex;">

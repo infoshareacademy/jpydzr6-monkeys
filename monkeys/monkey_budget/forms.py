@@ -1,26 +1,61 @@
 from django import forms
 from .models import MoneyAccount
-
-
-class MoneyAccountForm(forms.ModelForm):
-    balance = forms.FloatField(label='Saldo')
-    class Meta:
-        model = MoneyAccount
-        fields = ['name', 'balance', 'type', 'currency_code', 'description']
-        labels = {
-            'name': 'Nazwa',
-            'type': 'Typ',
-            'currency_code': 'Kod waluty',
-            'description': 'Opis',
-        }
-
-    description = forms.CharField(widget=forms.Textarea, required=False)
-
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
 from .money import Monetary, CurrencyHelper
 from .models import Transaction, SubTransaction
 from decimal import Decimal
+
+
+class MoneyAccountForm(forms.ModelForm):
+
+    class Meta:
+        model = MoneyAccount
+        fields = ['name', 'balance', 'type', 'currency_code', 'description', 'possibly_negative']
+        labels = {
+            'name': 'Nazwa',
+            'type': 'Typ',
+            'currency_code': 'Kod waluty',
+            'description': 'Opis',
+            'possibly_negative': 'Możliowść przyjęcia ujemnej wartości'
+        }
+
+        balance = forms.DecimalField(label='Saldo', decimal_places=2)
+        # description = forms.CharField(
+        #     # widget=forms.Textarea,
+        #     required=False,
+        #     label='Opis',
+        #     max_length=512)
+
+        widgets = {
+            'description': forms.Textarea(
+                attrs={
+                    'rows': '5',
+                    # 'required': False,
+                    # 'maxlength': 512,
+                },
+
+
+            )
+        }
+
+
+
+    def __init__(self, *args, **kwargs):
+        super(MoneyAccountForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        balance = cleaned_data.get('balance')
+        allow_negative = cleaned_data.get('possibly_negative')
+
+        if balance is not None and not allow_negative:
+            if balance < 0:
+                self.add_error(
+                    'balance',
+                    "Ujemna wartość nie jest dozwolona dla tego konta."
+                )
+        return cleaned_data
 
 
 class TransactionForm(forms.ModelForm):

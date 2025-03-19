@@ -1,8 +1,9 @@
+import decimal
+from decimal import Decimal
 from django.core.validators import ValidationError, MinValueValidator
 from django.db import models, transaction
 from django.contrib.auth.models import User
 import django.utils.timezone
-
 from .money import Monetary, CurrencyHelper, Currency
 
 
@@ -20,6 +21,7 @@ class MoneyAccount(models.Model):
     currency_code = models.CharField(choices=CurrencyHelper.get_currencies_set(), max_length=3, default='PLN')
     # dłuższy opis konta dodawany przez użytkownika
     description = models.TextField(max_length=512)
+    possibly_negative = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.name}: {self.balance_formatted}'
