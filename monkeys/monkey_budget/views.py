@@ -1,5 +1,3 @@
-from pyexpat.errors import messages
-
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import JsonResponse
