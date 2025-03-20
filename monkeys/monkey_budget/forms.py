@@ -7,25 +7,24 @@ from decimal import Decimal
 
 
 class MoneyAccountForm(forms.ModelForm):
-    description = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': '5', 'maxlength': 512}),
-        required=False,
-    )
-    balance = forms.DecimalField(label='Saldo', decimal_places=2)
 
     class Meta:
         model = MoneyAccount
         fields = ['name', 'balance', 'type', 'currency_code', 'description', 'possibly_negative']
         labels = {
             'name': 'Nazwa',
+            'balance': 'Saldo',
             'type': 'Typ',
             'currency_code': 'Kod waluty',
             'description': 'Opis',
             'possibly_negative': 'Możliowść przyjęcia ujemnej wartości'
         }
 
-    def __init__(self, *args, **kwargs):
-        super(MoneyAccountForm, self).__init__(*args, **kwargs)
+        description = forms.CharField(
+            widget=forms.Textarea(attrs={'rows': '5', 'maxlength': 512}),
+            required=False,
+        )
+        balance = forms.DecimalField(label='Saldo', decimal_places=2)
 
     def clean(self):
         cleaned_data = super().clean()
