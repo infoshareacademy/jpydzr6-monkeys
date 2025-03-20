@@ -2,7 +2,7 @@ from django import forms
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
-from .money import Monetary
+from .money import Monetary, Currency
 from .models import Transaction, SubTransaction
 from decimal import Decimal
 
@@ -100,6 +100,22 @@ class TransactionForm(forms.ModelForm):
                 self.instance.currency)
 
 
+class MonetaryField(forms.DecimalField):
+    def __init__(self, currency: Currency, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.currency = currency
+
+    def has_changed(self, initial, data):
+        super().has_changed(initial, data)
+        data = Monetary.major_to_minor_unit(data, self.currency)
+        # For purposes of seeing whether something has changed, None is
+        # the same as an empty string, if the data or initial value we get
+        # is None, replace it with ''.
+        initial_value = initial if initial is not None else ""
+        data_value = data if data is not None else ""
+        return initial_value != data_value
+
+
 class DecimalWithDynamicPlacesWidget(forms.NumberInput):
     def __init__(self, decimal_places, *args, **kwargs):
         self.decimal_places = decimal_places
@@ -136,14 +152,15 @@ class SubTransactionForm(forms.ModelForm):
             currency = instance.main_transaction.currency
             currency_exponent = currency.get('exponent')
 
-            self.fields['amount'] = forms.DecimalField(
-                label='amount',
+            self.fields['amount'] = MonetaryField(
+                label='Kwota',
                 max_digits=19,
                 decimal_places=currency_exponent,
                 required=True,
-                widget=DecimalWithDynamicPlacesWidget(decimal_places=currency_exponent)
+                widget=DecimalWithDynamicPlacesWidget(decimal_places=currency_exponent),
+                currency=currency
             )
-            self.fields['amount'].initial = Decimal(instance.amount / 10 ** currency_exponent)
+            self.fields['amount'].initial = Decimal(instance.amount) / Decimal(10 ** currency_exponent)
 
     def clean(self):
         cleaned_data = super().clean()

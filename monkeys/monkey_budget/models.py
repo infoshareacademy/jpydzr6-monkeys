@@ -145,7 +145,7 @@ class SubTransaction(models.Model):
     amount = models.BigIntegerField(
         validators=[MinValueValidator(
             limit_value=0,
-            message='Transaction total value must be nonnegative')])
+            message='Subtransaction amount value must be nonnegative')])
     description = models.CharField(max_length=100, blank=True)
 
     class Meta:
