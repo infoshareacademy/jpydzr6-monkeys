@@ -50,7 +50,7 @@ def edit_money_account(request, account_id):
             return redirect(f'/monkey-budget/konta/{chosen_account.id}')
     else:
         initial_data = {
-            'balance': Monetary(chosen_account.balance, chosen_account.currency).decimal
+            'balance': Monetary(chosen_account.balance, chosen_account.currency).amount_as_decimal
         }
         form = MoneyAccountForm(instance=chosen_account, initial=initial_data)
 
