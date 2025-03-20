@@ -5,7 +5,6 @@
     <table class="table table-striped">
         <thead>
         <tr>
-            <th>ID</th>
             <th>Konto</th>
             <th>Data</th>
             <th>Rodzaj transakcji</th>
@@ -18,7 +17,6 @@
         <tbody>
         {% for transaction in transactions %}
             <tr>
-                <td>{{ transaction.id }}</td>
                 <td>{{ transaction.account.name }}</td>
                 <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
 <!--                <td>{{ transaction.get_transaction_direction_display }}</td>-->
@@ -46,6 +44,11 @@
                             aria-controls="subs-{{ transaction.pk }}">
                         Wyświetl/Ukryj
                     </button>
+                    <a href="{% url 'edytuj-transakcje' transaction.id %}">
+                        <button class="btn btn-sm btn-primary" type="button">
+                            Edytuj
+                        </button>
+                    </a>
                 </td>
             </tr>
             <tr id="subs-{{ transaction.pk }}" class="collapse">
@@ -59,7 +62,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for sub in transaction.sub_transaction.all %}
+                        {% for sub in transaction.subtransactions.all %}
                             <tr>
 <!--                                <td>{{ sub.id }}</td>-->
                                 <td>{{ sub.amount_formatted }}</td>
