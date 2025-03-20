@@ -107,6 +107,8 @@ class MonetaryField(forms.DecimalField):
 
     def has_changed(self, initial, data):
         super().has_changed(initial, data)
+
+        data = Decimal(data)
         data = Monetary.major_to_minor_unit(data, self.currency)
         # For purposes of seeing whether something has changed, None is
         # the same as an empty string, if the data or initial value we get
@@ -144,10 +146,16 @@ class SubTransactionForm(forms.ModelForm):
             'description': 'Opis',
         }
 
-    def __init__(self, transaction_form_cleaned_data=None, *args, **kwargs):
+    def __init__(self, main_transaction_form_cleaned_data=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.main_transaction_form_cleaned_data = main_transaction_form_cleaned_data
 
-        self.transaction_form_cleaned_data=transaction_form_cleaned_data
+        self.fields['amount'] = forms.DecimalField(
+            label='Kwota',
+            max_digits=19,
+            required=True,
+            widget=forms.NumberInput(attrs={'step': 'any'})
+        )
 
         instance = self.instance
         if instance.pk:
@@ -162,7 +170,7 @@ class SubTransactionForm(forms.ModelForm):
                 widget=MonetaryWidget(currency),
                 currency=currency
             )
-            self.fields['amount'].initial = Decimal(instance.amount) / Decimal(10 ** currency_exponent)
+            self.fields['amount'].initial = Monetary(instance.amount, currency) #Decimal(instance.amount) / Decimal(10 ** currency_exponent)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -177,15 +185,18 @@ class SubTransactionForm(forms.ModelForm):
 
     def clean_amount(self):
         if self.instance.pk:
-            try:
-                amount = Monetary.major_to_minor_unit(
-                    self.cleaned_data.get('amount'),
-                    self.instance.main_transaction.currency)
-            except ValueError:
-                raise forms.ValidationError("Kwota musi być poprawną liczbą.")
-            return amount
+            currency = self.instance.main_transaction.currency
         else:
-            return self.cleaned_data.get('amount')
+            currency = self.main_transaction_form_cleaned_data.get('account').currency
+        try:
+            amount = Monetary.major_to_minor_unit(
+                self.cleaned_data.get('amount'),
+                currency)
+        except ValueError:
+            raise forms.ValidationError("Kwota musi być poprawną liczbą.")
+        return amount
+        # else:
+        #     return self.cleaned_data.get('amount')
 
 
 class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
