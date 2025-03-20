@@ -68,14 +68,16 @@ def transaction_create_view(request):
     if request.method == 'POST':
         form = TransactionForm(request.POST)
         if form.is_valid():
-            formset = SubTransactionFormSet(request.POST,
-                                            form_kwargs={'transaction_form_cleaned_data': form.cleaned_data})
-        if all([form.is_valid(), formset.is_valid()]):
-            with transaction.atomic():
-                transaction_form = form.save()
-                formset.instance = transaction_form
-                formset.save()
-                return redirect('lista-transakcji')
+            formset = SubTransactionFormSet(
+                request.POST,
+                form_kwargs={'main_transaction_form_cleaned_data': form.cleaned_data}
+            )
+            if formset.is_valid():
+                with transaction.atomic():
+                    transaction_form = form.save()
+                    formset.instance = transaction_form
+                    formset.save()
+                    return redirect('lista-transakcji')
     else:
         form = TransactionForm()
         formset = SubTransactionFormSet()
