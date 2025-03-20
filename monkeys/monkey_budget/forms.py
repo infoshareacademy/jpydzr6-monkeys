@@ -116,16 +116,16 @@ class MonetaryField(forms.DecimalField):
         return initial_value != data_value
 
 
-class DecimalWithDynamicPlacesWidget(forms.NumberInput):
-    def __init__(self, decimal_places, *args, **kwargs):
-        self.decimal_places = decimal_places
+class MonetaryWidget(forms.NumberInput):
+    def __init__(self, currency:Currency, *args, **kwargs):
+        self.currency = currency
         super().__init__(*args, **kwargs)
 
     def format_value(self, value):
         if value is None:
             return ''
         elif isinstance(value, int):
-            return f"{Decimal(value / 10 ** self.decimal_places):.{self.decimal_places}f}"
+            return f"{Monetary(value, self.currency).amount_as_decimal}"
         else:
             return value
 
@@ -159,7 +159,7 @@ class SubTransactionForm(forms.ModelForm):
                 max_digits=19,
                 decimal_places=currency_exponent,
                 required=True,
-                widget=DecimalWithDynamicPlacesWidget(decimal_places=currency_exponent),
+                widget=MonetaryWidget(currency),
                 currency=currency
             )
             self.fields['amount'].initial = Decimal(instance.amount) / Decimal(10 ** currency_exponent)
