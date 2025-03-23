@@ -7,7 +7,6 @@ from decimal import Decimal
 
 
 class MoneyAccountForm(forms.ModelForm):
-
     class Meta:
         model = MoneyAccount
         fields = ['name', 'balance', 'type', 'currency_code', 'description', 'possibly_negative']
@@ -20,11 +19,12 @@ class MoneyAccountForm(forms.ModelForm):
             'possibly_negative': 'Możliowść przyjęcia ujemnej wartości'
         }
 
-        description = forms.CharField(
-            widget=forms.Textarea(attrs={'rows': '5', 'maxlength': 512}),
-            required=False,
-        )
-        balance = forms.DecimalField(label='Saldo', decimal_places=2)
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': '5', 'maxlength': 512}),
+        required=False,
+    )
+
+    balance = forms.DecimalField(label='Saldo', decimal_places=2)
 
     def clean(self):
         cleaned_data = super().clean()
