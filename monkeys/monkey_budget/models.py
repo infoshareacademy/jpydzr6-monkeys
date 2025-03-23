@@ -179,3 +179,11 @@ class SubTransaction(models.Model):
 
             super().delete(*args, **kwargs)
             main_transaction.save()
+
+class TransactionAttachment(models.Model):
+    transaction = models.ForeignKey(Transaction, related_name='attachments', on_delete=models.CASCADE)
+    file = models.FileField(upload_to='transactions/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.file.name}"

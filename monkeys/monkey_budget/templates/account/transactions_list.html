@@ -11,13 +11,14 @@ Lista transakcji
     <table class="table table-striped">
         <thead>
         <tr>
+            <!-- Usunąłem ID z kolumn, bo najczęściej nie jest potrzebne użytkownikowi -->
             <th>Konto</th>
             <th>Data</th>
             <th>Rodzaj transakcji</th>
             <th>Kwota PLN</th>
             <th>Stan konta po transakcji</th>
             <th>Opis</th>
-            <th>Subtransakcje</th>
+            <th>Subtransakcje i załączniki</th>
         </tr>
         </thead>
         <tbody>
@@ -25,8 +26,8 @@ Lista transakcji
             <tr>
                 <td>{{ transaction.account.name }}</td>
                 <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
-<!--                <td>{{ transaction.get_transaction_direction_display }}</td>-->
-                <td>{% if transaction.transaction_direction == 'IN' %}
+                <td>
+                    {% if transaction.transaction_direction == 'IN' %}
                         Przychód
                     {% elif transaction.transaction_direction == 'OUT' %}
                         Wydatek
@@ -42,6 +43,7 @@ Lista transakcji
                 <td>{{ transaction.balance_after_transaction_formatted }}</td>
                 <td>{{ transaction.description }}</td>
                 <td>
+                    <!-- Przycisk rozwijający sekcję subtransakcji i załączników -->
                     <button class="btn btn-sm btn-outline-primary"
                             type="button"
                             data-bs-toggle="collapse"
@@ -50,6 +52,7 @@ Lista transakcji
                             aria-controls="subs-{{ transaction.pk }}">
                         Wyświetl/Ukryj
                     </button>
+
                     <a href="{% url 'edytuj-transakcje' transaction.id %}">
                         <button class="btn btn-sm btn-primary" type="button">
                             Edytuj
@@ -57,28 +60,47 @@ Lista transakcji
                     </a>
                 </td>
             </tr>
+
             <tr id="subs-{{ transaction.pk }}" class="collapse">
-                <td colspan="8">
+                <td colspan="7">
+
+                    <h5>Subtransakcje:</h5>
                     <table class="table table-bordered">
                         <thead>
-                        <tr>
-<!--                            <th>ID sub</th>-->
-                            <th>Kwota PLN</th>
-                            <th>Opis</th>
-                        </tr>
+                            <tr>
+                                <th>Kwota PLN</th>
+                                <th>Opis</th>
+                            </tr>
                         </thead>
                         <tbody>
                         {% for sub in transaction.subtransactions.all %}
                             <tr>
-<!--                                <td>{{ sub.id }}</td>-->
                                 <td>{{ sub.amount_formatted }}</td>
                                 <td>{{ sub.description }}</td>
                             </tr>
                         {% empty %}
-                            <tr><td colspan="3">Brak subtransakcji</td></tr>
+                            <tr><td colspan="2">Brak subtransakcji</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>
+
+                    <h5>Załączniki:</h5>
+                    <ul>
+                        {% for attach in transaction.attachments.all %}
+                            <li>
+                                <a href="{% url 'attachment-download' attach.pk %}">{{ attach.file.name }}</a>
+                            </li>
+                        {% empty %}
+                            <li>Brak załączników</li>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Link do dodawania kolejnych załączników -->
+                    <p>
+                        <a href="{% url 'attachment_add' transaction.pk %}" class="btn btn-sm btn-success">
+                            Dodaj załącznik
+                        </a>
+                    </p>
                 </td>
             </tr>
         {% endfor %}

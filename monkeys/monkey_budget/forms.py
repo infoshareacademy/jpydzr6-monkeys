@@ -3,7 +3,7 @@ from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
 from .money import Monetary, Currency
-from .models import Transaction, SubTransaction
+from .models import Transaction, SubTransaction, TransactionAttachment
 from decimal import Decimal
 
 
@@ -206,3 +206,8 @@ SubTransactionFormSet = inlineformset_factory(
     min_num=1,
     can_delete=True,
 )
+
+class TransactionAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = TransactionAttachment
+        fields = ['file']

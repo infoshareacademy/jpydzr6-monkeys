@@ -2,10 +2,11 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import MoneyAccount, Transaction, SubTransaction
+from .models import MoneyAccount, Transaction, SubTransaction, TransactionAttachment
 from django.template.loader import render_to_string
 from django.contrib import messages
 from .forms import *
+from django.http import FileResponse
 
 
 # TODO - brak informacji o id użytkownika, jest wpisane na sztywno do zmiany po dodaniu możliwości logowania
@@ -137,7 +138,7 @@ def attachment_add(request, pk):
             attachment = form.save(commit=False)
             attachment.transaction = transaction # przypisanie do transakcji
             attachment.save()
-            return redirect('account/lista-transakcji', pk=pk) #redirect
+            return redirect('lista-transakcji') #redirect
     else:
         form = TransactionAttachmentForm()
     return render(request, 'account/attachment_add.html', {
@@ -148,6 +149,3 @@ def attachment_add(request, pk):
 def attachment_download(request, pk):
     attachment = get_object_or_404(TransactionAttachment, pk=pk)
     return FileResponse(attachment.file.open('rb'), as_attachment=True)
-
-    path('transaction/<int:pk>/add-attachment/', views.attachment_add, name='attachment_add'),
-    path('attachment/download/<int:pk>/', views.attachment_download, name='attachment-download'),

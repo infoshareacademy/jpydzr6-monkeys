@@ -10,4 +10,6 @@ urlpatterns = [
     path('transakcje/nowa/', views.transaction_create_view, name='nowa-transakcja'),
     path('transakcje/edytuj/<int:transaction_id>', views.transaction_update_view, name='edytuj-transakcje'),
     path('transakcje/lista/', views.transaction_list, name='lista-transakcji'),
+    path('transaction/<int:pk>/add-attachment/', views.attachment_add, name='attachment_add'),
+    path('attachment/download/<int:pk>/', views.attachment_download, name='attachment-download'),
 ]
