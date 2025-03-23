@@ -38,7 +38,7 @@ class MoneyAccount(models.Model):
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)
 
-    def validate_new_balance(self, new_balance: int) -> None:
+    def update_new_balance(self, new_balance: int) -> None:
         if not self.possibly_negative and new_balance < 0:
             raise ValidationError('Wybrane konto nie może posiadać ujemnego salda.')
         else:
