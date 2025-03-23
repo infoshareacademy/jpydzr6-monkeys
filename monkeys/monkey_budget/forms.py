@@ -21,11 +21,6 @@ class MoneyAccountForm(forms.ModelForm):
         }
 
         balance = forms.DecimalField(label='Saldo', decimal_places=2)
-        # description = forms.CharField(
-        #     # widget=forms.Textarea,
-        #     required=False,
-        #     label='Opis',
-        #     max_length=512)
 
         widgets = {
             'description': forms.Textarea(
@@ -39,14 +34,11 @@ class MoneyAccountForm(forms.ModelForm):
             )
         }
 
-
-
-    def __init__(self, *args, **kwargs):
-        super(MoneyAccountForm, self).__init__(*args, **kwargs)
-
     def clean(self):
         cleaned_data = super().clean()
         balance = cleaned_data.get('balance')
+        name = cleaned_data.get('name')
+        all_accounts = MoneyAccount.objects.filter(user_id=2)
         allow_negative = cleaned_data.get('possibly_negative')
 
         if balance is not None and not allow_negative:
@@ -54,6 +46,13 @@ class MoneyAccountForm(forms.ModelForm):
                 self.add_error(
                     'balance',
                     "Ujemna wartość nie jest dozwolona dla tego konta."
+                )
+
+        for account in all_accounts:
+            if name == account.name:
+                self.add_error(
+                    'name',
+                    "Podana nazwa konta już istnieje."
                 )
         return cleaned_data
 
