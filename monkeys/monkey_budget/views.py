@@ -128,3 +128,26 @@ def transaction_list(request):
         'transactions': transactions,
         'accounts': all_accounts,
     })
+
+def attachment_add(request, pk):
+    transaction = get_object_or_404(Transaction, pk=pk)
+    if request.method == 'POST':
+        form = TransactionAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.transaction = transaction # przypisanie do transakcji
+            attachment.save()
+            return redirect('account/lista-transakcji', pk=pk) #redirect
+    else:
+        form = TransactionAttachmentForm()
+    return render(request, 'account/attachment_add.html', {
+        'form': form,
+        'transaction': transaction
+    })
+
+def attachment_download(request, pk):
+    attachment = get_object_or_404(TransactionAttachment, pk=pk)
+    return FileResponse(attachment.file.open('rb'), as_attachment=True)
+
+    path('transaction/<int:pk>/add-attachment/', views.attachment_add, name='attachment_add'),
+    path('attachment/download/<int:pk>/', views.attachment_download, name='attachment-download'),
