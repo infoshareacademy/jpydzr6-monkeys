@@ -1,11 +1,13 @@
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import MoneyAccount, Transaction, SubTransaction
 from django.template.loader import render_to_string
+from django.contrib import messages
 from .forms import *
 
-# Create your views here.
+
 # TODO - brak informacji o id użytkownika, jest wpisane na sztywno do zmiany po dodaniu możliwości logowania
 def dashboard(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
@@ -46,7 +48,7 @@ def edit_money_account(request, account_id):
             return redirect(f'/monkey-budget/konta/{chosen_account.id}')
     else:
         initial_data = {
-            'balance': Monetary(chosen_account.balance, chosen_account.currency).decimal
+            'balance': Monetary(chosen_account.balance, chosen_account.currency).amount_as_decimal
         }
         form = MoneyAccountForm(instance=chosen_account, initial=initial_data)
 
@@ -61,69 +63,71 @@ def delete_money_account(request, account_id):
         return JsonResponse({'success': True, 'message': 'Konto zostało usunięte.'})
     return JsonResponse({'success': False, 'message': 'Nieprawidłowe żądanie.'})
 
-#zaklepuje poniższe linijki pod transakcje
-
-def transaction_create_or_update(request, pk=None):
-    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
-    if pk:
-        transaction = get_object_or_404(Transaction, pk=pk)
-    else:
-        transaction = Transaction()
-
+def transaction_create_view(request):
+    header = 'Nowa transakcja'
     if request.method == 'POST':
-        form = TransactionForm(request.POST, instance=transaction)
-        form.fields.get('account').label = 'Konto'
-        form.fields.get('date').label = 'Data'
-        form.fields.get('transaction_direction').label = 'Rodzaj transakcji'
-        form.fields.get('description').label = 'Opis'
-
-        formset = SubTransactionFormSet(request.POST, instance=transaction)
-        formset.form.base_fields.get('amount').label = 'Kwota składowa (w groszach)'
-        formset.form.base_fields.get('description').label = 'Opis'
-
-        if form.is_valid() and formset.is_valid():
-            transaction = form.save(commit=False)
-
-            subtransactions = formset.save(commit=False)
-
-            total_sum = sum(sub.amount for sub in subtransactions if sub.amount)
-
-            transaction.total = total_sum
-
-            account = transaction.account
-            if transaction.transaction_direction == 'IN':
-                transaction.balance_after_transaction = account.balance + total_sum
+        form = TransactionForm(request.POST)
+        if form.is_valid():
+            formset = SubTransactionFormSet(request.POST)
+            formset.instance = form.instance
+            if formset.is_valid():
+                with transaction.atomic():
+                    transaction_form = form.save()
+                    formset.instance = transaction_form
+                    formset.save()
+                    return redirect('lista-transakcji')
             else:
-                transaction.balance_after_transaction = account.balance - total_sum
-
-            account.balance = transaction.balance_after_transaction
-            account.save()
-
-            transaction.save()
-
-            for sub in subtransactions:
-                sub.main_transaction = transaction
-                sub.save()
-
-            formset.save()
-
-            return redirect('nowa-transakcja')
+                for error in formset.non_form_errors():
+                    messages.error(request, error)
     else:
-        form = TransactionForm(instance=transaction)
-        form.fields.get('account').label = 'Konto'
-        form.fields.get('date').label = 'Data'
-        form.fields.get('transaction_direction').label = 'Rodzaj transakcji'
-        form.fields.get('description').label = 'Opis'
-
-        formset = SubTransactionFormSet(instance=transaction)
-        formset.form.base_fields.get('amount').label = 'Kwota składowa (w groszach)'
-        formset.form.base_fields.get('description').label = 'Opis'
-
-    return render(request, 'account/transaction_form.html', {
+        form = TransactionForm()
+        formset = SubTransactionFormSet()
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    context = {
+        'header': header,
         'form': form,
         'formset': formset,
         'accounts': all_accounts,
-    })
+    }
+    return render(request, 'account/transaction_form.html', context)
+
+
+def transaction_update_view(request, transaction_id):
+    header = 'Edycja transakcji'
+    obj = get_object_or_404(Transaction, id=transaction_id)
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    if request.method == 'POST':
+        form = TransactionForm(request.POST, instance=obj)
+        formset = SubTransactionFormSet(request.POST, instance=obj)
+        formset.extra = 0
+        context = {
+            'header': header,
+            'form': form,
+            'formset': formset,
+            'accounts': all_accounts,
+        }
+        if all([form.is_valid(), formset.is_valid()]):
+            with transaction.atomic():
+                transaction_form = form.save()
+                formset.instance = transaction_form
+                formset.save()
+            messages.success(request, 'Edycja transakcji udana!')
+            return redirect('edytuj-transakcje', transaction_id)
+        else:
+            for error in formset.non_form_errors():
+                messages.error(request, error)
+    else:
+        form = TransactionForm(instance=obj)
+        formset = SubTransactionFormSet(instance=obj)
+        formset.extra = 0
+        context = {
+            'header': header,
+            'form': form,
+            'formset': formset,
+            'accounts': all_accounts,
+        }
+    return render(request, 'account/transaction_form.html', context)
+
 
 def transaction_list(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2)
