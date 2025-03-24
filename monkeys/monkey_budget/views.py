@@ -67,13 +67,18 @@ def transaction_create_view(request):
     header = 'Nowa transakcja'
     if request.method == 'POST':
         form = TransactionForm(request.POST)
-        formset = SubTransactionFormSet(request.POST)
-        if all([form.is_valid(), formset.is_valid()]):
-            with transaction.atomic():
-                transaction_form = form.save()
-                formset.instance = transaction_form
-                formset.save()
-                return redirect('lista-transakcji')
+        if form.is_valid():
+            formset = SubTransactionFormSet(request.POST)
+            formset.instance = form.instance
+            if formset.is_valid():
+                with transaction.atomic():
+                    transaction_form = form.save()
+                    formset.instance = transaction_form
+                    formset.save()
+                    return redirect('lista-transakcji')
+            else:
+                for error in formset.non_form_errors():
+                    messages.error(request, error)
     else:
         form = TransactionForm()
         formset = SubTransactionFormSet()
@@ -108,6 +113,9 @@ def transaction_update_view(request, transaction_id):
                 formset.save()
             messages.success(request, 'Edycja transakcji udana!')
             return redirect('edytuj-transakcje', transaction_id)
+        else:
+            for error in formset.non_form_errors():
+                messages.error(request, error)
     else:
         form = TransactionForm(instance=obj)
         formset = SubTransactionFormSet(instance=obj)
