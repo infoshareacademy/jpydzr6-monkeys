@@ -40,7 +40,9 @@ class MoneyAccount(models.Model):
 
     def validate_new_balance(self, new_balance: int) -> None | bool:
         if not self.possibly_negative and new_balance < 0:
-            raise ValidationError('Wybrane konto nie może posiadać ujemnego salda.')
+            exceeding = Monetary(abs(new_balance), self.currency)
+            raise ValidationError(f"Wybrane konto nie może posiadać ujemnego salda. "
+                                  f"Transakcja przekracza saldo konta o {exceeding}.")
         return True
 
 
@@ -119,6 +121,20 @@ class Transaction(models.Model):
     @property
     def balance_after_transaction_formatted(self) -> Monetary:
         return Monetary(self.balance_after_transaction, self.currency)
+
+    @staticmethod
+    def calculate_new_account_balance(new_transaction, subtransactions) -> int:
+        actual_account_balance = new_transaction.account.balance
+        actual_transaction_total = new_transaction.total
+        new_trasnaction_total = sum(subtransaction['amount'] for subtransaction in subtransactions)
+
+        if new_transaction.transaction_direction == 'IN':
+            previous_account_balance = actual_account_balance - actual_transaction_total
+            new_balance_after_transaction = previous_account_balance + new_trasnaction_total
+        else:
+            previous_account_balance = actual_account_balance + actual_transaction_total
+            new_balance_after_transaction = previous_account_balance - new_trasnaction_total
+        return new_balance_after_transaction
 
     def save(self, *args, **kwargs):
         with transaction.atomic():

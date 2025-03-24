@@ -176,6 +176,11 @@ class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
 
     def clean(self):
         super().clean()
+        main_transaction = self.instance
+        subtransactions = [subtransaction for subtransaction in self.cleaned_data  if subtransaction]
+        requested_account_balance_after_transaction = Transaction.calculate_new_account_balance(main_transaction, subtransactions)
+        main_transaction.account.validate_new_balance(requested_account_balance_after_transaction)
+
         if self.total_form_count() == len(self.deleted_forms):
             raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')
 
