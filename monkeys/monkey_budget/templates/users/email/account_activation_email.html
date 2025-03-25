@@ -1,0 +1,26 @@
+{% extends "users/email/base_email.html" %}
+{% load i18n %}
+
+{% block email_title %}
+    {% trans "Activate your account - Monkey Budget" context "account_activation_email" %}
+{% endblock %}
+
+{% block email_header %}
+    {% trans "Welcome to Monkey Budget!" context "account_activation_email" %}
+{% endblock %}
+
+{% block email_content %}
+    <p>{% trans "Welcome" context "account_activation_email" %} {{ user.first_name }},</p>
+    <p>{% trans "Thank you for registering in the Monkey Budget application. To activate your account, please click on the link below:" context "account_activation_email" %}</p>
+    
+    <p class="text-center">
+        <a href="{{ activation_url }}" class="button">{% trans "Activate account" context "account_activation_email" %}</a>
+    </p>
+    
+    <p>{% trans "The link will be active for" context "account_activation_email" %} {{ expiration_days }} {% trans "days." context "account_activation_email" %}</p>
+    
+    <p>{% trans "If you did not register in our application, please ignore this message." context "account_activation_email" %}</p>
+    
+    <p class="mt-20">{% trans "With regards," context "account_activation_email" %}<br>
+    {% trans "Monkey Budget Team" context "account_activation_email" %}</p>
+{% endblock %} 

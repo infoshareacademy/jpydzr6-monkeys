@@ -1,6 +1,11 @@
-peewee~=3.16.1
-Django==5.1.4
-pytest
-pytest-django
-django-bootstrap5
-django-environ==0.12.0
+peewee~=3.16.1 # to handle the database
+Django==5.1.4 # to handle the django    
+pytest # to handle the tests
+pytest-django # to handle the tests
+django-bootstrap5 # to handle the bootstrap5
+django-environ==0.12.0 # to handle the environment variables
+six==1.16.0 # to generate the token for the user
+Pillow==10.2.0 # to handle the images
+django-rosetta==0.10.0 # tools for translating the text in rosetta
+deepl==1.16.1 # to translate the text in rosetta
+django-ipware==5.0.0 # to get the client ip address during 
