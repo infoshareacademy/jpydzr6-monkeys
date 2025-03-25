@@ -26,6 +26,12 @@ class MoneyAccountForm(forms.ModelForm):
 
     balance = forms.DecimalField(label='Saldo', decimal_places=2)
 
+    def __init__(self, *args, **kwargs):
+        super(MoneyAccountForm, self).__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['balance'].widget.attrs['readonly'] = True
+            self.fields['balance'].widget.attrs['style'] = 'border: none;background: transparent;'
+
     def clean(self):
         cleaned_data = super().clean()
         balance = cleaned_data.get('balance')
