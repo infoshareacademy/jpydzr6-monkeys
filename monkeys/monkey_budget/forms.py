@@ -40,12 +40,13 @@ class MoneyAccountForm(forms.ModelForm):
                     "Ujemna wartość nie jest dozwolona dla tego konta."
                 )
 
-        for account in all_accounts:
-            if name == account.name:
-                self.add_error(
-                    'name',
-                    "Podana nazwa konta już istnieje."
-                )
+        if not self.instance.pk:
+            for account in all_accounts:
+                if name == account.name:
+                    self.add_error(
+                        'name',
+                        "Podana nazwa konta już istnieje."
+                    )
         return cleaned_data
 
 
