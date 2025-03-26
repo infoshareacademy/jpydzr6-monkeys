@@ -4,7 +4,7 @@
 {% block head %}
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Konta{% endblock %}</title>
+    <title>{% block title %}Raporty{% endblock %}</title>
     {% load django_bootstrap5 %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
@@ -21,7 +21,17 @@
     {% endblock show-side-menu %}
 
     {% block content %}
-      <h1>Podsumowanie wydatków i wpływów</h1>
+        <br>
+        <h1 class="display-3 lead text-center" style="font-family: 'Papyrus', cursive">Podsumowanie wydatków i wpływów</h1>
+        <div class="container">
+                <form method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                        {{ field.label_tag }}
+                        {{ field }}
+                <button type="submit">Wyświetl</button>
+            </form>
+        </div>
     {% endblock content %}
 
 </body>

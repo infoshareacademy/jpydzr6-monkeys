@@ -1,3 +1,4 @@
+import datetime
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
@@ -193,3 +194,36 @@ SubTransactionFormSet = inlineformset_factory(
     min_num=1,
     can_delete=True,
 )
+
+class FinancialReport(forms.Form):
+    account_name = forms.CharField(
+        max_length=100,
+        label='Nazwa konta',
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Nazwa konta'})
+    )
+    category_name = forms.CharField(
+        label='Nazwa kategorii',
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Nazwa kategorii'}),
+    )
+    transactions_type = forms.CharField(
+        label='Typ transakcji',
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Wpływy'})
+    )
+    currency = forms.CharField(
+        label='Kod waluty',
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': f'PLN'})
+    )
+    start_date = forms.DateField(
+        label='Data pocztąkowa',
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': f'Np. {datetime.date.today() - datetime.timedelta(days=20)}'})
+    )
+    end_date = forms.DateField(
+        label= 'Data końcowa',
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': f'Np. {datetime.date.today()}'})
+    )
