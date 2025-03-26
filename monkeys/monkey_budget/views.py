@@ -136,3 +136,7 @@ def transaction_list(request):
         'transactions': transactions,
         'accounts': all_accounts,
     })
+
+def financial_reports(request):
+    all_accounts = MoneyAccount.objects.filter(user_id=2)
+    return render(request, 'account/financial_reports.html', {'accounts': all_accounts})
