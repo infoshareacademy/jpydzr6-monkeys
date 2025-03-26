@@ -2,7 +2,7 @@ import datetime
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
-from .money import Monetary, Currency
+from .money import Monetary, Currency, CurrencyHelper
 from .models import Transaction, SubTransaction
 from decimal import Decimal
 
@@ -196,34 +196,37 @@ SubTransactionFormSet = inlineformset_factory(
 )
 
 class FinancialReport(forms.Form):
-    account_name = forms.CharField(
-        max_length=100,
-        label='Nazwa konta',
+
+    account_name = forms.ModelMultipleChoiceField(
+        queryset=MoneyAccount.objects.all().filter(user_id=2).order_by('name'),
+        label='Wybierz konto',
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Nazwa konta'})
+        widget=forms.CheckboxSelectMultiple
     )
-    category_name = forms.CharField(
-        label='Nazwa kategorii',
+    transactions_direction = forms.MultipleChoiceField(
+        choices=[('IN', 'przychód'), ('OUT', 'wydatek')],
+        label='Wybierz typ transakcji',
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Nazwa kategorii'}),
+        widget=forms.CheckboxSelectMultiple
     )
-    transactions_type = forms.CharField(
-        label='Typ transakcji',
+    currency = forms.MultipleChoiceField(
+        choices=CurrencyHelper.get_currencies_set(),
+        label='Wybierz kod waluty',
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Wpływy'})
+        widget=forms.CheckboxSelectMultiple
     )
-    currency = forms.CharField(
-        label='Kod waluty',
-        required=False,
-        widget=forms.TextInput(attrs={'placeholder': f'PLN'})
-    )
+    # start_date = forms.DateField(
+    #     label='Data początkowa',
+    #     required=False,
+    #     widget=forms.TextInput(attrs={'placeholder': f'Np. {datetime.date.today() - datetime.timedelta(days=30)}'})
+    # )
     start_date = forms.DateField(
-        label='Data pocztąkowa',
+        label='Data początkowa',
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': f'Np. {datetime.date.today() - datetime.timedelta(days=20)}'})
+        widget=forms.DateInput(attrs={'type': 'date'})
     )
     end_date = forms.DateField(
-        label= 'Data końcowa',
+        label='Data końcowa',
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': f'Np. {datetime.date.today()}'})
+        widget=forms.DateInput(attrs={'type': 'date'})
     )

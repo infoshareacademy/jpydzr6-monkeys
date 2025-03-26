@@ -22,16 +22,25 @@
 
     {% block content %}
         <br>
-        <h1 class="display-3 lead text-center" style="font-family: 'Papyrus', cursive">Podsumowanie wydatków i wpływów</h1>
+        <h1 class="display-3 lead text-center"
+            style="font-family: 'Papyrus', cursive" >Podsumowanie wydatków i wpływów</h1>
         <div class="container">
                 <form method="post">
                     {% csrf_token %}
                     {% bootstrap_form form %}
-                        {{ field.label_tag }}
+                        <b>{{ field.label_tag }}</b>
                         {{ field }}
-                <button type="submit">Wyświetl</button>
+                <button type="submit">Wyświetl raport</button>
             </form>
         </div>
+
+    {% if report_data %}
+    <div class="mt-4">
+        <h2>Raport dla konta: {{report_data.account_name}}</h2>
+        <p>Saldo: {{ report_data.balance }}</p>
+    </div>
+    {% endif %}
+
     {% endblock content %}
 
 </body>

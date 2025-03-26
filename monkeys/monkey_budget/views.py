@@ -141,12 +141,24 @@ def financial_reports(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2)
     transactions = Transaction.objects.all()
     user_balance = 0
+    report_data = {}
     if request.method == 'POST':
         form = FinancialReport(request.POST)
         if form.is_valid():
-            pass
-    else:
-        form = FinancialReport()
+            account_name = form.cleaned_data['account_name']
+            selected_account = get_object_or_404(MoneyAccount, name=account_name)
+            balance = selected_account.balance
 
-    context = {'accounts': all_accounts, 'transactions': transactions, 'user_balance': user_balance, 'form': form}
+            report_data = {
+                'account_name': account_name,
+                'balance': balance,
+            }
+
+    form = FinancialReport()
+
+    context = {'accounts': all_accounts,
+               'transactions': transactions,
+               'user_balance': user_balance,
+               'form': form,
+               'report_data': report_data,}
     return render(request, 'account/financial_reports.html', context)
