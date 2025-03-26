@@ -138,7 +138,7 @@ def transaction_list(request):
     })
 
 def financial_reports(request):
-    all_accounts = MoneyAccount.objects.filter(user_id=2)
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     transactions = Transaction.objects.all()
     user_balance = 0
     report_data = {}
