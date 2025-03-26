@@ -141,18 +141,23 @@ def financial_reports(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     transactions = Transaction.objects.all()
     user_balance = 0
-    report_data = {}
+    report_data = []
     if request.method == 'POST':
         form = FinancialReport(request.POST)
         if form.is_valid():
-            account_name = form.cleaned_data['account_name']
-            selected_account = get_object_or_404(MoneyAccount, name=account_name)
-            balance = selected_account.balance
+            selected_accounts = form.cleaned_data.get('account_name')
 
-            report_data = {
-                'account_name': account_name,
-                'balance': balance,
-            }
+            if selected_accounts:
+                report_data = [
+                    {
+                        'name': account.name,
+                        'balance': account.balance,
+                        'currency': account.currency_code
+                    }
+                    for account in selected_accounts
+                ]
+        else:
+            form = FinancialReport()
 
     form = FinancialReport()
 

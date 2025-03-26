@@ -28,7 +28,7 @@
                 <form method="post">
                     {% csrf_token %}
                     {% bootstrap_form form %}
-                        <b>{{ field.label_tag }}</b>
+                        {{ field.label_tag }}
                         {{ field }}
                 <button type="submit">Wyświetl raport</button>
             </form>
@@ -36,11 +36,16 @@
 
     {% if report_data %}
     <div class="mt-4">
-        <h2>Raport dla konta: {{report_data.account_name}}</h2>
-        <p>Saldo: {{ report_data.balance }}</p>
+        <h3>Raport:</h3>
+        <ul class="list-group">
+            {% for account in report_data %}
+                <li class="list-group-item">
+                    {{ account.name }}: {{ account.balance }} {{ account.currency }}
+                </li>
+            {% endfor %}
+        </ul>
     </div>
-    {% endif %}
-
+{% endif %}
     {% endblock content %}
 
 </body>

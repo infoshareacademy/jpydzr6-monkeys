@@ -205,7 +205,7 @@ class FinancialReport(forms.Form):
     )
     transactions_direction = forms.MultipleChoiceField(
         choices=[('IN', 'przychód'), ('OUT', 'wydatek')],
-        label='Wybierz typ transakcji',
+        label='Wybierz kierunek transakcji',
         required=False,
         widget=forms.CheckboxSelectMultiple
     )
@@ -215,11 +215,6 @@ class FinancialReport(forms.Form):
         required=False,
         widget=forms.CheckboxSelectMultiple
     )
-    # start_date = forms.DateField(
-    #     label='Data początkowa',
-    #     required=False,
-    #     widget=forms.TextInput(attrs={'placeholder': f'Np. {datetime.date.today() - datetime.timedelta(days=30)}'})
-    # )
     start_date = forms.DateField(
         label='Data początkowa',
         required=False,
