@@ -7,10 +7,20 @@ from .forms import *
 
 # Create your views here.
 # TODO - brak informacji o id użytkownika, jest wpisane na sztywno do zmiany po dodaniu możliwości logowania
+
+def home(request):
+    return render(request, 'home.html')
+
+def team(request):
+    return render(request, 'team.html')
+
+def contact(request):
+    return render (request, 'contact.html')
+
 def dashboard(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2)
     context = {'accounts': all_accounts}
-    return render(request, 'account/base.html', context)
+    return render(request, 'account/dashboard.html', context)
 
 def show_money_account(request, account_id):
     account_related_transactions = Transaction.objects.filter(account_id=account_id)
