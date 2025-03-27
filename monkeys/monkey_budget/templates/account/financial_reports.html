@@ -20,33 +20,39 @@
     {{ block.super }}
     {% endblock show-side-menu %}
 
-    {% block content %}
-        <br>
-        <h1 class="display-3 lead text-center"
-            style="font-family: 'Papyrus', cursive" >Podsumowanie wydatków i wpływów</h1>
+    {% block content %} # todo jeszcze popraw wyświetlanie raportu
         <div class="container">
-                <form method="post">
-                    {% csrf_token %}
-                    {% bootstrap_form form %}
-                        {{ field.label_tag }}
-                        {{ field }}
-                <button type="submit">Wyświetl raport</button>
-            </form>
-        </div>
+            <h1 class="display-3 lead text-center mb-4" style="font-family: 'Papyrus', cursive">Podsumowanie wydatków i wpływów</h1>
 
-    {% if report_data %}
-    <div class="mt-4">
-        <h3>Raport:</h3>
-        <ul class="list-group">
-            {% for account in report_data %}
-                <li class="list-group-item">
-                    {{ account.name }}: {{ account.balance }} {{ account.currency }}
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-{% endif %}
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <form method="post" class="mb-4">
+                        {% csrf_token %}
+                        {% bootstrap_form form label_class="fw-bold" %}
+                        <button type="submit" class="btn btn-primary">Wyświetl raport</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if report_data %}
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="text-center">
+                        <h3>Raport:</h3>
+                        <ul class="list-group">
+                            {% for account in report_data %}
+                                <li class="list-group-item">
+                                    {{ account.name }}: {{ account.balance }} {{ account.currency }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
     {% endblock content %}
+
 
 </body>
 </html>
