@@ -10,5 +10,7 @@ urlpatterns = [
     path('transakcje/nowa/', views.transaction_create_view, name='nowa-transakcja'),
     path('transakcje/edytuj/<int:transaction_id>', views.transaction_update_view, name='edytuj-transakcje'),
     path('transakcje/lista/', views.transaction_list, name='lista-transakcji'),
-    path('raporty', views.financial_reports, name='raporty'),
+    path('raporty/ogolny/miesiac', views.monthly_general_financial_report, name='raport-ogolny'),
+    path('raporty/ogolny/rok', views.annual_general_financial_report, name='raport-ogolny'),
+    path('raport/filtry', views.filter_financial_reports, name='raport-filtry'),
 ]

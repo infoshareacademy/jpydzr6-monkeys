@@ -1,0 +1,31 @@
+{% extends "account/base.html" %}
+<html lang="en">
+
+    {% block head %}
+        <head>
+            <meta charset="UTF-8">
+            <title>{% block title %}Raporty{% endblock %}</title>
+            {% load django_bootstrap5 %}
+            {% bootstrap_css %}
+            {% bootstrap_javascript %}
+        </head>
+    {% endblock head %}
+
+<body>
+    {% block side-menu %}
+        {{ block.super }}
+    {% endblock side-menu%}
+
+    {% block show-side-menu %}
+        {{ block.super }}
+    {% endblock show-side-menu %}
+
+    {% block content %}
+        {% for currency_balance in all_currencies_balance %}
+            <h1>Bilans: {{ currency_balance }} </h1>
+        {% endfor %}
+    {% endblock content %}
+
+
+</body>
+</html>

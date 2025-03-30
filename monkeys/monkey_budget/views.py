@@ -6,6 +6,8 @@ from .models import MoneyAccount, Transaction, SubTransaction
 from django.template.loader import render_to_string
 from django.contrib import messages
 from .forms import *
+from .money import currencies
+from .tests.test_currency_helper import all_currencies
 
 
 # TODO - brak informacji o id użytkownika, jest wpisane na sztywno do zmiany po dodaniu możliwości logowania
@@ -137,7 +139,33 @@ def transaction_list(request):
         'accounts': all_accounts,
     })
 
-def financial_reports(request):
+def monthly_general_financial_report(request):
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    all_transactions = Transaction.objects.all()
+    all_currencies_balance = []
+
+    for currency in currencies.__all__:
+        chosen_accounts = all_accounts.filter(currency_code=currency)
+        currency_balance = 0
+        for account in chosen_accounts:
+            currency_balance += account.balance
+        all_currencies_balance.append(currency_balance)
+
+
+    context = {
+        'accounts': all_accounts,
+        'transactions': all_transactions,
+        'all_currencies_balance': all_currencies_balance
+    }
+    return render(request, 'account/monthly_financial_report.html', context)
+
+
+
+
+def annual_general_financial_report(request):
+    pass
+
+def filter_financial_reports(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     transactions = Transaction.objects.all()
     user_balance = 0
