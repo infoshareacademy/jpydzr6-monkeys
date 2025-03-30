@@ -35,6 +35,8 @@ class MoneyAccountForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         balance = cleaned_data.get('balance')
+        name = cleaned_data.get('name')
+        all_accounts = MoneyAccount.objects.filter(user_id=2)
         allow_negative = cleaned_data.get('possibly_negative')
 
         if balance is not None and not allow_negative:
@@ -43,6 +45,14 @@ class MoneyAccountForm(forms.ModelForm):
                     'balance',
                     "Ujemna wartość nie jest dozwolona dla tego konta."
                 )
+
+        if not self.instance.pk:
+            for account in all_accounts:
+                if name == account.name:
+                    self.add_error(
+                        'name',
+                        "Podana nazwa konta już istnieje."
+                    )
         return cleaned_data
 
 
@@ -199,3 +209,5 @@ SubTransactionFormSet = inlineformset_factory(
     min_num=1,
     can_delete=True,
 )
+
+
