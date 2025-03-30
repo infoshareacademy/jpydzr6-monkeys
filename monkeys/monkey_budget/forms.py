@@ -1,4 +1,4 @@
-import datetime
+from datetime import date, timedelta
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
@@ -218,10 +218,10 @@ class FinancialReport(forms.Form):
     start_date = forms.DateField(
         label='Data początkowa',
         required=False,
-        widget=forms.DateInput(attrs={'type': 'date'})
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=(date.today() - timedelta(days=30))
     )
     end_date = forms.DateField(
         label='Data końcowa',
         required=False,
-        widget=forms.DateInput(attrs={'type': 'date'})
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=date.today
     )
