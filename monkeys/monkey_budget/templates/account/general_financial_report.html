@@ -21,22 +21,25 @@
     {% endblock show-side-menu %}
 
     {% block content %}
-        <h1>Bilans ogólny</h1>
-            {% for currency_balance in all_currencies_balance %}
-                <h4>{{ currency_balance.1 }}: {{ currency_balance.0 }} </h4>
-            {% endfor %}
-            <br>
-            {% for account_group in account_balances %}
+        <h1>Podsumowanie miesiąca:</h1>
+            <h2>Dostępne środki:</h2>
                 <div>
-                    <h2>{{ account_group.type_name }}</h2>
-
-                    {% for balance, currency in account_group.currency_balances %}
-                        <div>
-                            {{ currency }}: {{ balance }}
-                        </div>
+                    {% for currency_balance in all_currencies_balance %}
+                        <h4>{{ currency_balance.1 }}: {{ currency_balance.0 }} </h4>
                     {% endfor %}
                 </div>
-            {% endfor %}
+                    <br>
+                {% for account_group in account_balances %}
+                    <div>
+                        <h2>{{ account_group.type_name }}</h2>
+
+                        {% for balance, currency in account_group.currency_balances %}
+                            <div>
+                                {{ currency }}: {{ balance }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
 
     {% endblock content %}
 
