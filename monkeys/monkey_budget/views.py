@@ -149,13 +149,14 @@ def monthly_general_financial_report(request):
         currency_balance = 0
         for account in chosen_accounts:
             currency_balance += account.balance
-        all_currencies_balance.append(currency_balance)
+        all_currencies_balance.append((currency_balance, currency))
 
 
     context = {
         'accounts': all_accounts,
         'transactions': all_transactions,
-        'all_currencies_balance': all_currencies_balance
+        'all_currencies_balance': all_currencies_balance,
+        'currency': currencies.__name__,
     }
     return render(request, 'account/monthly_financial_report.html', context)
 

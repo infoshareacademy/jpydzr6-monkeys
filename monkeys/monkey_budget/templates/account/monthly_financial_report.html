@@ -21,11 +21,11 @@
     {% endblock show-side-menu %}
 
     {% block content %}
-        {% for currency_balance in all_currencies_balance %}
-            <h1>Bilans: {{ currency_balance }} </h1>
-        {% endfor %}
+        <h1>Obecny posiadasz:</h1>
+            {% for currency_balance in all_currencies_balance %}
+                <h1>{{ currency_balance.1 }}: {{ currency_balance.0 }} </h1>
+            {% endfor %}
     {% endblock content %}
-
 
 </body>
 </html>
