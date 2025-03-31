@@ -233,4 +233,5 @@ class MonthlyFinancialReport(forms.Form):
         (7, "Lipiec"), (8, "Sierpień"), (9, "Wrzesień"),
         (10, "Październik"), (11, "Listopad"), (12, "Grudzień")
     ]
-    month = forms.ChoiceField(choices=MONTH_CHOICES, label="Select Month")
+    month = forms.ChoiceField(choices=MONTH_CHOICES, label="Wybierz miesiąc")
+    year = forms.IntegerField(label="Wybierz rok", min_value=1900, max_value=2100)

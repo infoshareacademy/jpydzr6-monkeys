@@ -174,7 +174,6 @@ def general_financial_report(request):
 
         account_balances.append(type_data)
 
-
     context = {
         'accounts': all_accounts,
         'transactions': all_transactions,
