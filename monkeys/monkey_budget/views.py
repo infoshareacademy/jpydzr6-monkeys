@@ -139,10 +139,11 @@ def transaction_list(request):
         'accounts': all_accounts,
     })
 
-def monthly_general_financial_report(request):
+def general_financial_report(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     all_transactions = Transaction.objects.all()
     all_currencies_balance = []
+    account_balances = []
 
     for currency in currencies.__all__:
         chosen_accounts = all_accounts.filter(currency_code=currency)
@@ -151,20 +152,29 @@ def monthly_general_financial_report(request):
             currency_balance += account.balance
         all_currencies_balance.append((currency_balance, currency))
 
+    for account_type in MoneyAccount.types:
+        type_code = account_type[0]
+        type_name = account_type[1].capitalize()
+        type_data = {
+            'type_name': type_name,
+            'currency_balances': []
+        }
+
+        for currency in currencies.__all__:
+            accounts = all_accounts.filter(type=type_code, currency_code=currency)
+            total_balance = sum(account.balance for account in accounts)
+            type_data['currency_balances'].append((total_balance, currency))
+
+        account_balances.append(type_data)
+
 
     context = {
         'accounts': all_accounts,
         'transactions': all_transactions,
         'all_currencies_balance': all_currencies_balance,
-        'currency': currencies.__name__,
+        'account_balances': account_balances,
     }
-    return render(request, 'account/monthly_financial_report.html', context)
-
-
-
-
-def annual_general_financial_report(request):
-    pass
+    return render(request, 'account/general_financial_report.html', context)
 
 def filter_financial_reports(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
