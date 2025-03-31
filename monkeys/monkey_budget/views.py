@@ -145,6 +145,13 @@ def general_financial_report(request):
     all_currencies_balance = []
     account_balances = []
 
+    if request.method == 'POST':
+        form = MonthlyFinancialReport(request.POST)
+        if form.is_valid():
+            pass
+    else:
+        form = MonthlyFinancialReport()
+
     for currency in currencies.__all__:
         chosen_accounts = all_accounts.filter(currency_code=currency)
         currency_balance = 0
@@ -173,6 +180,7 @@ def general_financial_report(request):
         'transactions': all_transactions,
         'all_currencies_balance': all_currencies_balance,
         'account_balances': account_balances,
+        'form': form,
     }
     return render(request, 'account/general_financial_report.html', context)
 
