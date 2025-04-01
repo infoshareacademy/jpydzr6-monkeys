@@ -148,7 +148,8 @@ def general_financial_report(request):
     if request.method == 'POST':
         form = MonthlyFinancialReport(request.POST)
         if form.is_valid():
-            pass
+            month = form.cleaned_data['month']
+            year = form.cleaned_data['year']
     else:
         form = MonthlyFinancialReport()
 
@@ -157,7 +158,8 @@ def general_financial_report(request):
         currency_balance = 0
         for account in chosen_accounts:
             currency_balance += account.balance
-        all_currencies_balance.append((currency_balance, currency))
+        decimal_currency_balance = Monetary(currency_balance, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal
+        all_currencies_balance.append((currency,decimal_currency_balance))
 
     for account_type in MoneyAccount.types:
         type_code = account_type[0]
@@ -170,7 +172,10 @@ def general_financial_report(request):
         for currency in currencies.__all__:
             accounts = all_accounts.filter(type=type_code, currency_code=currency)
             total_balance = sum(account.balance for account in accounts)
-            type_data['currency_balances'].append((total_balance, currency))
+            type_data['currency_balances'].append((
+                    Monetary(total_balance, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
+                    currency
+                ))
 
         account_balances.append(type_data)
 

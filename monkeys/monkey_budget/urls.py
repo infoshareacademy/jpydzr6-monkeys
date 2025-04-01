@@ -11,5 +11,5 @@ urlpatterns = [
     path('transakcje/edytuj/<int:transaction_id>', views.transaction_update_view, name='edytuj-transakcje'),
     path('transakcje/lista/', views.transaction_list, name='lista-transakcji'),
     path('raporty/ogolny', views.general_financial_report, name='raport-ogolny'),
-    path('raport/filtry', views.filter_financial_reports, name='raport-filtry'),
+    path('raporty/filtry', views.filter_financial_reports, name='raport-filtry'),
 ]

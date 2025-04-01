@@ -30,11 +30,11 @@
                     </form>
                 </div>
             </div>
-        <h1>Podsumowanie ostatnich 30 dni:</h1>
+        <h1>Podsumowanie:</h1>
             <h2>Dostępne środki:</h2>
                 <div>
                     {% for currency_balance in all_currencies_balance %}
-                        <h4>{{ currency_balance.1 }}: {{ currency_balance.0 }} </h4>
+                        <h4>{{ currency_balance.0}}: {{ currency_balance.1 }} </h4>
                     {% endfor %}
                 </div>
                     <br>
