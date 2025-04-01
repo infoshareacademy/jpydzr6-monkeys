@@ -21,16 +21,8 @@
     {% endblock show-side-menu %}
 
     {% block content %}
-    <div>
-                <div>
-                    <form method="post">
-                        {% csrf_token %}
-                        {% bootstrap_form form label_class="fw-bold" %}
-                        <button type="submit" class="btn btn-primary">Wyświetl raport</button>
-                    </form>
-                </div>
-            </div>
-        <h1>Podsumowanie:</h1>
+
+        <h1>Bieżące podsumowanie:</h1>
             <h2>Dostępne środki:</h2>
                 <div>
                     {% for currency_balance in all_currencies_balance %}
