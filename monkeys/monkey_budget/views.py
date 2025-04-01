@@ -187,6 +187,14 @@ def general_financial_report(request):
     }
     return render(request, 'account/general_financial_report.html', context)
 
+def periodic_financial_report(request):
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+
+    context = {
+        'accounts': all_accounts,
+    }
+    return render(request, 'account/periodic_financial_report.html', context)
+
 def filter_financial_reports(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     transactions = Transaction.objects.all()
