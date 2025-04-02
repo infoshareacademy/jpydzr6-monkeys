@@ -123,11 +123,23 @@ def transaction_update_view(request, transaction_id):
 
 
 def transaction_list(request):
-    all_accounts = MoneyAccount.objects.filter(user_id=2)
     transactions = Transaction.objects.all()
+
+    for t in transactions:
+        image_attachments = []
+        other_attachments = []
+        for attach in t.attachments.all():
+            name = attach.file.name.lower()
+            if name.endswith(('.png', '.jpg', '.jpeg')):
+                image_attachments.append(attach)
+            else:
+                other_attachments.append(attach)
+
+        t.image_attachments = image_attachments
+        t.other_attachments = other_attachments
+
     return render(request, 'account/transactions_list.html', {
-        'transactions': transactions,
-        'accounts': all_accounts,
+        'transactions': transactions
     })
 
 def attachment_add(request, pk):
@@ -149,3 +161,10 @@ def attachment_add(request, pk):
 def attachment_download(request, pk):
     attachment = get_object_or_404(TransactionAttachment, pk=pk)
     return FileResponse(attachment.file.open('rb'), as_attachment=True)
+
+def attachment_delete(request, pk):
+    attachment = get_object_or_404(TransactionAttachment, pk=pk)
+    transaction_pk = attachment.transaction.pk
+    attachment.delete()
+    return redirect('lista-transakcji')
+
