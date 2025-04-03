@@ -179,6 +179,8 @@ class SubTransactionForm(forms.ModelForm):
             if transaction.subtransactions.count() == 1:
                 raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')
 
+        cleaned_data['amount'] = self.cleaned_data.get('amount_decimal')
+
         return cleaned_data
 
     def clean_amount_decimal(self):
