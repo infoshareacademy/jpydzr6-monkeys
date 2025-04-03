@@ -1,0 +1,48 @@
+{% extends "account/base.html" %}
+<html lang="en">
+
+    {% block head %}
+        <head>
+            <meta charset="UTF-8">
+            <title>{% block title %}Raporty{% endblock %}</title>
+            {% load django_bootstrap5 %}
+            {% bootstrap_css %}
+            {% bootstrap_javascript %}
+        </head>
+    {% endblock head %}
+
+<body>
+    {% block side-menu %}
+        {{ block.super }}
+    {% endblock side-menu%}
+
+    {% block show-side-menu %}
+        {{ block.super }}
+    {% endblock show-side-menu %}
+
+    {% block content %}
+
+        <h1>Bieżące podsumowanie:</h1>
+            <h2>Dostępne środki:</h2>
+                <div>
+                    {% for currency_balance in all_currencies_balance %}
+                        <h4>{{ currency_balance.0}}: {{ currency_balance.1 }} </h4>
+                    {% endfor %}
+                </div>
+                    <br>
+                {% for account_group in account_balances %}
+                    <div>
+                        <h2>{{ account_group.type_name }}</h2>
+
+                        {% for balance, currency in account_group.currency_balances %}
+                            <div>
+                                {{ currency }}: {{ balance }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+    {% endblock content %}
+
+</body>
+</html>

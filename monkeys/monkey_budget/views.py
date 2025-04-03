@@ -6,6 +6,7 @@ from .models import MoneyAccount, Transaction, SubTransaction
 from django.template.loader import render_to_string
 from django.contrib import messages
 from .forms import *
+from .money import CurrencyHelper, currencies
 
 
 # TODO - brak informacji o id użytkownika, jest wpisane na sztywno do zmiany po dodaniu możliwości logowania
@@ -136,3 +137,41 @@ def transaction_list(request):
         'transactions': transactions,
         'accounts': all_accounts,
     })
+
+def general_financial_report(request):
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    all_currencies_balance = []
+    account_balances = []
+
+    for currency in currencies.__all__:
+        chosen_accounts = all_accounts.filter(currency_code=currency)
+        currency_balance = 0
+        for account in chosen_accounts:
+            currency_balance += account.balance
+        decimal_currency_balance = Monetary(currency_balance, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal
+        all_currencies_balance.append((currency,decimal_currency_balance))
+
+    for account_type in MoneyAccount.types:
+        type_code = account_type[0]
+        type_name = account_type[1].capitalize()
+        type_data = {
+            'type_name': type_name,
+            'currency_balances': []
+        }
+
+        for currency in currencies.__all__:
+            accounts = all_accounts.filter(type=type_code, currency_code=currency)
+            total_balance = sum(account.balance for account in accounts)
+            type_data['currency_balances'].append((
+                    Monetary(total_balance, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
+                    currency
+                ))
+
+        account_balances.append(type_data)
+
+    context = {
+        'accounts': all_accounts,
+        'all_currencies_balance': all_currencies_balance,
+        'account_balances': account_balances,
+    }
+    return render(request, 'account/general_financial_report.html', context)
