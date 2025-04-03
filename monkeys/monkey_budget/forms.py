@@ -226,12 +226,40 @@ class FinancialReport(forms.Form):
         widget=forms.DateInput(attrs={'type': 'date'}), initial=date.today
     )
 
-class MonthlyFinancialReport(forms.Form):
-    MONTH_CHOICES = [
-        (1, "Styczeń"), (2, "Luty"), (3, "Marzec"),
-        (4, "Kwiecień"), (5, "Maj"), (6, "Czerwiec"),
-        (7, "Lipiec"), (8, "Sierpień"), (9, "Wrzesień"),
-        (10, "Październik"), (11, "Listopad"), (12, "Grudzień")
-    ]
-    month = forms.ChoiceField(choices=MONTH_CHOICES, label="Wybierz miesiąc")
-    year = forms.IntegerField(label="Wybierz rok", min_value=1900, max_value=2100)
+class PeriodicFinancialReport(forms.Form):
+
+    start_date = forms.DateField(
+        label='Data początkowa',
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=(date.today() - timedelta(days=30))
+    )
+    end_date = forms.DateField(
+        label='Data końcowa',
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=date.today
+    )
+
+    def clean_start_date(self):
+        start_date = self.cleaned_data.get('start_date')
+        if start_date and start_date > date.today():
+            raise forms.ValidationError("Data początkowa nie może być w przyszłości.")
+        return start_date
+
+    def clean_end_date(self):
+        end_date = self.cleaned_data.get('end_date')
+        if end_date and end_date > date.today():
+            raise forms.ValidationError("Data końcowa nie może być w przyszłości.")
+        return end_date
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date:
+            if start_date > end_date:
+                raise forms.ValidationError(
+                    "Data początkowa nie może być późniejsza niż data końcowa."
+                )
+
+        return cleaned_data

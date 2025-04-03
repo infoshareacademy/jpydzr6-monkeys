@@ -22,7 +22,22 @@
 
     {% block content %}
 
-        <h1>Podsumowanie ostatniego: {miesiaca, kwartalu, roku}</h1>
+    <h3>Wybierz zakres dat:</h3>
+        <div>
+              <div>
+                  <form method="post">
+                      {% csrf_token %}
+                      {% bootstrap_form form label_class="fw-bold" %}
+                      <button type="submit" class="btn btn-primary">Wyświetl raport</button>
+                  </form>
+              </div>
+        </div>
+
+    <h1>Podsumowanie wybranego okresu:</h1>
+        <h2>{{ start_date }} - {{ end_date }}</h2>
+        {% for transaction in all_transactions %}
+            <h3>transaction</h3>
+        {% endfor %}
 
 
     {% endblock content %}
