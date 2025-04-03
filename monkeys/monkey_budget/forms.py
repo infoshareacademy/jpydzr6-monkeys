@@ -207,6 +207,11 @@ class SubTransactionForm(forms.ModelForm):
 
 
 class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
+    # def __init__(self, main_transaction_form_cleaned_data=None, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.main_transaction_form_cleaned_data = main_transaction_form_cleaned_data
+    #     a=2
+
     def add_fields(self, form, index):
         super().add_fields(form, index)
         if 'DELETE' in form.fields:
@@ -214,10 +219,14 @@ class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
 
     def clean(self):
         super().clean()
+        if self.instance.pk:
+            main_transaction_account = self.instance.account
+        else:
+            main_transaction_account = self.form_kwargs.get('main_transaction_form_cleaned_data').get('account')
         main_transaction = self.instance
         subtransactions = [subtransaction for subtransaction in self.cleaned_data  if subtransaction]
-        requested_account_balance_after_transaction = Transaction.calculate_new_account_balance(main_transaction, subtransactions)
-        main_transaction.account.validate_new_balance(requested_account_balance_after_transaction)
+        requested_account_balance_after_transaction = Transaction.calculate_new_account_balance(main_transaction_account, main_transaction, subtransactions)
+        main_transaction_account.validate_new_balance(requested_account_balance_after_transaction)
 
         if self.total_form_count() == len(self.deleted_forms):
             raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')

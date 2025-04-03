@@ -78,6 +78,9 @@ def transaction_create_view(request):
                     formset.instance = transaction_form
                     formset.save()
                     return redirect('lista-transakcji')
+            else:
+                for error in formset.non_form_errors():
+                    messages.error(request, error)
     else:
         form = TransactionForm()
         formset = SubTransactionFormSet()
@@ -112,6 +115,9 @@ def transaction_update_view(request, transaction_id):
                 formset.save()
             messages.success(request, 'Edycja transakcji udana!')
             return redirect('edytuj-transakcje', transaction_id)
+        else:
+            for error in formset.non_form_errors():
+                messages.error(request, error)
     else:
         form = TransactionForm(instance=obj)
         formset = SubTransactionFormSet(instance=obj)
