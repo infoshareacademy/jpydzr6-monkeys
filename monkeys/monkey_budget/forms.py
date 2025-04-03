@@ -1,4 +1,3 @@
-from django import forms
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
@@ -8,45 +7,36 @@ from .models import Transaction, SubTransaction
 
 
 class MoneyAccountForm(forms.ModelForm):
-
     class Meta:
         model = MoneyAccount
         fields = ['name', 'balance', 'type', 'currency_code', 'description', 'possibly_negative']
         labels = {
             'name': 'Nazwa',
+            'balance': 'Saldo',
             'type': 'Typ',
             'currency_code': 'Kod waluty',
             'description': 'Opis',
             'possibly_negative': 'Możliowść przyjęcia ujemnej wartości'
         }
 
-        balance = forms.DecimalField(label='Saldo', decimal_places=2)
-        # description = forms.CharField(
-        #     # widget=forms.Textarea,
-        #     required=False,
-        #     label='Opis',
-        #     max_length=512)
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': '5', 'maxlength': 512}),
+        required=False,
+    )
 
-        widgets = {
-            'description': forms.Textarea(
-                attrs={
-                    'rows': '5',
-                    # 'required': False,
-                    # 'maxlength': 512,
-                },
-
-
-            )
-        }
-
-
+    balance = forms.DecimalField(label='Saldo', decimal_places=2)
 
     def __init__(self, *args, **kwargs):
         super(MoneyAccountForm, self).__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['balance'].widget.attrs['readonly'] = True
+            self.fields['balance'].widget.attrs['style'] = 'border: none;background: transparent;'
 
     def clean(self):
         cleaned_data = super().clean()
         balance = cleaned_data.get('balance')
+        name = cleaned_data.get('name')
+        all_accounts = MoneyAccount.objects.filter(user_id=2)
         allow_negative = cleaned_data.get('possibly_negative')
 
         if balance is not None and not allow_negative:
@@ -55,6 +45,14 @@ class MoneyAccountForm(forms.ModelForm):
                     'balance',
                     "Ujemna wartość nie jest dozwolona dla tego konta."
                 )
+
+        if not self.instance.pk:
+            for account in all_accounts:
+                if name == account.name:
+                    self.add_error(
+                        'name',
+                        "Podana nazwa konta już istnieje."
+                    )
         return cleaned_data
 
 
@@ -216,6 +214,11 @@ class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
 
     def clean(self):
         super().clean()
+        main_transaction = self.instance
+        subtransactions = [subtransaction for subtransaction in self.cleaned_data  if subtransaction]
+        requested_account_balance_after_transaction = Transaction.calculate_new_account_balance(main_transaction, subtransactions)
+        main_transaction.account.validate_new_balance(requested_account_balance_after_transaction)
+
         if self.total_form_count() == len(self.deleted_forms):
             raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')
 
@@ -228,3 +231,5 @@ SubTransactionFormSet = inlineformset_factory(
     min_num=1,
     can_delete=True,
 )
+
+

@@ -8,8 +8,10 @@
     {% load django_bootstrap5 %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
+
 </head>
 {% endblock head %}
+
 <body>
     {% block side-menu %}
         {{ block.super }}
@@ -20,10 +22,20 @@
     {% endblock show-side-menu %}
 
     {% block content %}
+    <script>
+        function confirmSubmit(event) {
+            event.preventDefault();
+            if (confirm("Upewnij się czy podałeś prawidłowe saldo. Nie będzie go można edytować w przyszłości." +
+                "Czy chcesz zapisać konto?")) {
+
+                event.target.submit();
+            }
+        }
+    </script>
     <br>
     <h1 class="display-3 lead text-center" style="font-family: 'Papyrus', cursive">Tworzenie nowego konta</h1>
     <div class="container">
-            <form method="post">
+            <form method="post" onsubmit="confirmSubmit(event)">
                 {% csrf_token %}
                 {% bootstrap_form form %}
                     {{ field.label_tag }}
@@ -31,6 +43,7 @@
             <button type="submit">Utwórz konto</button>
         </form>
     </div>
+
     {% endblock content %}
 
 </body>
