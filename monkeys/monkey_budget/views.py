@@ -152,10 +152,10 @@ def periodic_financial_report(request):
         if form.is_valid():
             start_date = form.cleaned_data.get('start_date')
             end_date = form.cleaned_data.get('end_date')
-            incomes_total = Transaction.objects.filter(transaction_direction='IN').aggregate(total_sum=Sum('total'))
-            outcomes_total = Transaction.objects.filter(transaction_direction='OUT').aggregate(total_sum=Sum('total'))
+            chosen_transaction = Transaction.objects.filter(date__range=(start_date, end_date))
+            incomes_total = chosen_transaction.filter(transaction_direction='IN').aggregate(total_sum=Sum('total'))
+            outcomes_total = chosen_transaction.filter(transaction_direction='OUT').aggregate(total_sum=Sum('total'))
             income_outcome_balance = incomes_total['total_sum'] - outcomes_total['total_sum']
-
 
     else:
         form = PeriodicFinancialReport()
