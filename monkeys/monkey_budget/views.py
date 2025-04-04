@@ -145,9 +145,7 @@ def general_financial_report(request):
 
     for currency in currencies.__all__:
         chosen_accounts = all_accounts.filter(currency_code=currency)
-        currency_balance = 0
-        for account in chosen_accounts:
-            currency_balance += account.balance
+        currency_balance = sum(account.balance for account in chosen_accounts)
         decimal_currency_balance = Monetary(currency_balance, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal
         all_currencies_balance.append((currency,decimal_currency_balance))
 
