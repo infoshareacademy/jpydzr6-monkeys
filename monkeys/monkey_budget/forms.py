@@ -215,13 +215,13 @@ class PeriodicFinancialReport(forms.Form):
 
     start_date = forms.DateField(
         label='Data początkowa',
-        required=False,
+        required=True,
         widget=forms.DateInput(attrs={'type': 'date'}), initial=(date.today() - timedelta(days=30))
     )
     end_date = forms.DateField(
         label='Data końcowa',
-        required=False,
-        widget=forms.DateInput(attrs={'type': 'date'}), initial=date.today
+        required=True,
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=date.today,
     )
 
     def clean_start_date(self):
