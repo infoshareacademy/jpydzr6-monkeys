@@ -33,12 +33,14 @@
               </div>
         </div>
 
-    <h1>Podsumowanie wybranego okresu:</h1>
-        <h2>{{ start_date }} - {{ end_date }}</h2>
-        {% for transaction in all_transactions %}
-            <h3>transaction</h3>
-        {% endfor %}
-
+        <h1>Podsumowanie wybranego okresu:</h1>
+            <h2>{{ start_date }} - {{ end_date }}</h2>
+            <h3>Saldo na koniec wybranego okresu:</h3>
+            <h3>Suma wydatków: {{ outcomes_total.total_sum }}</h3>
+            <h3>Suma wpływów: {{ incomes_total.total_sum }}</h3>
+            <h3>Bilans na koniec wybranego okresu: {{ income_outcome_balance }}</h3>
+            <h3>Najpopularniejsze kategorie wydatków:</h3>
+            <h3>Najpopularniejsze kategorie wpływów:</h3>
 
     {% endblock content %}
 

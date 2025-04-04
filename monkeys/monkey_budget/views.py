@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import MoneyAccount, Transaction, SubTransaction
@@ -137,17 +138,24 @@ def transaction_list(request):
         'accounts': all_accounts,
     })
 
+
 def periodic_financial_report(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
-    all_transactions = Transaction.objects.all()
     start_date = (date.today() - timedelta(days=30))
     end_date = date.today()
+    outcomes_total = 0
+    incomes_total = 0
+    income_outcome_balance = 0
 
     if request.method == 'POST':
         form = PeriodicFinancialReport(request.POST)
         if form.is_valid():
             start_date = form.cleaned_data.get('start_date')
             end_date = form.cleaned_data.get('end_date')
+            incomes_total = Transaction.objects.filter(transaction_direction='IN').aggregate(total_sum=Sum('total'))
+            outcomes_total = Transaction.objects.filter(transaction_direction='OUT').aggregate(total_sum=Sum('total'))
+            income_outcome_balance = incomes_total['total_sum'] - outcomes_total['total_sum']
+
 
     else:
         form = PeriodicFinancialReport()
@@ -157,6 +165,8 @@ def periodic_financial_report(request):
         'form': form,
         'start_date': start_date,
         'end_date': end_date,
-        'all_transactions': all_transactions,
+        'outcomes_total': outcomes_total,
+        'incomes_total': incomes_total,
+        'income_outcome_balance': income_outcome_balance,
     }
     return render(request, 'account/periodic_financial_report.html', context)
