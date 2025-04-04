@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
@@ -210,4 +211,40 @@ SubTransactionFormSet = inlineformset_factory(
     can_delete=True,
 )
 
+class PeriodicFinancialReport(forms.Form):
 
+    start_date = forms.DateField(
+        label='Data początkowa',
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=(date.today() - timedelta(days=30))
+    )
+    end_date = forms.DateField(
+        label='Data końcowa',
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=date.today
+    )
+
+    def clean_start_date(self):
+        start_date = self.cleaned_data.get('start_date')
+        if start_date and start_date > date.today():
+            raise forms.ValidationError("Data początkowa nie może być w przyszłości.")
+        return start_date
+
+    def clean_end_date(self):
+        end_date = self.cleaned_data.get('end_date')
+        if end_date and end_date > date.today():
+            raise forms.ValidationError("Data końcowa nie może być w przyszłości.")
+        return end_date
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date:
+            if start_date > end_date:
+                raise forms.ValidationError(
+                    "Data początkowa nie może być późniejsza niż data końcowa."
+                )
+
+        return cleaned_data

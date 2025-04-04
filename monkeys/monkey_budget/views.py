@@ -136,3 +136,27 @@ def transaction_list(request):
         'transactions': transactions,
         'accounts': all_accounts,
     })
+
+def periodic_financial_report(request):
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    all_transactions = Transaction.objects.all()
+    start_date = (date.today() - timedelta(days=30))
+    end_date = date.today()
+
+    if request.method == 'POST':
+        form = PeriodicFinancialReport(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data.get('start_date')
+            end_date = form.cleaned_data.get('end_date')
+
+    else:
+        form = PeriodicFinancialReport()
+
+    context = {
+        'accounts': all_accounts,
+        'form': form,
+        'start_date': start_date,
+        'end_date': end_date,
+        'all_transactions': all_transactions,
+    }
+    return render(request, 'account/periodic_financial_report.html', context)
