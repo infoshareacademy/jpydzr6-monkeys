@@ -56,6 +56,22 @@ class MoneyAccountForm(forms.ModelForm):
         return cleaned_data
 
 
+class MonetaryField(forms.DecimalField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.currency = None
+        self.localize = True
+
+    def prepare_value(self, value):
+        if isinstance(value, Monetary):
+
+            value = self.initial.amount_as_decimal
+        return value
+
+    def set_currency(self, currency: Currency):
+        self.currency = currency
+
+
 class TransactionForm(forms.ModelForm):
     total_display = forms.CharField(
         label='Kwota łączna',
@@ -98,19 +114,6 @@ class TransactionForm(forms.ModelForm):
                 self.instance.currency)
 
 
-class MonetaryField(forms.DecimalField):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.currency = None
-        self.localize = True
-
-    def prepare_value(self, value):
-        if isinstance(value, Monetary):
-
-            value = self.initial.amount_as_decimal
-        return value
-
-
     def has_changed(self, initial, data):
         # Copied and adapted from original `has_changed()` method
         """Return True if data differs from initial."""
@@ -130,9 +133,6 @@ class MonetaryField(forms.DecimalField):
         initial_value = initial if initial is not None else ""
         data_value = data if data is not None else ""
         return initial_value != data_value
-
-    def set_currency(self, currency: Currency):
-        self.currency = currency
 
 
 class SubTransactionForm(forms.ModelForm):
