@@ -68,8 +68,33 @@ class MonetaryField(forms.DecimalField):
             value = self.initial.amount_as_decimal
         return value
 
-    def set_currency(self, currency: Currency):
-        self.currency = currency
+    '''
+    Poniższa walidacja jest propozycją, gdyby była wyamagana jakakolwiek po polsku. Póki co, nie udało mi się znaleźć
+    szybkiego sposobu przetłumaczenia walidacji HTML5, która wyswietla się, gdy np. zostanie wpisana liczba zamiast liczby 
+    '''
+    # def validate(self, value):
+    #     super().validate(value)
+    #     if self.currency is not None:
+    #         decimal_places = abs(value.as_tuple().exponent)
+    #         if decimal_places > self.currency.get('exponent'):
+    #             proposed_value = Monetary.major_to_minor_unit(value, self.currency)
+    #             proposed_value = Monetary(proposed_value, self.currency).amount_as_decimal
+    #             raise forms.ValidationError(
+    #                 """
+    #                 Wartość %(value)s przekracza ilość miejsc po przecinku dla wybranej waluty.
+    #                 Czy chciałes wpisać %(proposed_value)s?
+    #                 """,
+    #                 code="invalid",
+    #                 params={
+    #                     "value": value,
+    #                     "proposed_value": proposed_value
+    #                 },
+    #             )
+    #     else:
+    #         raise forms.ValidationError(
+    #             "Brak przypisanej waluty subtransakcji!",
+    #             code="invalid"
+    #         )
 
     def clean(self, value):
         value = self.to_python(value)
@@ -226,17 +251,19 @@ class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
 
     def clean(self):
         super().clean()
-        if self.instance.pk:
-            main_transaction_account = self.instance.account
-        else:
-            main_transaction_account = self.form_kwargs.get('main_transaction_form_cleaned_data').get('account')
-        main_transaction = self.instance
-        subtransactions = [subtransaction for subtransaction in self.cleaned_data  if subtransaction]
-        requested_account_balance_after_transaction = Transaction.calculate_new_account_balance(main_transaction_account, main_transaction, subtransactions)
-        main_transaction_account.validate_new_balance(requested_account_balance_after_transaction)
 
         if self.total_form_count() == len(self.deleted_forms):
             raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')
+
+        if self.is_valid():
+            if self.instance.pk:
+                main_transaction_account = self.instance.account
+            else:
+                main_transaction_account = self.form_kwargs.get('main_transaction_form_cleaned_data').get('account')
+            main_transaction = self.instance
+            subtransactions = [subtransaction for subtransaction in self.cleaned_data  if subtransaction]
+            requested_account_balance_after_transaction = Transaction.calculate_new_account_balance(main_transaction_account, main_transaction, subtransactions)
+            main_transaction_account.validate_new_balance(requested_account_balance_after_transaction)
 
 
 SubTransactionFormSet = inlineformset_factory(
