@@ -57,9 +57,9 @@ class MoneyAccountForm(forms.ModelForm):
 
 
 class MonetaryField(forms.DecimalField):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, currency: Currency=None, *args, **kwargs):
+        self.currency = currency
         super().__init__(*args, **kwargs)
-        self.currency = None
         self.localize = True
 
     def prepare_value(self, value):
@@ -70,6 +70,24 @@ class MonetaryField(forms.DecimalField):
 
     def set_currency(self, currency: Currency):
         self.currency = currency
+
+    def clean(self, value):
+        value = self.to_python(value)
+        self.validate(value)
+        self.run_validators(value)
+        if self.currency is not None:
+            try:
+                amount = Monetary.major_to_minor_unit(
+                    value, self.currency)
+                value = amount
+            except ValueError:
+                raise forms.ValidationError("Kwota musi być poprawną liczbą.")
+        else:
+            raise forms.ValidationError(
+                "Brak przypisanej waluty subtransakcji!",
+                code="invalid"
+            )
+        return value
 
 
 class TransactionForm(forms.ModelForm):
@@ -156,16 +174,25 @@ class SubTransactionForm(forms.ModelForm):
 
     def __init__(self, main_transaction_form_cleaned_data=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.main_transaction_form_cleaned_data = main_transaction_form_cleaned_data
+        if main_transaction_form_cleaned_data:
+            self.currency = main_transaction_form_cleaned_data.get('account').currency
+            self.fields['amount_decimal'] = MonetaryField(
+                required=True,
+                label='Kwota',
+                currency=self.currency,
+                decimal_places=self.currency.get('exponent')
+            )
 
         instance = self.instance
         if instance and instance.pk:
-            currency = instance.main_transaction.currency
-            currency_exponent = currency.get('exponent')
-
-            self.fields['amount_decimal'].set_currency(currency)
-            self.fields['amount_decimal'].decimal_places = currency_exponent
-            self.fields['amount_decimal'].initial = Monetary(instance.amount, currency)
+            self.currency = instance.currency
+            self.fields['amount_decimal'] = MonetaryField(
+                required=True,
+                label='Kwota',
+                currency=self.currency,
+                decimal_places=self.currency.get('exponent')
+            )
+            self.fields['amount_decimal'].initial = Monetary(instance.amount, self.currency)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -177,21 +204,7 @@ class SubTransactionForm(forms.ModelForm):
                 raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')
 
         cleaned_data['amount'] = self.cleaned_data.get('amount_decimal')
-
         return cleaned_data
-
-    def clean_amount_decimal(self):
-        if self.instance.pk:
-            currency = self.instance.main_transaction.currency
-        else:
-            currency = self.main_transaction_form_cleaned_data.get('account').currency
-        try:
-            amount = Monetary.major_to_minor_unit(
-                self.cleaned_data.get('amount_decimal'),
-                currency)
-        except ValueError:
-            raise forms.ValidationError("Kwota musi być poprawną liczbą.")
-        return amount
 
     def save(self, commit=True):
         # Ta metoda save służy do przepisania skonwertowanej wartości z decimal na int.
