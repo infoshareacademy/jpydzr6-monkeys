@@ -143,7 +143,6 @@ class SubTransactionForm(forms.ModelForm):
 
     class Meta:
         model = SubTransaction
-        # fields = ['amount', 'description']
         fields = ['amount_decimal', 'description']
         widgets = {
             'description': forms.Textarea(
@@ -207,11 +206,6 @@ class SubTransactionForm(forms.ModelForm):
 
 
 class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
-    # def __init__(self, main_transaction_form_cleaned_data=None, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self.main_transaction_form_cleaned_data = main_transaction_form_cleaned_data
-    #     a=2
-
     def add_fields(self, form, index):
         super().add_fields(form, index)
         if 'DELETE' in form.fields:
