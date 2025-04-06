@@ -1,12 +1,14 @@
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, Value
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models.functions import Coalesce
 from .models import MoneyAccount, Transaction, SubTransaction
 from django.template.loader import render_to_string
 from django.contrib import messages
 from .forms import *
+from .money import currencies
 
 
 # TODO - brak informacji o id użytkownika, jest wpisane na sztywno do zmiany po dodaniu możliwości logowania
@@ -132,7 +134,7 @@ def transaction_update_view(request, transaction_id):
 
 def transaction_list(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2)
-    transactions = Transaction.objects.all()
+    transactions = Transaction.objects.filter(account__user_id=2)
     return render(request, 'account/transactions_list.html', {
         'transactions': transactions,
         'accounts': all_accounts,
@@ -142,20 +144,52 @@ def transaction_list(request):
 def periodic_financial_report(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     start_date = (date.today() - timedelta(days=30))
-    end_date = date.today()
-    outcomes_total = 0
-    incomes_total = 0
-    income_outcome_balance = 0
+    end_date = (date.today())
+    currency_incomes_outcomes_balance = {'balances':[]
+    }
+    balance_after_period = []
+    date_filtered_transactions = None
 
     if request.method == 'POST':
         form = PeriodicFinancialReport(request.POST)
         if form.is_valid():
             start_date = form.cleaned_data.get('start_date')
             end_date = form.cleaned_data.get('end_date')
-            chosen_transaction = Transaction.objects.filter(date__range=(start_date, end_date))
-            incomes_total = chosen_transaction.filter(transaction_direction='IN').aggregate(total_sum=Sum('total'))
-            outcomes_total = chosen_transaction.filter(transaction_direction='OUT').aggregate(total_sum=Sum('total'))
-            income_outcome_balance = incomes_total['total_sum'] - outcomes_total['total_sum']
+            extended_end_date = end_date + timedelta(days=1)
+            date_filtered_transactions = Transaction.objects.filter(
+                account__user_id=2,
+                date__range=(start_date, extended_end_date)
+            )
+            for currency in currencies.__all__:
+                incomes_total = date_filtered_transactions.filter(
+                    account__currency_code= currency,
+                    transaction_direction='IN'
+                ).aggregate(total_sum=Coalesce(Sum('total'), Value(0)))
+
+                outcomes_total = date_filtered_transactions.filter(
+                    account__currency_code= currency,
+                    transaction_direction='OUT'
+                ).aggregate(total_sum=Coalesce(Sum('total'), Value(0)))
+                income_outcome_balance = incomes_total['total_sum'] - outcomes_total['total_sum']
+
+                currency_incomes_outcomes_balance['balances'].append({
+                        'currency_code': currency,
+                        'incomes_total': incomes_total,
+                        'outcomes_total': outcomes_total,
+                        'income_outcome_balance': income_outcome_balance
+                    })
+
+            # for currency in currencies.__all__:
+            #     currency_filtered_account = all_accounts.filter(currency_code=currency)
+            #     currency_account_balance_after_period = []
+            #     for account in currency_filtered_account:
+            #         # dlaczego nie pokazuje mi nic w date_currency_filtered_transactions
+            #         date_currency_filtered_transactions = Transaction.objects.filter(account_id=account.id, date__range=(start_date, end_date))
+            #         currency_account_balance_after_period.append(date_currency_filtered_transactions.first())
+            #     currency_balance_after_period = sum(currency_account_balance_after_period)
+            #     balance_after_period.append(currency_balance_after_period)
+
+
 
     else:
         form = PeriodicFinancialReport()
@@ -165,8 +199,8 @@ def periodic_financial_report(request):
         'form': form,
         'start_date': start_date,
         'end_date': end_date,
-        'outcomes_total': outcomes_total,
-        'incomes_total': incomes_total,
-        'income_outcome_balance': income_outcome_balance,
+        'currency_incomes_outcomes_balance': currency_incomes_outcomes_balance,
+        'balance_after_period': balance_after_period,
+        'date_filtered_transactions': date_filtered_transactions,
     }
     return render(request, 'account/periodic_financial_report.html', context)

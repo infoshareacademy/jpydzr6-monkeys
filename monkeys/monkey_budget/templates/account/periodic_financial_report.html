@@ -35,12 +35,17 @@
 
         <h1>Podsumowanie wybranego okresu:</h1>
             <h2>{{ start_date }} - {{ end_date }}</h2>
-            <h3>Saldo na koniec wybranego okresu:</h3>
-            <h3>Suma wydatków: {{ outcomes_total.total_sum }}</h3>
-            <h3>Suma wpływów: {{ incomes_total.total_sum }}</h3>
-            <h3>Bilans na koniec wybranego okresu: {{ income_outcome_balance }}</h3>
-            <h3>Najpopularniejsze kategorie wydatków:</h3>
-            <h3>Najpopularniejsze kategorie wpływów:</h3>
+<!--            <h3>Saldo na koniec wybranego okresu: {{ balance_after_period }}</h3>-->
+                {% for balance in currency_incomes_outcomes_balance.balances %}
+                    <h2>Waluta: {{balance.currency_code }}</h2>
+                        <h3>Suma wydatków: {{ balance.outcomes_total.total_sum }}</h3>
+                        <h3>Suma przychodów: {{ balance.incomes_total.total_sum }}</h3>
+                        <h3>Bilans wydatków i przychodów: {{ balance.income_outcome_balance }}</h3>
+                {% endfor %}
+<!--            <h3>Najpopularniejsze kategorie wydatków:</h3>-->
+<!--            <h3>Najpopularniejsze kategorie przychodów:</h3>-->
+
+<!--            <h3>{{ date_filtered_transactions }}</h3>-->
 
     {% endblock content %}
 
