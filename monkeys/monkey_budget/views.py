@@ -101,7 +101,9 @@ def transaction_create_view(request):
         if form.is_valid():
             formset = SubTransactionFormSet(
                 request.POST,
-                form_kwargs={'main_transaction_form_cleaned_data': form.cleaned_data}
+                form_kwargs={
+                    'main_transaction_account': form.cleaned_data.get('account'),
+                }
             )
             if formset.is_valid():
                 with transaction.atomic():

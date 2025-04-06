@@ -196,7 +196,7 @@ class SubTransactionForm(forms.ModelForm):
             'description': 'Opis',
         }
 
-    def __init__(self, main_transaction_form_cleaned_data=None, *args, **kwargs):
+    def __init__(self, main_transaction_account=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         instance = self.instance
         if instance and instance.pk:
@@ -208,8 +208,8 @@ class SubTransactionForm(forms.ModelForm):
                 decimal_places=self.currency.get('exponent')
             )
             self.fields['amount_decimal'].initial = Monetary(instance.amount, self.currency)
-        elif main_transaction_form_cleaned_data:
-            self.currency = main_transaction_form_cleaned_data.get('account').currency
+        elif main_transaction_account:
+            self.currency = main_transaction_account.currency
             self.fields['amount_decimal'] = MonetaryField(
                 required=True,
                 label='Kwota',
@@ -257,7 +257,7 @@ class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
             if self.instance.pk:
                 main_transaction_account = self.instance.account
             else:
-                main_transaction_account = self.form_kwargs.get('main_transaction_form_cleaned_data').get('account')
+                main_transaction_account = self.form_kwargs.get('main_transaction_account')
             main_transaction = self.instance
             subtransactions = [subtransaction for subtransaction in self.cleaned_data  if subtransaction]
             requested_account_balance_after_transaction = Transaction.calculate_new_account_balance(main_transaction_account, main_transaction, subtransactions)
