@@ -19,36 +19,37 @@
     {% endif %}
 
     <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+      {% csrf_token %}
+      <!-- Dane transakcji -->
+      <h3>Główna transakcja</h3>
+      <div class="border p-3 mb-3 bg-light rounded">
+        {% bootstrap_form form %}
+      </div>
 
-        <h3>Główna transakcja</h3>
+      <h3>Pozycje transakcji</h3>
+      {{ formset.management_form }}
+      {% for f in formset %}
         <div class="border p-3 mb-3 bg-light rounded">
-            {% bootstrap_form form %}
+          {% bootstrap_form f exclude='DELETE' %}
+          {% if formset.can_delete %}
+            {% bootstrap_field f.DELETE label_class='text-danger' %}
+          {% endif %}
         </div>
+      {% endfor %}
 
-        <h3>Pozycje transakcji</h3>
-        {{ formset.management_form }}
-        {% for f in formset %}
-            <div class="border p-3 mb-3 bg-light rounded">
-                {% bootstrap_form f exclude='DELETE' %}
-                {% if formset.can_delete %}
-                    {% bootstrap_field f.DELETE label_class='text-danger' %}
-                {% endif %}
-            </div>
-        {% endfor %}
+      <h3>Załączniki</h3>
+      {{ attach_formset.management_form }}
+      {% for af in attach_formset %}
+        <div class="border p-3 mb-3 bg-light rounded">
+          {% bootstrap_form af exclude='DELETE' %}
+          {% if attach_formset.can_delete %}
+            {% bootstrap_field af.DELETE label_class='text-danger' %}
+          {% endif %}
+        </div>
+      {% endfor %}
 
-        <h3>Załączniki</h3>
-        {{ attach_formset.management_form }}
-        {% for af in attach_formset %}
-            <div class="border p-3 mb-3 bg-light rounded">
-                {% bootstrap_form af exclude='DELETE' %}
-                {% if attach_formset.can_delete %}
-                    {% bootstrap_field af.DELETE label_class='text-danger' %}
-                {% endif %}
-            </div>
-        {% endfor %}
-
-        <button type="submit" class="btn btn-success">Zapisz</button>
+      <button type="submit" class="btn btn-success">Zapisz</button>
     </form>
+
 </div>
 {% endblock content %}
