@@ -104,57 +104,73 @@ def transaction_create_view(request):
     }
     return render(request, 'account/transaction_form.html', context)
 
-
-
 def transaction_update_view(request, transaction_id):
     header = 'Edycja transakcji'
-    obj = get_object_or_404(Transaction, id=transaction_id)
-    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
-    if request.method == 'POST':
-        form = TransactionForm(request.POST, instance=obj)
-        formset = SubTransactionFormSet(request.POST, instance=obj)
-        formset.extra = 0
-        context = {
-            'header': header,
-            'form': form,
-            'formset': formset,
-            'accounts': all_accounts,
-        }
-        if all([form.is_valid(), formset.is_valid()]):
-            with transaction.atomic():
-                transaction_form = form.save()
-                formset.instance = transaction_form
-                formset.save()
-            messages.success(request, 'Edycja transakcji udana!')
-            return redirect('edytuj-transakcje', transaction_id)
-    else:
-        form = TransactionForm(instance=obj)
-        formset = SubTransactionFormSet(instance=obj)
-        formset.extra = 0
-        context = {
-            'header': header,
-            'form': form,
-            'formset': formset,
-            'accounts': all_accounts,
-        }
-    return render(request, 'account/transaction_form.html', context)
+    transaction_obj = get_object_or_404(Transaction, pk=transaction_id)
 
+    if request.method == 'POST':
+        form = TransactionForm(request.POST, instance=transaction_obj)
+        sub_formset = SubTransactionFormSet(request.POST, instance=transaction_obj)
+        attach_formset = TransactionAttachmentFormSet(request.POST, request.FILES, instance=transaction_obj)
+
+        if all([
+            form.is_valid(),
+            sub_formset.is_valid(),
+            attach_formset.is_valid()
+        ]):
+            with transaction.atomic():
+                # Zapisujemy zmiany w transakcji
+                transaction_instance = form.save()
+
+                # Subtransakcje
+                sub_formset.instance = transaction_instance
+                sub_formset.save()
+
+                attach_formset.instance = transaction_instance
+                attach_formset.save()
+
+            messages.success(request, 'Edycja transakcji udana!')
+            return redirect('edytuj-transakcje', transaction_id)  # lub np. 'lista-transakcji'
+        else:
+            context = {
+                'header': header,
+                'form': form,
+                'formset': sub_formset,
+                'attach_formset': attach_formset,
+            }
+            return render(request, 'account/transaction_form.html', context)
+
+    else:
+        # GET: wczytujemy istniejącą transakcję
+        form = TransactionForm(instance=transaction_obj)
+        sub_formset = SubTransactionFormSet(instance=transaction_obj)
+        attach_formset = TransactionAttachmentFormSet(instance=transaction_obj)
+
+        context = {
+            'header': header,
+            'form': form,
+            'formset': sub_formset,
+            'attach_formset': attach_formset,
+        }
+        return render(request, 'account/transaction_form.html', context)
 
 def transaction_list(request):
     transactions = Transaction.objects.all()
 
     for t in transactions:
+        pdf_attachments = []
         image_attachments = []
         other_attachments = []
+
         for attach in t.attachments.all():
             name = attach.file.name.lower()
-            if name.endswith(('.png', '.jpg', '.jpeg')):
+            if name.endswith('.pdf'):
+                pdf_attachments.append(attach)
+            elif name.endswith(('.png', '.jpg', '.jpeg')):
                 image_attachments.append(attach)
-            else:
-                other_attachments.append(attach)
 
+        t.pdf_attachments = pdf_attachments
         t.image_attachments = image_attachments
-        t.other_attachments = other_attachments
 
     return render(request, 'account/transactions_list.html', {
         'transactions': transactions

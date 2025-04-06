@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 import django.utils.timezone
 from .money import Monetary, CurrencyHelper, Currency
 from django.core.validators import FileExtensionValidator
+from .validator import validate_file_size
 
 
 class MoneyAccount(models.Model):
@@ -190,9 +191,13 @@ class TransactionAttachment(models.Model):
     )
     file = models.FileField(
         upload_to='attachments/',
-        validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])]
+        validators=[
+            FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png']),
+            validate_file_size
+        ]
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Attachment: {self.file.name}"
+
