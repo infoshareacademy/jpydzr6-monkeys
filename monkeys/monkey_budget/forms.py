@@ -68,6 +68,26 @@ class MonetaryField(forms.DecimalField):
             value = self.initial.amount_as_decimal
         return value
 
+    def has_changed(self, initial, data):
+        # Copied and adapted from original `has_changed()` method
+        """Return True if data differs from initial."""
+        # Always return False if the field is disabled since self.bound_data
+        # always uses the initial value in this case.
+        if self.disabled:
+            return False
+        try:
+            data = self.to_python(data)
+            if hasattr(self, "_coerce"):
+                return self._coerce(data) != self._coerce(initial)
+        except ValidationError:
+            return True
+        # For purposes of seeing whether something has changed, None is
+        # the same as an empty string, if the data or initial value we get
+        # is None, replace it with ''.
+        initial_value = initial.amount_as_decimal if initial is not None else ""
+        data_value = data if data is not None else ""
+        return initial_value != data_value
+
     '''
     Poniższa walidacja jest propozycją, gdyby była wyamagana jakakolwiek po polsku. Póki co, nie udało mi się znaleźć
     szybkiego sposobu przetłumaczenia walidacji HTML5, która wyswietla się, gdy np. zostanie wpisana liczba zamiast liczby 
@@ -155,27 +175,6 @@ class TransactionForm(forms.ModelForm):
             self.fields['balance_after_transaction_display'].initial = Monetary(
                 self.instance.balance_after_transaction,
                 self.instance.currency)
-
-
-    def has_changed(self, initial, data):
-        # Copied and adapted from original `has_changed()` method
-        """Return True if data differs from initial."""
-        # Always return False if the field is disabled since self.bound_data
-        # always uses the initial value in this case.
-        if self.disabled:
-            return False
-        try:
-            data = self.to_python(data)
-            if hasattr(self, "_coerce"):
-                return self._coerce(data) != self._coerce(initial)
-        except ValidationError:
-            return True
-        # For purposes of seeing whether something has changed, None is
-        # the same as an empty string, if the data or initial value we get
-        # is None, replace it with ''.
-        initial_value = initial if initial is not None else ""
-        data_value = data if data is not None else ""
-        return initial_value != data_value
 
 
 class SubTransactionForm(forms.ModelForm):
