@@ -116,7 +116,6 @@ def transaction_create_view(request):
             formset = SubTransactionFormSet(request.POST)
     else:
         form = TransactionForm()
-        selected_account_id = request.session.get('selected_account')
         formset = SubTransactionFormSet()
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     context = {
