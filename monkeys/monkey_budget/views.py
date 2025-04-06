@@ -147,7 +147,7 @@ def periodic_financial_report(request):
     end_date = (date.today())
     currency_incomes_outcomes_balance = {'balances':[]
     }
-    balance_after_period = []
+    balance_after_period = 0
     date_filtered_transactions = None
 
     if request.method == 'POST':
@@ -160,7 +160,19 @@ def periodic_financial_report(request):
                 account__user_id=2,
                 date__range=(start_date, extended_end_date)
             )
+
+            # todo jak będę jeszcze robiła balanse to można dodać, żeby pokazywał tylko waluty, które są aktualnie używane przez usera
             for currency in currencies.__all__:
+                currency_balance_after_period = []
+                for account in all_accounts.filter(currency_code=currency):
+                    ordered_transactions = date_filtered_transactions.filter(account_id=account.id).order_by('-date')
+                    if ordered_transactions:
+                        end_period_account_balance = ordered_transactions[0].balance_after_transaction
+                    else:
+                        end_period_account_balance = account.balance
+                    currency_balance_after_period.append(end_period_account_balance)
+                balance_after_period = sum(currency_balance_after_period)
+
                 incomes_total = date_filtered_transactions.filter(
                     account__currency_code= currency,
                     transaction_direction='IN'
@@ -176,7 +188,8 @@ def periodic_financial_report(request):
                         'currency_code': currency,
                         'incomes_total': incomes_total,
                         'outcomes_total': outcomes_total,
-                        'income_outcome_balance': income_outcome_balance
+                        'income_outcome_balance': income_outcome_balance,
+                        'balance_after_period': balance_after_period,
                     })
 
             # for currency in currencies.__all__:
@@ -200,7 +213,6 @@ def periodic_financial_report(request):
         'start_date': start_date,
         'end_date': end_date,
         'currency_incomes_outcomes_balance': currency_incomes_outcomes_balance,
-        'balance_after_period': balance_after_period,
         'date_filtered_transactions': date_filtered_transactions,
     }
     return render(request, 'account/periodic_financial_report.html', context)
