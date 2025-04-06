@@ -180,7 +180,7 @@ class TransactionForm(forms.ModelForm):
 class SubTransactionForm(forms.ModelForm):
     amount_decimal = MonetaryField(
         required=True,
-        label='Kwota'
+        label='Kwota',
     )
 
     class Meta:
@@ -198,15 +198,6 @@ class SubTransactionForm(forms.ModelForm):
 
     def __init__(self, main_transaction_form_cleaned_data=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if main_transaction_form_cleaned_data:
-            self.currency = main_transaction_form_cleaned_data.get('account').currency
-            self.fields['amount_decimal'] = MonetaryField(
-                required=True,
-                label='Kwota',
-                currency=self.currency,
-                decimal_places=self.currency.get('exponent')
-            )
-
         instance = self.instance
         if instance and instance.pk:
             self.currency = instance.currency
@@ -217,6 +208,14 @@ class SubTransactionForm(forms.ModelForm):
                 decimal_places=self.currency.get('exponent')
             )
             self.fields['amount_decimal'].initial = Monetary(instance.amount, self.currency)
+        elif main_transaction_form_cleaned_data:
+            self.currency = main_transaction_form_cleaned_data.get('account').currency
+            self.fields['amount_decimal'] = MonetaryField(
+                required=True,
+                label='Kwota',
+                currency=self.currency,
+                decimal_places=self.currency.get('exponent'),
+            )
 
     def clean(self):
         cleaned_data = super().clean()
