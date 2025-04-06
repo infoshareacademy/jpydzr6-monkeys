@@ -200,4 +200,3 @@ class TransactionAttachment(models.Model):
 
     def __str__(self):
         return f"Attachment: {self.file.name}"
-
