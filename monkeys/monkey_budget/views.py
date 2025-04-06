@@ -161,49 +161,39 @@ def periodic_financial_report(request):
                 date__range=(start_date, extended_end_date)
             )
 
-            # todo jak będę jeszcze robiła balanse to można dodać, żeby pokazywał tylko waluty, które są aktualnie używane przez usera
+            # todo wyświatelanie jako tabela
+            # todo nie można brać aktualnego balansu konta - jest brany też dla okresów kiedy konto nie istniało
             for currency in currencies.__all__:
                 currency_balance_after_period = []
-                for account in all_accounts.filter(currency_code=currency):
-                    ordered_transactions = date_filtered_transactions.filter(account_id=account.id).order_by('-date')
-                    if ordered_transactions:
-                        end_period_account_balance = ordered_transactions[0].balance_after_transaction
-                    else:
-                        end_period_account_balance = account.balance
-                    currency_balance_after_period.append(end_period_account_balance)
-                balance_after_period = sum(currency_balance_after_period)
+                all_accounts_currency_filtered = all_accounts.filter(currency_code=currency)
+                if all_accounts_currency_filtered:
+                    for account in all_accounts.filter(currency_code=currency):
+                        ordered_transactions = date_filtered_transactions.filter(account_id=account.id).order_by('-date')
+                        if ordered_transactions:
+                            end_period_account_balance = ordered_transactions[0].balance_after_transaction
+                        else:
+                            end_period_account_balance = account.balance
+                        currency_balance_after_period.append(end_period_account_balance)
+                    balance_after_period = sum(currency_balance_after_period)
 
-                incomes_total = date_filtered_transactions.filter(
-                    account__currency_code= currency,
-                    transaction_direction='IN'
-                ).aggregate(total_sum=Coalesce(Sum('total'), Value(0)))
+                    incomes_total = date_filtered_transactions.filter(
+                        account__currency_code= currency,
+                        transaction_direction='IN'
+                    ).aggregate(total_sum=Coalesce(Sum('total'), Value(0)))
 
-                outcomes_total = date_filtered_transactions.filter(
-                    account__currency_code= currency,
-                    transaction_direction='OUT'
-                ).aggregate(total_sum=Coalesce(Sum('total'), Value(0)))
-                income_outcome_balance = incomes_total['total_sum'] - outcomes_total['total_sum']
+                    outcomes_total = date_filtered_transactions.filter(
+                        account__currency_code= currency,
+                        transaction_direction='OUT'
+                    ).aggregate(total_sum=Coalesce(Sum('total'), Value(0)))
+                    income_outcome_balance = incomes_total['total_sum'] - outcomes_total['total_sum']
 
-                currency_incomes_outcomes_balance['balances'].append({
-                        'currency_code': currency,
-                        'incomes_total': incomes_total,
-                        'outcomes_total': outcomes_total,
-                        'income_outcome_balance': income_outcome_balance,
-                        'balance_after_period': balance_after_period,
-                    })
-
-            # for currency in currencies.__all__:
-            #     currency_filtered_account = all_accounts.filter(currency_code=currency)
-            #     currency_account_balance_after_period = []
-            #     for account in currency_filtered_account:
-            #         # dlaczego nie pokazuje mi nic w date_currency_filtered_transactions
-            #         date_currency_filtered_transactions = Transaction.objects.filter(account_id=account.id, date__range=(start_date, end_date))
-            #         currency_account_balance_after_period.append(date_currency_filtered_transactions.first())
-            #     currency_balance_after_period = sum(currency_account_balance_after_period)
-            #     balance_after_period.append(currency_balance_after_period)
-
-
-
+                    currency_incomes_outcomes_balance['balances'].append({
+                            'currency_code': currency,
+                            'incomes_total': incomes_total,
+                            'outcomes_total': outcomes_total,
+                            'income_outcome_balance': income_outcome_balance,
+                            'balance_after_period': balance_after_period,
+                        })
     else:
         form = PeriodicFinancialReport()
 
