@@ -211,3 +211,11 @@ class TransactionAttachmentForm(forms.ModelForm):
     class Meta:
         model = TransactionAttachment
         fields = ['file']
+
+TransactionAttachmentFormSet = inlineformset_factory(
+    Transaction,
+    TransactionAttachment,
+    form=TransactionAttachmentForm,
+    extra=1,         # ile pustych formularzy na start
+    can_delete=True,
+)
