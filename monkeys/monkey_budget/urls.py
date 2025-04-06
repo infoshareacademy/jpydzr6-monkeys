@@ -7,6 +7,7 @@ urlpatterns = [
     path('konta/usun-konto/<int:account_id>', views.delete_money_account, name='usun-konto'),
     path('konta/<int:account_id>', views.show_money_account, name='pokaz-konto'),
     path('', views.dashboard, name='dashboard'),
+    path('api/account-currency-info/<int:account_id>', views.get_account_currency_info, name='account-currency-info'),
     path('transakcje/nowa/', views.transaction_create_view, name='nowa-transakcja'),
     path('transakcje/edytuj/<int:transaction_id>', views.transaction_update_view, name='edytuj-transakcje'),
     path('transakcje/lista/', views.transaction_list, name='lista-transakcji'),

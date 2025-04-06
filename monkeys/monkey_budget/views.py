@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import JsonResponse
@@ -5,6 +7,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import MoneyAccount, Transaction, SubTransaction
 from django.template.loader import render_to_string
 from django.contrib import messages
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.exceptions import NotFound, PermissionDenied
+from django.utils.formats import number_format
 from .forms import *
 
 
@@ -63,6 +70,30 @@ def delete_money_account(request, account_id):
         return JsonResponse({'success': True, 'message': 'Konto zostało usunięte.'})
     return JsonResponse({'success': False, 'message': 'Nieprawidłowe żądanie.'})
 
+@api_view(['GET'])
+# TODO: Kiedy użytkownik zostanie zaimplementowany, odkomentować linię z @permission classes. Niewykluczone, że będzie
+#  potrzebny też dopuszczenie metody autentykacji przez sesję, wtedy nalezy dodać @authentication_classes([SessionAuthentication
+#  Ponadto odkomentować blok warunkowy `if account.user_id != request.user:`
+@permission_classes([IsAuthenticated])
+def get_account_currency_info(request, account_id):
+    try:
+        account = MoneyAccount.objects.get(pk=account_id)
+        # if account.user_id != request.user:
+        #     # Zabezpieczenie przed odpytywaniem api bez zalogowanego użytkownika
+        #     raise PermissionDenied(detail="You must be logged in to request this data")
+        currency = account.currency
+        step = f"0.{'0' * (currency['exponent']-1)}1" if currency['exponent'] > 0 else "1"
+        placeholder = f"0.{'0' * (currency['exponent'])}" if currency['exponent'] > 0 else "0"
+        placeholder = Decimal(placeholder)
+        placeholder = number_format(placeholder, decimal_pos=currency['exponent'])
+        return Response({
+            'step': step,
+            'placeholder': placeholder,
+        })
+    except MoneyAccount.DoesNotExist:
+        raise NotFound(detail='Money account not found')
+
+
 def transaction_create_view(request):
     header = 'Nowa transakcja'
     if request.method == 'POST':
@@ -85,6 +116,7 @@ def transaction_create_view(request):
             formset = SubTransactionFormSet(request.POST)
     else:
         form = TransactionForm()
+        selected_account_id = request.session.get('selected_account')
         formset = SubTransactionFormSet()
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     context = {
