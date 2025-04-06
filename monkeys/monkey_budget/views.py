@@ -119,10 +119,8 @@ def transaction_update_view(request, transaction_id):
             attach_formset.is_valid()
         ]):
             with transaction.atomic():
-                # Zapisujemy zmiany w transakcji
                 transaction_instance = form.save()
 
-                # Subtransakcje
                 sub_formset.instance = transaction_instance
                 sub_formset.save()
 
@@ -130,7 +128,7 @@ def transaction_update_view(request, transaction_id):
                 attach_formset.save()
 
             messages.success(request, 'Edycja transakcji udana!')
-            return redirect('edytuj-transakcje', transaction_id)  # lub np. 'lista-transakcji'
+            return redirect('edytuj-transakcje', transaction_id)
         else:
             context = {
                 'header': header,
@@ -141,7 +139,6 @@ def transaction_update_view(request, transaction_id):
             return render(request, 'account/transaction_form.html', context)
 
     else:
-        # GET: wczytujemy istniejącą transakcję
         form = TransactionForm(instance=transaction_obj)
         sub_formset = SubTransactionFormSet(instance=transaction_obj)
         attach_formset = TransactionAttachmentFormSet(instance=transaction_obj)
@@ -160,7 +157,6 @@ def transaction_list(request):
     for t in transactions:
         pdf_attachments = []
         image_attachments = []
-        other_attachments = []
 
         for attach in t.attachments.all():
             name = attach.file.name.lower()
@@ -182,9 +178,9 @@ def attachment_add(request, pk):
         form = TransactionAttachmentForm(request.POST, request.FILES)
         if form.is_valid():
             attachment = form.save(commit=False)
-            attachment.transaction = transaction # przypisanie do transakcji
+            attachment.transaction = transaction
             attachment.save()
-            return redirect('lista-transakcji') #redirect
+            return redirect('lista-transakcji')
     else:
         form = TransactionAttachmentForm()
     return render(request, 'account/attachment_add.html', {
