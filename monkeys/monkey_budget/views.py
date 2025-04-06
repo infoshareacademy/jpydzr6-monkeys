@@ -68,24 +68,42 @@ def transaction_create_view(request):
     header = 'Nowa transakcja'
     if request.method == 'POST':
         form = TransactionForm(request.POST)
-        formset = SubTransactionFormSet(request.POST)
-        if all([form.is_valid(), formset.is_valid()]):
+        sub_formset = SubTransactionFormSet(request.POST)
+        attach_formset = TransactionAttachmentFormSet(request.POST, request.FILES)
+
+        if all([
+            form.is_valid(),
+            sub_formset.is_valid(),
+            attach_formset.is_valid()
+        ]):
             with transaction.atomic():
-                transaction_form = form.save()
-                formset.instance = transaction_form
-                formset.save()
-                return redirect('lista-transakcji')
+                # Zapisz główną transakcję
+                transaction_obj = form.save()
+
+                # Zapisz subtransakcje
+                sub_formset.instance = transaction_obj
+                sub_formset.save()
+
+                # Zapisz załączniki
+                attach_formset.instance = transaction_obj
+                attach_formset.save()
+
+            return redirect('lista-transakcji')
     else:
         form = TransactionForm()
-        formset = SubTransactionFormSet()
+        sub_formset = SubTransactionFormSet()
+        attach_formset = TransactionAttachmentFormSet()
+
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     context = {
         'header': header,
         'form': form,
-        'formset': formset,
+        'formset': sub_formset,
+        'attach_formset': attach_formset,
         'accounts': all_accounts,
     }
     return render(request, 'account/transaction_form.html', context)
+
 
 
 def transaction_update_view(request, transaction_id):
