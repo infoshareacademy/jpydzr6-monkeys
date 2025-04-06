@@ -81,6 +81,8 @@ def transaction_create_view(request):
             else:
                 for error in formset.non_form_errors():
                     messages.error(request, error)
+        else:
+            formset = SubTransactionFormSet(request.POST)
     else:
         form = TransactionForm()
         formset = SubTransactionFormSet()
