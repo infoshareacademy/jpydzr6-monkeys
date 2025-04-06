@@ -6,6 +6,7 @@ from django.db.models import Sum
 from django.contrib.auth.models import User
 import django.utils.timezone
 from .money import Monetary, CurrencyHelper, Currency
+from django.core.validators import FileExtensionValidator
 
 
 class MoneyAccount(models.Model):
@@ -180,10 +181,18 @@ class SubTransaction(models.Model):
             super().delete(*args, **kwargs)
             main_transaction.save()
 
+
 class TransactionAttachment(models.Model):
-    transaction = models.ForeignKey(Transaction, related_name='attachments', on_delete=models.CASCADE)
-    file = models.FileField(upload_to='transactions/')
+    transaction = models.ForeignKey(
+        Transaction,
+        on_delete=models.CASCADE,
+        related_name='attachments'
+    )
+    file = models.FileField(
+        upload_to='attachments/',
+        validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])]
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.file.name}"
+        return f"Attachment: {self.file.name}"
