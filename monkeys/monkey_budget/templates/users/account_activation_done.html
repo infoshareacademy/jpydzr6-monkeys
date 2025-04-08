@@ -1,0 +1,29 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">{% trans "Konto aktywowane" context "users" %}</h3>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4 class="mb-3">{% trans "Twoje konto zostało aktywowane!" context "users" %}</h4>
+                    <p class="text-muted">{% trans "Możesz teraz zalogować się za pomocą swojego hasła lub użyć linku do logowania." context "users" %}</p>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'login' %}" class="btn btn-primary">{% trans "Zaloguj się za pomocą hasła" context "users" %}</a>
+                        <a href="{% url 'magic_link_request' %}" class="btn btn-outline-primary">{% trans "Zaloguj się za pomocą linku" context "users" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
