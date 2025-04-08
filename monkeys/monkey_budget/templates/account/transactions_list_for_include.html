@@ -1,5 +1,7 @@
-{% load django_bootstrap5 %}
+{% extends 'account/base.html' %}
+{% load static %}
 
+{% block content %}
 <div class="container">
     <h1>Lista transakcji</h1>
     <table class="table table-striped">
@@ -79,3 +81,4 @@
         </tbody>
     </table>
 </div>
+{% endblock content %}
