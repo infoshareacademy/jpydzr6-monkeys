@@ -159,7 +159,7 @@ def transaction_update_view(request, transaction_id):
                 formset.instance = transaction_form
                 formset.save()
             messages.success(request, 'Edycja transakcji udana!')
-            return redirect('edytuj-transakcje', transaction_id)
+            return redirect('monkey_budget:edytuj-transakcje', transaction_id)
         else:
             for error in formset.non_form_errors():
                 messages.error(request, error)
