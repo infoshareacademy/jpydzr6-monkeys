@@ -71,6 +71,14 @@
               <li><a href="#">Dropdown 4</a></li>
             </ul>
           </li>
+
+          <li class="dropdown"><a href="#"><span>Transakcje</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+            <ul>
+              <li><a href="{% url 'monkey_budget:lista-transakcji' %}">Wszystkie transkacje</a></li>
+              <li><a href="{% url 'monkey_budget:nowa-transakcja' %}">Dodaj transakcję</a></li>
+            </ul>
+          </li>
+
           <li><a href="{% url 'monkey_budget:contact' %}">Kontakt</a></li>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
