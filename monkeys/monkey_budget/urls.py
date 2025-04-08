@@ -14,7 +14,7 @@ urlpatterns = [
     path('konta/<int:account_id>', views.show_money_account, name='pokaz-konto'),
     path('konta/dasboard/', views.dashboard, name='dashboard'),
     path('api/account-currency-info/<int:account_id>', views.get_account_currency_info, name='account-currency-info'),
-    path('transakcje/nowa/', views.transaction_create_view, name='nowa-transakcja'),
-    path('transakcje/edytuj/<int:transaction_id>', views.transaction_update_view, name='edytuj-transakcje'),
+path('transaction/create/', views.TransactionCreateView.as_view(), name='transaction-create'),
+    path('transaction/<int:pk>/update', views.TransactionUpdateView.as_view(), name='transaction-update'),
     path('transakcje/lista/', views.transaction_list, name='lista-transakcji'),
 ]
