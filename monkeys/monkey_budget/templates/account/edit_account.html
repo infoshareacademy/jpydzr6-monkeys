@@ -1,28 +1,8 @@
-{% extends "account/base.html" %}
-<html lang="en">
-
-{% block head %}
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Konta{% endblock %}</title>
-    {% load django_bootstrap5 %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
-</head>
-{% endblock head %}
-
-<body>
-    {% block side-menu %}
-        {{ block.super }}
-    {% endblock side-menu%}
-
-    {% block show-side-menu %}
-    {{ block.super }}
-    {% endblock show-side-menu %}
-
-    {% block content %}
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
     <br>
-    <h1 class="display-3 lead text-center" style="font-family: 'Papyrus', cursive">Edycja konta</h1>
+    <h1>Edycja konta</h1>
     <div class="container">
             <form method="post">
                 {% csrf_token %}
@@ -33,6 +13,3 @@
         </form>
     </div>
     {% endblock content %}
-
-</body>
-</html>
