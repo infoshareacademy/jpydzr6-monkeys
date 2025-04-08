@@ -42,7 +42,7 @@
     </div>
 
 <script>
-    const appUrl = "/monkey-budget/";
+    const appUrl = "{% url 'monkey_budget:home' %}";
 </script>
 <script src="{% static 'js/transaction_form_logic.js' %}"></script>
 {% endblock content %}
