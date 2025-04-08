@@ -1,5 +1,6 @@
-{% extends 'account/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
+{% load django_bootstrap5 %}
 
 {% block content %}
     <div class="container">
@@ -39,4 +40,9 @@
             <button type="submit" class="btn btn-success">Zapisz</button>
         </form>
     </div>
+
+<script>
+    const appUrl = "{% url 'monkey_budget:home' %}";
+</script>
+<script src="{% static 'js/transaction_form_logic.js' %}"></script>
 {% endblock content %}

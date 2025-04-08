@@ -1,4 +1,4 @@
-{% extends 'account/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
@@ -46,7 +46,7 @@
                             aria-controls="subs-{{ transaction.pk }}">
                         Wyświetl/Ukryj
                     </button>
-                    <a href="{% url 'edytuj-transakcje' transaction.id %}">
+                    <a href="{% url 'monkey_budget:edytuj-transakcje' transaction.id %}">
                         <button class="btn btn-sm btn-primary" type="button">
                             Edytuj
                         </button>
