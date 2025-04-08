@@ -8,6 +8,7 @@
                     <h1>Szczegóły konta: {{account.name}} </h1>
                 </div>
                 <div>
+
                     <h3><br> Stan konta: {{account.balance_formatted}}</h3>
                     <h4><br> Typ: {{account.get_type_display_name}}</h4>
                     <h5><br> Opis: {{account.description}}</h5>
@@ -57,7 +58,4 @@
             }
         }
         </script>
-    {% endblock content %}
-
-</body>
-</html>
+    {% endblock %}

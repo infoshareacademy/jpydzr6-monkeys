@@ -1,8 +1,10 @@
+import decimal
+from decimal import Decimal
 from django.core.validators import ValidationError, MinValueValidator
 from django.db import models, transaction
+from django.db.models import Sum
 from django.contrib.auth.models import User
 import django.utils.timezone
-
 from .money import Monetary, CurrencyHelper, Currency
 
 
@@ -20,6 +22,7 @@ class MoneyAccount(models.Model):
     currency_code = models.CharField(choices=CurrencyHelper.get_currencies_set(), max_length=3, default='PLN')
     # dłuższy opis konta dodawany przez użytkownika
     description = models.TextField(max_length=512)
+    possibly_negative = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.name}: {self.balance_formatted}'
@@ -35,9 +38,52 @@ class MoneyAccount(models.Model):
     def get_type_display_name(self):
         return dict(self.types).get(self.type, self.type)
 
+    def validate_new_balance(self, new_balance: int) -> None | bool:
+        if not self.possibly_negative and new_balance < 0:
+            exceeding = Monetary(abs(new_balance), self.currency)
+            raise ValidationError(f"Wybrane konto nie może posiadać ujemnego salda. "
+                                  f"Transakcja przekracza saldo konta o {exceeding}.")
+        return True
+
+
     class Meta:
         app_label = 'monkey_budget'
         verbose_name = 'Money Account'
+
+
+class MainCategory(models.Model):
+    id = models.AutoField(primary_key=True, null=False)
+    user_id = models.ForeignKey(User, related_name='main_categories', on_delete=models.CASCADE, null=False)
+    name = models.CharField(max_length=100)
+    category_types = [
+        ('INC', 'Przychód'),
+        ('EXP', 'Wydatek'),
+    ]
+    category_type = models.CharField(choices=category_types, max_length=3)
+    description = models.TextField(max_length=512, blank=True)
+
+    def __str__(self):
+        return f'{self.name} ({self.get_category_type_display()})'
+
+    class Meta:
+        app_label = 'monkey_budget'
+        verbose_name = 'Main Category'
+        verbose_name_plural = 'Main Categories'
+
+
+class SubCategory(models.Model):
+    id = models.AutoField(primary_key=True, null=False)
+    parent_category = models.ForeignKey(MainCategory, related_name='subcategories', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    description = models.TextField(max_length=512, blank=True)
+
+    def __str__(self):
+        return f'{self.parent_category.name} - {self.name}'
+
+    class Meta:
+        app_label = 'monkey_budget'
+        verbose_name = 'Sub Category'
+        verbose_name_plural = 'Sub Categories'
 
 
 class Transaction(models.Model):
@@ -76,15 +122,60 @@ class Transaction(models.Model):
     def balance_after_transaction_formatted(self) -> Monetary:
         return Monetary(self.balance_after_transaction, self.currency)
 
+    @staticmethod
+    def calculate_new_account_balance(new_transaction, subtransactions) -> int:
+        actual_account_balance = new_transaction.account.balance
+        actual_transaction_total = new_transaction.total
+        new_trasnaction_total = sum(subtransaction['amount'] for subtransaction in subtransactions)
+
+        if new_transaction.transaction_direction == 'IN':
+            previous_account_balance = actual_account_balance - actual_transaction_total
+            new_balance_after_transaction = previous_account_balance + new_trasnaction_total
+        else:
+            previous_account_balance = actual_account_balance + actual_transaction_total
+            new_balance_after_transaction = previous_account_balance - new_trasnaction_total
+        return new_balance_after_transaction
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if not self.pk:
+                # Zapisz transakcję, aby dostać primary key
+                # Nie liczymy sumy subtransakcji, bo one nie dostały jeszcze przypisanego klucza głównej transakcji
+                super().save(*args, **kwargs)
+            else:
+                # Główna transakcja już jest zapisana w bazie, więc subtransakcję znają jej primary key.
+                # Oblicz sumę subtransackji. Zwracane jest 0, jeśli nie ma subtransakcji, ale to jest tylko dla admina.W formularzu użytkownika zawsze musi byc jedna subtransakcja
+                # Zaaktualizuj główną transakcję
+                previous_total = self.total
+                self.total = self.subtransactions.aggregate(Sum('amount'))['amount__sum'] or 0
+                if self.transaction_direction == 'IN':
+                    self.account.balance -= previous_total
+                    self.balance_after_transaction = self.account.balance + self.total
+                else:
+                    self.account.balance += previous_total
+                    self.balance_after_transaction = self.account.balance - self.total
+                self.account.balance = self.balance_after_transaction
+                self.account.save()
+                super().save(*args, **kwargs)
+
+
 class SubTransaction(models.Model):
-    main_transaction = models.ForeignKey(Transaction, on_delete=models.deletion.CASCADE,
-                                         related_name='sub_transaction')
-    amount = models.BigIntegerField(validators=[MinValueValidator(limit_value=0, message='Transaction total value must be nonnegative')])
+    main_transaction = models.ForeignKey(
+        Transaction,
+        on_delete=models.deletion.CASCADE,
+        related_name='subtransactions')
+    amount = models.BigIntegerField(
+        validators=[MinValueValidator(
+            limit_value=0,
+            message='Subtransaction amount value must be nonnegative')])
     description = models.CharField(max_length=100, blank=True)
 
+    class Meta:
+        app_label = 'monkey_budget'
+
     def __str__(self):
-        money = Monetary(int(self.amount), CurrencyHelper.get_currency_by_its_code(self.main_transaction.account.currency_code))
-        return f"Transaction component ({money})"
+        money = Monetary(int(self.amount), self.currency)
+        return f"Part of transaction ({money})"
 
     @property
     def currency(self):
@@ -93,3 +184,20 @@ class SubTransaction(models.Model):
     @property
     def amount_formatted(self) -> Monetary:
         return Monetary(self.amount, self.currency)
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if not self.main_transaction.pk:
+                # Zapisz główną transakcję, aby mieć jej primary key
+                self.main_transaction.save()
+            # Zapisz subtransakcje
+            super().save(*args, **kwargs)
+            # Zaaktualizuj główną transakcję
+            self.main_transaction.save()
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            main_transaction = self.main_transaction
+
+            super().delete(*args, **kwargs)
+            main_transaction.save()

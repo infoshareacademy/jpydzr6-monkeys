@@ -1,6 +1,6 @@
 from __future__ import annotations
 from math import floor
-from decimal import Decimal, localcontext
+from decimal import Decimal
 
 from . import currencies
 from .currency import Currency
@@ -57,7 +57,7 @@ class Monetary:
 
     def __str__(self):
         # breakpoint()
-        return f"{self.currency} {str(self.decimal)}"
+        return f"{self.currency} {str(self.amount_as_decimal)}"
 
     @property
     def amount(self) -> int:
@@ -68,7 +68,7 @@ class Monetary:
         return self.__currency.get("code")
 
     @property
-    def decimal(self) -> Decimal:
+    def amount_as_decimal(self) -> Decimal:
         factor = Decimal(self.__currency.get("base")) ** Decimal(self.__currency.get("exponent"))
         major = Decimal(self.amount) / factor
         quantizer = Decimal(10) ** -self.__currency.get("exponent")
@@ -84,15 +84,18 @@ class Monetary:
             return True
 
     @staticmethod
-    def major_to_minor_unit(major_value: int | float | str, currency: Currency) -> int:
+    def major_to_minor_unit(major_value: Decimal | int | float | str, currency: Currency) -> int:
         """
         Converts an amount of money in major unit to appropriate minor unit
-        :param major_value: Amount of money in major unit
+        :param major_value: Amount of money in major unit, preferred decimal
         :param currency: Currency on which basis the amount will be converted
         :return:
         """
         factor = pow(currency.get("base"), currency.get("exponent"))
         match major_value:
+            case Decimal():
+                factor = Decimal(currency.get("base")) ** Decimal(currency.get("exponent"))
+                return int(major_value * factor)
             case int():
                 return major_value * factor
             case float():
