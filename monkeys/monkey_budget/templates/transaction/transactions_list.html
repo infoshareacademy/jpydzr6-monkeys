@@ -4,6 +4,15 @@
 {% block content %}
 <div class="container">
     <h1>Lista transakcji</h1>
+
+    {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
     <table class="table table-striped">
         <thead>
         <tr>

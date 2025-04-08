@@ -80,7 +80,8 @@ class TransactionFormMixin:
                 self.object = form.save()
                 formset.instance = self.object
                 formset.save()
-                return redirect(self.success_url)
+                messages.success(self.request, self.get_success_message())
+                return redirect(self.get_success_url())
         else:
             for error in formset.errors:
                 messages.error(self.request, error)
@@ -91,10 +92,20 @@ class TransactionCreateView(TransactionFormMixin, CreateView):
     def get_header(self):
         return 'Nowa transakcja'
 
+    def get_success_message(self):
+        return f"Transakcja została dodana"
+
 
 class TransactionUpdateView(TransactionFormMixin, UpdateView):
     def get_header(self):
         return 'Edytuj transakcję'
+
+    def get_success_message(self):
+        return f"Transakcja została pomyślnie edytowana"
+
+    def get_success_url(self):
+        url = reverse_lazy('monkey_budget:transaction-update', kwargs={'pk': self.object.pk})
+        return url
 
 
 def transaction_list(request):
