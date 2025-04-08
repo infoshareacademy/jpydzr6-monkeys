@@ -145,9 +145,7 @@ def periodic_financial_report(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
     start_date = (date.today() - timedelta(days=30))
     end_date = (date.today())
-    currency_incomes_outcomes_balance = {'balances':[]
-    }
-    balance_after_period = 0
+    currency_incomes_outcomes_balance = {'balances':[]}
     date_filtered_transactions = None
 
     if request.method == 'POST':
@@ -162,7 +160,9 @@ def periodic_financial_report(request):
             )
 
             # todo wyświatelanie jako tabela
-            # todo nie można brać aktualnego balansu konta - jest brany też dla okresów kiedy konto nie istniało
+            # todo nie można brać aktualnego balansu konta - jest brany też dla okresów kiedy konto nie istniało,
+            #  lepiej brać saldo z ostatniej transakcji na danym koncie
+            # todo obsłuż sytuację, że dla danego okresu nie ma danych do wyświetlenia
             for currency in currencies.__all__:
                 currency_balance_after_period = []
                 all_accounts_currency_filtered = all_accounts.filter(currency_code=currency)
