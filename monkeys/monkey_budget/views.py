@@ -120,7 +120,7 @@ def transaction_create_view(request):
                     transaction_form = form.save()
                     formset.instance = transaction_form
                     formset.save()
-                    return redirect('lista-transakcji')
+                    return redirect('monkey_budget:lista-transakcji')
             else:
                 for error in formset.non_form_errors():
                     messages.error(request, error)
