@@ -1,21 +1,3 @@
-// document.getElementById('id_account').addEventListener('change', function() {
-//     const accountId = this.value;
-//     const apiUrl = appUrl+'api/account-currency-info/'+accountId
-//     console.log(apiUrl)
-//     fetch(apiUrl)
-//         .then(response => response.json())
-//         .then(data => {
-//             // Znajdź wszystkie pola amount_decimal w formsecie
-//             const transactionForms = document.querySelectorAll('[id^="id_subtransactions-"][id$="-amount_decimal"]');
-//
-//             transactionForms.forEach((amountInput) => {
-//                 // Ustaw dynamicznie step i placeholder dla każdego pola
-//                 amountInput.step = data.step;
-//                 amountInput.placeholder = data.placeholder;
-//             });
-//         });
-// });
-
 document.addEventListener('DOMContentLoaded', function() {
     const accountSelect = document.getElementById('id_account');
 
