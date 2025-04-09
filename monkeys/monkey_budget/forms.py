@@ -136,6 +136,10 @@ class MonetaryField(forms.DecimalField):
 
 
 class TransactionForm(forms.ModelForm):
+    account = forms.ModelChoiceField(
+        label='Konto',
+        queryset=MoneyAccount.objects.none(),
+    )
     total_display = forms.CharField(
         label='Kwota łączna',
         required=False,
@@ -168,7 +172,11 @@ class TransactionForm(forms.ModelForm):
         Transaction._meta.get_field('transaction_direction').choices = [('IN', 'przychód'), ('OUT', 'wydatek')]
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        if user is not None:
+            self.fields['account'].queryset = MoneyAccount.objects.filter(user_id=user)
 
         if self.instance.pk:
             self.fields['total_display'].initial = Monetary(self.instance.total, self.instance.currency)
