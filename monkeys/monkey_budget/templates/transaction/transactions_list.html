@@ -103,6 +103,8 @@
     </table>
 </div>
 
-{% bootstrap_pagination page_obj justify_content="center" pages_to_show=4 extra=request.GET.urlencode %}
+{% if page_obj %}
+    {% bootstrap_pagination page_obj justify_content="center" pages_to_show=4 extra=request.GET.urlencode %}
+{% endif %}
 
 {% endblock content %}
