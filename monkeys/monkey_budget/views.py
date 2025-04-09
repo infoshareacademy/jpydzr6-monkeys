@@ -31,6 +31,11 @@ def dashboard(request):
     context = {'accounts': all_accounts}
     return render(request, 'account/dashboard.html', context)
 
+def show_accounts_list(request):
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    context = {'accounts': all_accounts}
+    return render(request, 'account/show_accounts_list.html', context)
+
 def show_money_account(request, account_id):
     account_related_transactions = Transaction.objects.filter(account_id=account_id).order_by('-date')
     transactions_context = {'transactions': account_related_transactions}
