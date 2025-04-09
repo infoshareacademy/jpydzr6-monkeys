@@ -176,6 +176,14 @@ class TransactionListView(TransactionListMixin, ListView):
         return self.get_base_queryset()
 
 
+class AccountTransactionListView(TransactionListMixin, ListView):
+    template_name = 'transaction/account_transactions_list.html'
+
+    def get_queryset(self):
+        account_id = self.kwargs.get('account_id')
+        return self.get_base_queryset().filter(account_id=account_id)
+
+
 def transaction_list(request):
     all_accounts = MoneyAccount.objects.filter(user_id=2)
     transactions = Transaction.objects.all()
