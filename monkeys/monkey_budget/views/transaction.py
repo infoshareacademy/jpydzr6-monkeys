@@ -1,4 +1,5 @@
 from decimal import Decimal
+import datetime
 
 from django.contrib.auth.models import User
 from django.views.generic import CreateView, UpdateView, DetailView, ListView
@@ -118,7 +119,24 @@ class TransactionDetailView(DetailView):
 
 
 class TransactionFilterForm(forms.Form):
-    pass
+    date_from = forms.DateField(
+        required=False,
+        label="Data od",
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+    date_to = forms.DateField(
+        required=False,
+        label="Data do",
+        widget=forms.DateInput(attrs={'type': 'date'}),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        date_from = cleaned_data.get('date_from')
+        date_to = cleaned_data.get('date_to')
+
+        if date_from and date_to and date_from > date_to:
+            self.add_error('date_to', 'Data początkowa nie może być wcześniejsza niż końcowa')
 
 
 class TransactionListMixin:
@@ -128,20 +146,34 @@ class TransactionListMixin:
 
     def get_base_queryset(self):
         # TODO: Zaktualizować użytkownika z '2' na self.request.user
-        return Transaction.objects.filter(account__user_id=2).select_related('account').order_by('-id')
+        queryset = Transaction.objects.filter(account__user_id=2).select_related('account').order_by('-id')
+        filter_form = TransactionFilterForm(self.request.GET)
+
+        if filter_form.is_valid():
+            if filter_form.cleaned_data['date_from']:
+                queryset = queryset.filter(date__gte=filter_form.cleaned_data['date_from'])
+            if filter_form.cleaned_data['date_to']:
+                queryset = queryset.filter(date__lte=filter_form.cleaned_data['date_to'])
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if not self.request.GET:
+            initial_filter_form = {
+                'date_to': datetime.date.today().strftime('%Y-%m-%d'),
+            }
+            context['filter_form'] = TransactionFilterForm(initial=initial_filter_form)
+        else:
+            context['filter_form'] = TransactionFilterForm(self.request.GET)
+        context['header'] = 'Lista transakcji'
+        return context
 
 
 class TransactionListView(TransactionListMixin, ListView):
-    # context_objects_name = 'transactions'
     template_name = 'transaction/transactions_list.html'
 
     def get_queryset(self):
         return self.get_base_queryset()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['header'] = 'Lista transakcji'
-        return context
 
 
 def transaction_list(request):

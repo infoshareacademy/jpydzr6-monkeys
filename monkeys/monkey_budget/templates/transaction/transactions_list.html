@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load django_bootstrap5 %}
 
 {% block content %}
 <div class="container">
@@ -12,6 +13,17 @@
                 </div>
             {% endfor %}
         {% endif %}
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                {% bootstrap_form filter_form %}
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary me-2">Filtruj</button>
+                    <a href="{% url 'monkey_budget:transaction-list' %}" class="btn btn-outline-secondary">Wyczyść</a>
+                </div>
+            </form>
+        </div>
 
     <table class="table table-striped">
         <thead>
@@ -90,4 +102,7 @@
         </tbody>
     </table>
 </div>
+
+{% bootstrap_pagination page_obj justify_content="center" pages_to_show=4 extra=request.GET.urlencode %}
+
 {% endblock content %}
