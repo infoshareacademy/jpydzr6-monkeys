@@ -1,5 +1,4 @@
 from decimal import Decimal
-import datetime
 
 from django.contrib.auth.models import User
 from django.views.generic import CreateView, UpdateView, DetailView, ListView
@@ -12,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied
 from django.utils.formats import number_format
+from django.utils import timezone
 from django.urls import reverse_lazy
 from ..models import MoneyAccount, Transaction
 from ..forms import *
@@ -150,8 +150,7 @@ class TransactionListMixin:
     context_object_name = "transactions"
 
     def get_base_queryset(self):
-        # TODO: Zaktualizować użytkownika z '2' na self.request.user
-        queryset = Transaction.objects.filter(account__user_id=2).select_related('account').order_by('-id')
+        queryset = Transaction.objects.filter(account__user_id=self.request.user).select_related('account').order_by('-id')
         filter_form = TransactionFilterForm(self.request.GET)
 
         if filter_form.is_valid():
@@ -165,7 +164,7 @@ class TransactionListMixin:
         context = super().get_context_data(**kwargs)
         if not self.request.GET:
             initial_filter_form = {
-                'date_to': datetime.date.today().strftime('%Y-%m-%d'),
+                'date_to': timezone.localdate().strftime('%Y-%m-%d'),
             }
             context['filter_form'] = TransactionFilterForm(initial=initial_filter_form)
         else:
