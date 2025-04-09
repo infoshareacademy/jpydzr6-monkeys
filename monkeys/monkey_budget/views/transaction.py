@@ -1,7 +1,8 @@
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView, DetailView, ListView
+from django import forms
 from django.db import transaction as db_transaction
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
@@ -11,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied
 from django.utils.formats import number_format
 from django.urls import reverse_lazy
-from ..models import MoneyAccount, Transaction, SubTransaction
+from ..models import MoneyAccount, Transaction
 from ..forms import *
 
 
@@ -106,6 +107,41 @@ class TransactionUpdateView(TransactionFormMixin, UpdateView):
     def get_success_url(self):
         url = reverse_lazy('monkey_budget:transaction-update', kwargs={'pk': self.object.pk})
         return url
+
+
+class TransactionDeleteView():
+    pass
+
+
+class TransactionDetailView(DetailView):
+    pass
+
+
+class TransactionFilterForm(forms.Form):
+    pass
+
+
+class TransactionListMixin:
+    model = Transaction
+    paginate_by = 10
+    context_object_name = "transactions"
+
+    def get_base_queryset(self):
+        # TODO: Zaktualizować użytkownika z '2' na self.request.user
+        return Transaction.objects.filter(account__user_id=2).select_related('account').order_by('-id')
+
+
+class TransactionListView(TransactionListMixin, ListView):
+    # context_objects_name = 'transactions'
+    template_name = 'transaction/transactions_list.html'
+
+    def get_queryset(self):
+        return self.get_base_queryset()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['header'] = 'Lista transakcji'
+        return context
 
 
 def transaction_list(request):
