@@ -21,6 +21,12 @@
                             <td>{{ account.balance_formatted }}</td>
                             <td>{{ account.get_type_display_name }}</td>
                             <td>{{ account.description }}</td>
+                            <td>
+                                <a href="{% url 'monkey_budget:pokaz-konto' account.id %}">
+                                <button class="btn btn-sm btn-primary" type="button">
+                                    Szczegóły konta
+                                </button>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
