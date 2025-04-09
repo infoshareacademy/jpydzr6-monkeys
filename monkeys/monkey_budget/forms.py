@@ -1,9 +1,9 @@
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
+from django.core.exceptions import ValidationError
 from .money import Monetary, Currency
 from .models import Transaction, SubTransaction
-from decimal import Decimal
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.utils.translation import gettext as _
@@ -59,6 +59,85 @@ class MoneyAccountForm(forms.ModelForm):
         return cleaned_data
 
 
+class MonetaryField(forms.DecimalField):
+    def __init__(self, currency: Currency=None, *args, **kwargs):
+        self.currency = currency
+        super().__init__(*args, **kwargs)
+        self.localize = True
+
+    def prepare_value(self, value):
+        if isinstance(value, Monetary):
+
+            value = self.initial.amount_as_decimal
+        return value
+
+    def has_changed(self, initial, data):
+        # Copied and adapted from original `has_changed()` method
+        """Return True if data differs from initial."""
+        # Always return False if the field is disabled since self.bound_data
+        # always uses the initial value in this case.
+        if self.disabled:
+            return False
+        try:
+            data = self.to_python(data)
+            if hasattr(self, "_coerce"):
+                return self._coerce(data) != self._coerce(initial)
+        except ValidationError:
+            return True
+        # For purposes of seeing whether something has changed, None is
+        # the same as an empty string, if the data or initial value we get
+        # is None, replace it with ''.
+        initial_value = initial.amount_as_decimal if initial is not None else ""
+        data_value = data if data is not None else ""
+        return initial_value != data_value
+
+    '''
+    Poniższa walidacja jest propozycją, gdyby była wyamagana jakakolwiek po polsku. Póki co, nie udało mi się znaleźć
+    szybkiego sposobu przetłumaczenia walidacji HTML5, która wyswietla się, gdy np. zostanie wpisana liczba zamiast liczby 
+    '''
+    # def validate(self, value):
+    #     super().validate(value)
+    #     if self.currency is not None:
+    #         decimal_places = abs(value.as_tuple().exponent)
+    #         if decimal_places > self.currency.get('exponent'):
+    #             proposed_value = Monetary.major_to_minor_unit(value, self.currency)
+    #             proposed_value = Monetary(proposed_value, self.currency).amount_as_decimal
+    #             raise forms.ValidationError(
+    #                 """
+    #                 Wartość %(value)s przekracza ilość miejsc po przecinku dla wybranej waluty.
+    #                 Czy chciałes wpisać %(proposed_value)s?
+    #                 """,
+    #                 code="invalid",
+    #                 params={
+    #                     "value": value,
+    #                     "proposed_value": proposed_value
+    #                 },
+    #             )
+    #     else:
+    #         raise forms.ValidationError(
+    #             "Brak przypisanej waluty subtransakcji!",
+    #             code="invalid"
+    #         )
+
+    def clean(self, value):
+        value = self.to_python(value)
+        self.validate(value)
+        self.run_validators(value)
+        if self.currency is not None:
+            try:
+                amount = Monetary.major_to_minor_unit(
+                    value, self.currency)
+                value = amount
+            except ValueError:
+                raise forms.ValidationError("Kwota musi być poprawną liczbą.")
+        else:
+            raise forms.ValidationError(
+                "Brak przypisanej waluty subtransakcji!",
+                code="invalid"
+            )
+        return value
+
+
 class TransactionForm(forms.ModelForm):
     total_display = forms.CharField(
         label='Kwota łączna',
@@ -106,40 +185,15 @@ class TransactionForm(forms.ModelForm):
                 self.instance.currency)
 
 
-class MonetaryField(forms.DecimalField):
-    def __init__(self, currency: Currency, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.currency = currency
-
-    def has_changed(self, initial, data):
-        super().has_changed(initial, data)
-        data = Monetary.major_to_minor_unit(data, self.currency)
-        # For purposes of seeing whether something has changed, None is
-        # the same as an empty string, if the data or initial value we get
-        # is None, replace it with ''.
-        initial_value = initial if initial is not None else ""
-        data_value = data if data is not None else ""
-        return initial_value != data_value
-
-
-class DecimalWithDynamicPlacesWidget(forms.NumberInput):
-    def __init__(self, decimal_places, *args, **kwargs):
-        self.decimal_places = decimal_places
-        super().__init__(*args, **kwargs)
-
-    def format_value(self, value):
-        if value is None:
-            return ''
-        elif isinstance(value, int):
-            return f"{Decimal(value / 10 ** self.decimal_places):.{self.decimal_places}f}"
-        else:
-            return value
-
-
 class SubTransactionForm(forms.ModelForm):
+    amount_decimal = MonetaryField(
+        required=True,
+        label='Kwota',
+    )
+
     class Meta:
         model = SubTransaction
-        fields = ['amount', 'description']
+        fields = ['amount_decimal', 'description']
         widgets = {
             'description': forms.Textarea(
                 attrs={'rows': '2'}
@@ -150,23 +204,26 @@ class SubTransactionForm(forms.ModelForm):
             'description': 'Opis',
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, main_transaction_account=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         instance = self.instance
-        if instance.pk:
-            currency = instance.main_transaction.currency
-            currency_exponent = currency.get('exponent')
-
-            self.fields['amount'] = MonetaryField(
-                label='Kwota',
-                max_digits=19,
-                decimal_places=currency_exponent,
+        if instance and instance.pk:
+            self.currency = instance.currency
+            self.fields['amount_decimal'] = MonetaryField(
                 required=True,
-                widget=DecimalWithDynamicPlacesWidget(decimal_places=currency_exponent),
-                currency=currency
+                label='Kwota',
+                currency=self.currency,
+                decimal_places=self.currency.get('exponent')
             )
-            self.fields['amount'].initial = Decimal(instance.amount) / Decimal(10 ** currency_exponent)
+            self.fields['amount_decimal'].initial = Monetary(instance.amount, self.currency)
+        elif main_transaction_account:
+            self.currency = main_transaction_account.currency
+            self.fields['amount_decimal'] = MonetaryField(
+                required=True,
+                label='Kwota',
+                currency=self.currency,
+                decimal_places=self.currency.get('exponent'),
+            )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -177,19 +234,19 @@ class SubTransactionForm(forms.ModelForm):
             if transaction.subtransactions.count() == 1:
                 raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')
 
+        cleaned_data['amount'] = self.cleaned_data.get('amount_decimal')
         return cleaned_data
 
-    def clean_amount(self):
-        if self.instance.pk:
-            try:
-                amount = Monetary.major_to_minor_unit(
-                    self.cleaned_data.get('amount'),
-                    self.instance.main_transaction.currency)
-            except ValueError:
-                raise forms.ValidationError("Kwota musi być poprawną liczbą.")
-            return amount
-        else:
-            return self.cleaned_data.get('amount')
+    def save(self, commit=True):
+        # Ta metoda save służy do przepisania skonwertowanej wartości z decimal na int.
+        # Nie wchodzi w zakres zadań metody save() w modelu
+        # ni robimy też tego w widoku, ponieważ wtedy nie dałoby rady zapisywać w django admin
+        instance = super().save(commit=False)
+        instance.amount = self.cleaned_data.get('amount_decimal')
+
+        if commit:
+            instance.save()
+        return instance
 
 
 class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
@@ -200,8 +257,19 @@ class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
 
     def clean(self):
         super().clean()
+
         if self.total_form_count() == len(self.deleted_forms):
             raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')
+
+        if self.is_valid():
+            if self.instance.pk:
+                main_transaction_account = self.instance.account
+            else:
+                main_transaction_account = self.form_kwargs.get('main_transaction_account')
+            main_transaction = self.instance
+            subtransactions = [subtransaction for subtransaction in self.cleaned_data  if subtransaction]
+            requested_account_balance_after_transaction = Transaction.calculate_new_account_balance(main_transaction_account, main_transaction, subtransactions)
+            main_transaction_account.validate_new_balance(requested_account_balance_after_transaction)
 
 
 SubTransactionFormSet = inlineformset_factory(

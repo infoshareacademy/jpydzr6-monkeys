@@ -1,5 +1,7 @@
-{% load django_bootstrap5 %}
+{% extends 'base.html' %}
+{% load static %}
 
+{% block content %}
 <div class="container">
     <h1>Lista transakcji</h1>
     <table class="table table-striped">
@@ -44,7 +46,7 @@
                             aria-controls="subs-{{ transaction.pk }}">
                         Wyświetl/Ukryj
                     </button>
-                    <a href="{% url 'edytuj-transakcje' transaction.id %}">
+                    <a href="{% url 'monkey_budget:edytuj-transakcje' transaction.id %}">
                         <button class="btn btn-sm btn-primary" type="button">
                             Edytuj
                         </button>
@@ -79,3 +81,4 @@
         </tbody>
     </table>
 </div>
+{% endblock content %}

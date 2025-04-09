@@ -157,8 +157,8 @@ class Transaction(models.Model):
         return Monetary(self.balance_after_transaction, self.currency)
 
     @staticmethod
-    def calculate_new_account_balance(new_transaction, subtransactions) -> int:
-        actual_account_balance = new_transaction.account.balance
+    def calculate_new_account_balance(new_transaction_account, new_transaction, subtransactions) -> int:
+        actual_account_balance = new_transaction_account.balance
         actual_transaction_total = new_transaction.total
         new_trasnaction_total = sum(subtransaction['amount'] for subtransaction in subtransactions)
 

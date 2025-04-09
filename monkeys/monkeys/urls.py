@@ -27,7 +27,7 @@ urlpatterns = [
 
 # URLs with language prefix
 urlpatterns += i18n_patterns(
-    path('monkey-budget/', include('monkey_budget.urls')),
+    path('', include('monkey_budget.urls')),
     path('admin/', admin.site.urls),
     prefix_default_language=False,
 )
