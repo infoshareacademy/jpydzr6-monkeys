@@ -61,7 +61,7 @@ def register(request):
             
             # Create activation link
             activation_url = request.build_absolute_uri(
-                reverse('activate', args=[uid, token])
+                reverse('monkey_budget:activate', args=[uid, token])
             )
             
             # Send activation email
@@ -463,7 +463,7 @@ def resend_activation_email(request):
                 
                 # Create activation link
                 activation_url = request.build_absolute_uri(
-                    reverse('activate', args=[uid, token])
+                    reverse('monkey_budget:activate', args=[uid, token])
                 )
                 
                 # Send activation email
