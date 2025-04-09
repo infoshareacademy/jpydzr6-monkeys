@@ -46,6 +46,7 @@ class TransactionFormMixin:
     form_class = TransactionForm
     template_name = 'transaction/transaction_form.html'
     success_url = reverse_lazy('monkey_budget:lista-transakcji')
+    success_url = reverse_lazy('monkey_budget:transaction-list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
