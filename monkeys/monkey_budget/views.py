@@ -100,10 +100,10 @@ def activate_account(request, uidb64, token):
         user.is_active = True
         user.save()
         messages.success(request, _('Your account has been activated! You can now log in.'))
-        return redirect('login')
+        return redirect('monkey_budget:login')
     else:
         messages.error(request, _('The activation link is invalid or expired.'))
-        return redirect('login')
+        return redirect('monkey_budget:login')
 
 def password_reset_request(request):
     """View for requesting a password reset via email"""
@@ -138,7 +138,7 @@ def password_reset_request(request):
                 )
                 
                 messages.success(request, _('We have sent a password reset link to your email.'))
-                return redirect('login')
+                return redirect('monkey_budget:login')
             except User.DoesNotExist:
                 messages.error(request, _('No user found with the given email address.'))
     else:
@@ -161,14 +161,14 @@ def password_reset_confirm(request, uidb64, token):
                 user.set_password(form.cleaned_data['new_password1'])
                 user.save()
                 messages.success(request, 'Hasło zostało zmienione! Możesz się teraz zalogować.')
-                return redirect('login')
+                return redirect('monkey_budget:login')
         else:
             form = SetPasswordForm()
         
         return render(request, 'users/password_reset_confirm.html', {'form': form})
     else:
         messages.error(request, 'Link do resetowania hasła jest nieprawidłowy lub wygasł.')
-        return redirect('login')
+        return redirect('monkey_budget:login')
 
 def magic_link_request(request):
     """View for requesting a magic login link via email"""
@@ -182,7 +182,7 @@ def magic_link_request(request):
                 
                 if not users.exists():
                     messages.error(request, _('No active user found with the given email address.'))
-                    return redirect('login')
+                    return redirect('monkey_budget:login')
                 
                 # Send magic link to all matching users
                 current_site = get_current_site(request)
@@ -210,10 +210,10 @@ def magic_link_request(request):
                     )
                 
                 messages.success(request, _('We have sent a login link to your email.'))
-                return redirect('login')
+                return redirect('monkey_budget:login')
             except Exception as e:
                 messages.error(request, _('An error occurred while sending the login link.'))
-                return redirect('login')
+                return redirect('monkey_budget:login')
     else:
         form = MagicLinkLoginForm()
     
@@ -230,12 +230,10 @@ def magic_link_login(request, uidb64, token):
     if user is not None and magic_link_token.check_token(user, token):
         login(request, user)
         messages.success(request, _('Welcome, %(first_name)s! You have been successfully logged in.') % {'first_name': user.first_name})
-        return redirect('dashboard')
+        return redirect('monkey_budget:dashboard')
     else:
         messages.error(request, _('The login link is invalid or expired.'))
-        return redirect('login')
-
-@login_required
+        return redirect('monkey_budget:login')
 
 def home(request):
     return render(request, 'home.html')
@@ -246,6 +244,7 @@ def team(request):
 def contact(request):
     return render (request, 'contact.html')
 
+@login_required
 def dashboard(request):
     all_accounts = MoneyAccount.objects.filter(user_id=request.user.id).order_by('name')
     context = {'accounts': all_accounts}
@@ -486,7 +485,7 @@ def resend_activation_email(request):
                 )
                 
                 messages.success(request, _('Activation email has been resent. Please check your inbox.'))
-                return redirect('login')
+                return redirect('monkey_budget:login')
             except User.DoesNotExist:
                 messages.error(request, _('No inactive account found with this email address.'))
     else:

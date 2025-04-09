@@ -18,7 +18,10 @@ urlpatterns = [
     path('transakcje/edytuj/<int:transaction_id>', views.transaction_update_view, name='edytuj-transakcje'),
     path('transakcje/lista/', views.transaction_list, name='lista-transakcji'),
     path('users/login/', views.CustomLoginView.as_view(), name='login'),
-    path('users/logout/', auth_views.LogoutView.as_view(template_name='users/logout.html', http_method_names=['get', 'post']), name='logout'),
+    path('users/logout/', auth_views.LogoutView.as_view(
+        next_page='monkey_budget:home',
+        template_name='users/logout.html',
+    ), name='logout'),
     path('users/register/', views.register, name='register'),
     path('users/profile/', views.profile, name='profile'),
     path('users/password/', auth_views.PasswordChangeView.as_view(
