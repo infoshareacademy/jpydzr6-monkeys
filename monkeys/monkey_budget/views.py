@@ -67,7 +67,7 @@ def edit_money_account(request, account_id):
             account = form.save(commit=False)
             account.balance = Monetary.major_to_minor_unit(form.cleaned_data['balance'], account.currency)
             form.save()
-            return redirect(f'/monkey-budget/konta/{chosen_account.id}')
+            return redirect(f'/konta/{chosen_account.id}')
     else:
         initial_data = {
             'balance': Monetary(chosen_account.balance, chosen_account.currency).amount_as_decimal
