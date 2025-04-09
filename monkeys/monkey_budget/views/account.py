@@ -1,8 +1,9 @@
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from ..models import MoneyAccount, Transaction
+from ..models import MoneyAccount
 from django.template.loader import render_to_string
+from .transaction import AccountTransactionListView
 from ..forms import *
 
 
@@ -14,12 +15,16 @@ def dashboard(request):
     return render(request, 'account/dashboard.html', context)
 
 def show_money_account(request, account_id):
-    account_related_transactions = Transaction.objects.filter(account_id=account_id).order_by('-date')
-    transactions_context = {'transactions': account_related_transactions}
-    transactions_list_html = render_to_string('account/transactions_list_for_include.html', transactions_context)
     chosen_account = get_object_or_404(MoneyAccount, pk=account_id)
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
-    context = {'account': chosen_account, 'accounts': all_accounts, 'transactions_list_html': transactions_list_html}
+    account_related_transactions_view = AccountTransactionListView.as_view()
+    response = account_related_transactions_view(request, account_id=account_id)
+    if hasattr(response, 'render') and callable(response.render):
+        response.render()
+    account_related_transactions = response.content.decode('utf-8')
+    context = {'account': chosen_account,
+               'accounts': all_accounts,
+               'transactions_list_html': account_related_transactions}
     return render(request, 'account/show_account.html', context)
 
 def add_money_account(request):

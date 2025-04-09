@@ -14,11 +14,11 @@
                     <h5><br> Opis: {{account.description}}</h5>
                 </div>
                 <div style="display: inline-flex;">
-                    <form id="deleteForm" action="{% url 'usun-konto' account.id %}" method="post">
+                    <form id="deleteForm" action="{% url 'monkey_budget:usun-konto' account.id %}" method="post">
                         {% csrf_token %}
                         <button type="button" class="btn btn-danger" onclick="deleteAccount()">Usuń konto</button>
                     </form>
-                    <form action="{% url 'edytuj-konto' account.id %}" method="get">
+                    <form action="{% url 'monkey_budget:edytuj-konto' account.id %}" method="get">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-primary">Edytuj konto</button>
                     </form>
@@ -27,7 +27,7 @@
         </div>
 
         <section>
-            {{ transactions_list_html }}
+            {{ transactions_list_html|safe }}
         </section>
 
         
@@ -35,7 +35,7 @@
         <script>
         function deleteAccount() {
             if (confirm('Czy na pewno chcesz usunąć konto?')) {
-                fetch('{% url "usun-konto" account.id %}', {
+                fetch('{% url "monkey_budget:usun-konto" account.id %}', {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': '{{ csrf_token }}',
@@ -46,7 +46,7 @@
                 .then(data => {
                     if (data.success) {
                         alert(data.message);
-                        window.location.href = '{% url "dashboard" %}';
+                        window.location.href = '{% url "monkey_budget:dashboard" %}';
                     } else {
                         alert('Wystąpił błąd podczas usuwania konta.');
                     }
