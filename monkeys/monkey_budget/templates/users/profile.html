@@ -103,12 +103,12 @@
                                     </div>
                                 </div>
                                 <div class="mt-4">
-                                    <a href="{% url 'password_change' %}" class="btn btn-outline-primary mb-2">{% trans "Zmień hasło" context "profile" %}</a>
+                                    <a href="{% url 'monkey_budget:login' %}" class="btn btn-outline-primary">{% trans "Zmień hasło" context "profile" %}</a>
                                 </div>
                                 
                                 <div class="mt-4">
                                     <button type="submit" class="btn btn-primary">{% trans "Zapisz zmiany" context "profile" %}</button>
-                                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary ms-2">{% trans "Wróć do strony głównej" context "profile" %}</a>
+                                    <a href="{% url 'monkey_budget:dashboard' %}" class="btn btn-outline-secondary ms-2">{% trans "Wróć do strony głównej" context "profile" %}</a>
                                 </div>
                             </form>
                             
@@ -120,7 +120,7 @@
                                 </div>
                                 <div class="col-sm-6">
                                     <p><strong>{% trans "Ostatnie logowanie:" context "profile" %}</strong> {{ user.last_login|date:"d F Y H:i" }}</p>
-                                    <p><a href="{% url 'delete_account' %}" class="btn btn-outline-danger">{% trans "Usuń konto" context "profile" %}</a> </p>
+                                    <p><a href="{% url 'monkey_budget:delete_account' %}" class="btn btn-outline-danger">{% trans "Usuń konto" context "profile" %}</a> </p>
                                 </div>
                             </div>
                         </div>

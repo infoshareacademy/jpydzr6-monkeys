@@ -83,7 +83,7 @@ def register(request):
             )
             
             messages.success(request, _('Please check your email to activate your account.'))
-            return redirect('login')
+            return redirect('monkey_budget:login')
     else:
         form = UserRegistrationForm()
     return render(request, 'users/register.html', {'form': form})
@@ -428,7 +428,7 @@ def profile(request):
                 request.user.profile.save()
                 
             messages.success(request, _('Your profile has been updated!'))
-            return redirect('profile')
+            return redirect('monkey_budget:profile')
     else:
         form = UserUpdateForm(instance=request.user)
     

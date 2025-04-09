@@ -54,7 +54,7 @@
                                 </div>
                             {% endif %}
                             <div class="mt-1 text-end">
-                                <a href="{% url 'password_reset' %}" class="text-primary small">{% trans "Zapomniałeś hasła?" %}</a>
+                                <a href="{% url 'monkey_budget:password_reset' %}" class="text-primary small">{% trans "Zapomniałeś hasła?" %}</a>
                             </div>
                         </div>
                         
@@ -67,13 +67,13 @@
                         </div>
                         
                         <div class="d-grid mt-3">
-                            <a href="{% url 'magic_link_request' %}" class="btn btn-outline-primary">{% trans "Zaloguj się przez link wysłany na email" %}</a>
+                            <a href="{% url 'monkey_budget:magic_link_request' %}" class="btn btn-outline-primary">{% trans "Zaloguj się przez link wysłany na email" %}</a>
                         </div>
                     </form>
                 </div>
                 <div class="card-footer bg-light">
                     <div class="text-center">
-                        <p class="mb-0">{% trans "Nie masz jeszcze konta?" %} <a href="{% url 'register' %}" class="text-primary">{% trans "Utwórz konto" %}</a></p>
+                        <p class="mb-0">{% trans "Nie masz jeszcze konta?" %} <a href="{% url 'monkey_budget:register' %}" class="text-primary">{% trans "Utwórz konto" %}</a></p>
                     </div>
                 </div>
             </div>

@@ -24,8 +24,8 @@
                   {% if user.is_authenticated %}
                   <div class="user-info mb-3 p-2 border-bottom">
                       <p>{% trans "Welcome" %}, <strong>{{ user.username }}</strong>!</p>
-                      <a href="{% url 'profile' %}" class="btn btn-sm btn-info">{% trans "My Profile" %}</a>
-                      <form method="post" action="{% url 'logout' %}" class="d-inline">
+                      <a href="{% url 'monkey_budget:profile' %}" class="btn btn-sm btn-info">{% trans "My Profile" %}</a>
+                      <form method="post" action="{% url 'monkey_budget:logout' %}" class="d-inline">
                           {% csrf_token %}
                           <button type="submit" class="btn btn-sm btn-danger">{% trans "Logout" %}</button>
                       </form>
@@ -33,7 +33,6 @@
                   
                   <!-- Language Selector -->
                   <div class="mb-3">
-                    {% include "includes/language_selector.html" %}
                   </div>
                   {% endif %}
                   
@@ -41,24 +40,26 @@
                         <a class='btn btn-primary' href="{% url 'pokaz-konto' account.id%}">{{account}}</a>
                         <br>
                   {% endfor %}
-                  <a class='btn btn-info' href="{% url 'dodaj-konto'%}">{% trans "Add Account" %}</a>
+                  <a class='btn btn-info' href="{% url 'monkey_budget:dodaj-konto'%}">{% trans "Add Account" %}</a>
                   <h1 class="offcanvas-title" style="font-family: 'Papyrus', cursive">{% trans "Transactions" %}</h1>
                   <br>
-                      <a class="btn btn-info" href="{% url 'nowa-transakcja' %}">{% trans "Add Transaction" %}</a>
-                      <a class='btn btn-info' href="{% url 'lista-transakcji' %}">{% trans "View Transactions" %}</a><br>
+                      <a class="btn btn-info" href="{% url 'monkey_budget:nowa-transakcja' %}">{% trans "Add Transaction" %}</a>
+                      <a class='btn btn-info' href="{% url 'monkey_budget:lista-transakcji' %}">{% trans "View Transactions" %}</a><br>
                   <br><br><br>
-                  <a class='btn btn-secondary' href="{% url 'dashboard'%}">{% trans "Return to Home" %}</a><br>
+                  <a class='btn btn-secondary' href="{% url 'monkey_budget:dashboard'%}">{% trans "Return to Home" %}</a><br>
                   
                   {% if not user.is_authenticated %}
                   <div class="auth-links mt-4 p-2 border-top">
                       <h5>{% trans "Sign In" %}</h5>
-                      <a href="{% url 'login' %}" class="btn btn-success">{% trans "Login" %}</a>
-                      <a href="{% url 'register' %}" class="btn btn-primary">{% trans "Register" %}</a>
+                      <a href="{% url 'monkey_budget:login' %}" class="btn btn-success">{% trans "Login" %}</a>
+                      <a href="{% url 'monkey_budget:register' %}" class="btn btn-primary">{% trans "Register" %}</a>
                       
                       <!-- Language Selector for non-authenticated users -->
-                      <div class="mt-3">
-                        {% include "includes/language_selector.html" %}
-                      </div>
+                  </div>
+                  {% else %}
+                  <div class="auth-links mt-4 p-2 border-top">
+                      <h5>{% trans "Language" %}</h5>
+                      <!-- Language Selector for authenticated users -->
                   </div>
                   {% endif %}
               </div>

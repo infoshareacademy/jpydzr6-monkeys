@@ -7,8 +7,8 @@
         <div class="col-md-6 offset-md-3 text-center">
             <h2>{% trans "Wylogowano" context "logout" %}</h2>
             <p>{% trans "Zostałeś pomyślnie wylogowany." context "logout" %}</p>
-            <a href="{% url 'login' %}" class="btn btn-primary">{% trans "Zaloguj ponownie" context "logout" %}</a>
-            <a href="{% url 'dashboard' %}" class="btn btn-secondary">{% trans "Wróć do strony głównej" context "logout" %}</a>
+            <a href="{% url 'monkey_budget:login' %}" class="btn btn-primary">{% trans "Zaloguj ponownie" context "logout" %}</a>
+            <a href="{% url 'monkey_budget:dashboard' %}" class="btn btn-secondary">{% trans "Wróć do strony głównej" context "logout" %}</a>
         </div>
     </div>
 </div>
