@@ -18,7 +18,7 @@
                     {% for account in accounts %}
                         <tr>
                             <td>{{ account.name }}</td>
-                            <td>{{ account.balance }}</td>
+                            <td>{{ account.balance_formatted }}</td>
                             <td>{{ account.get_type_display_name }}</td>
                             <td>{{ account.description }}</td>
                         </tr>
