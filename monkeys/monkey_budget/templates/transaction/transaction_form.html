@@ -55,7 +55,7 @@
                         {% bootstrap_field form.description wrapper_class='col-6' %}
                         <div class="field actions mt-auto col-auto align-self-end">
                             <input type="checkbox" class="btn-check" id="delete-check-{{ forloop.counter }}" autocomplete="off" name="{{ form.DELETE.html_name }}">
-                            <label class="btn btn-outline-danger" for="delete-check-{{ forloop.counter }}">
+                            <label class="btn btn-outline-danger" for="{{ form.DELETE.id_for_label }}">
                                 Usuń
                             </label>
                         </div>
