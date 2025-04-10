@@ -19,21 +19,37 @@
 
             <h3>Główna transakcja</h3>
             <div class="border p-3 mb-3 bg-light rounded">
-               {% bootstrap_form form %}
+<!--                {% bootstrap_form form %}-->
+                <div class="row">
+                    {% bootstrap_field form.date wrapper_class='col-4' %}
+                    {% bootstrap_field form.transaction_direction wrapper_class='col-4' %}
+                    {% bootstrap_field form.total_display wrapper_class='col' placeholder='' %}
+                </div>
+                <div class="row">
+                    {% bootstrap_field form.account wrapper_class='col-8' %}
+                    {% bootstrap_field form.balance_after_transaction_display wrapper_class='col' placeholder='' %}
+                </div>
+                <div class="row">
+                    {% bootstrap_field form.description wrapper_class='col' %}
+                </div>
             </div>
 
             <h3>Pozycje transakcji</h3>
             {{ formset.management_form }}
 
-<!--            {% bootstrap_formset formset %}-->
-
-            {% for f in formset %}
+            {% for form in formset %}
                 <div class="border p-3 mb-3 bg-light rounded">
-                    {% bootstrap_form f exclude='DELETE'  %}
-
-                    {% if formset.can_delete %}
-                        {% bootstrap_field f.DELETE label_class='text-danger' %}
-                    {% endif %}
+<!--                    {% bootstrap_form form exclude='DELETE'  %}-->
+                    <div class="row">
+                        {% bootstrap_field form.amount_decimal wrapper_class='col-4' %}
+                        {% bootstrap_field form.description wrapper_class='col-7' %}
+                        {% bootstrap_field form.id %}
+                    </div>
+                        {% if formset.can_delete %}
+                            <div class="row">
+                                {% bootstrap_field form.DELETE label_class='text-danger' %}
+                            </div>
+                        {% endif %}
                 </div>
             {% endfor %}
 

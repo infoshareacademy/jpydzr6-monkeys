@@ -196,7 +196,7 @@ class SubTransactionForm(forms.ModelForm):
         fields = ['amount_decimal', 'description']
         widgets = {
             'description': forms.Textarea(
-                attrs={'rows': '2'}
+                attrs={'rows': '1'}
             )
         }
         labels = {
