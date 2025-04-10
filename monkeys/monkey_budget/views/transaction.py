@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.views.generic import CreateView, UpdateView, DetailView, ListView
+from django.views.generic import CreateView, UpdateView, DetailView, ListView, DeleteView
 from django import forms
 from django.db import transaction as db_transaction
 from django.shortcuts import render, get_object_or_404, redirect
@@ -117,11 +117,22 @@ class TransactionUpdateView(TransactionFormMixin, UpdateView):
         return url
 
 
-class TransactionDeleteView():
-    pass
-
-
 class TransactionDetailView(DetailView):
+    model = Transaction
+    template_name = 'transaction/transaction_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        transaction = self.object
+        transaction_direction = transaction.transaction_direction
+        context['transaction_direction'] = "Przychód" if transaction_direction == 'IN' else "Wydatek"
+
+        context['subtransactions'] = transaction.subtransactions.all()
+
+        return context
+
+
+class TransactionDeleteView(DeleteView):
     pass
 
 

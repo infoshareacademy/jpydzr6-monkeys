@@ -16,5 +16,7 @@ urlpatterns = [
     path('api/account-currency-info/<int:account_id>', views.get_account_currency_info, name='account-currency-info'),
     path('transaction/create/', views.TransactionCreateView.as_view(), name='transaction-create'),
     path('transaction/<int:pk>/update', views.TransactionUpdateView.as_view(), name='transaction-update'),
+    path('transaction/<int:pk>/delete', views.TransactionDeleteView.as_view(), name='transaction-delete'),
+    path('transaction/<int:pk>/', views.TransactionDetailView.as_view(), name='transaction-detail'),
     path('transaction/list/', views.TransactionListView.as_view(), name='transaction-list'),
 ]
