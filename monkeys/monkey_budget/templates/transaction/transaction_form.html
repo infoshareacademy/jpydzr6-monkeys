@@ -37,21 +37,34 @@
             <h3>Pozycje transakcji</h3>
             {{ formset.management_form }}
 
-            {% for form in formset %}
-                <div class="border p-3 mb-3 bg-light rounded">
-<!--                    {% bootstrap_form form exclude='DELETE'  %}-->
-                    <div class="row">
-                        {% bootstrap_field form.amount_decimal wrapper_class='col-4' %}
-                        {% bootstrap_field form.description wrapper_class='col-7' %}
-                        {% bootstrap_field form.id %}
-                    </div>
-                        {% if formset.can_delete %}
-                            <div class="row">
-                                {% bootstrap_field form.DELETE label_class='text-danger' %}
-                            </div>
+            <div id="subtransactions-container" class="d-flex flex-column mb-3">
+                {% for form in formset %}
+                    <div class="subtransaction-form row border p-3 mb-3 bg-light rounded">
+    <!--                    {% bootstrap_form form exclude='DELETE'  %}-->
+                        {{ form.id }}
+
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+
+                        {% if form.DELETE %}
+                            <div style="display:none;">{{ form.DELETE }}</div>
                         {% endif %}
-                </div>
-            {% endfor %}
+
+                        {% bootstrap_field form.amount_decimal wrapper_class='col-4' %}
+                        {% bootstrap_field form.description wrapper_class='col-6' %}
+                        <div class="field actions mt-auto col-auto align-self-end">
+                            <input type="checkbox" class="btn-check" id="delete-check-{{ forloop.counter }}" autocomplete="off" name="{{ form.DELETE.html_name }}">
+                            <label class="btn btn-outline-danger" for="delete-check-{{ forloop.counter }}">
+                                Usuń
+                            </label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                <button type="button" class="btn btn-primary" id="add-subtransaction">Dodaj subtransakcję</button>
+            </div>
 
             <button type="submit" class="btn btn-success">Zapisz</button>
         </form>
