@@ -53,7 +53,7 @@ def add_money_account(request):
             account.user_id = User.objects.get(pk=2)
             account.balance = Monetary.major_to_minor_unit(form.cleaned_data['balance'], account.currency)
             account.save()
-            return redirect(f'/monkey-budget/konta/{account.id}')
+            return redirect(f'/konta/{account.id}')
     else:
         form = MoneyAccountForm()
     all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
