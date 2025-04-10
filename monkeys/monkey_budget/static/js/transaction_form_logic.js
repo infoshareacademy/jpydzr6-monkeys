@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addBtn = document.getElementById('add-subtransaction');
     const totalFormsInput = document.querySelector('[name$="TOTAL_FORMS"]');
     const form = document.querySelector('form');
-    const formsetPrefix = 'subtransactions'; // Prefix Twojego FormSetu
+    const formsetPrefix = totalFormsInput?.getAttribute('name').split('-')[0] || 'subtransactions';
 
     /*
     Obsługa przecinka w kwocie subtransakcji na podstawie wybranego konta
@@ -150,22 +150,17 @@ document.addEventListener('DOMContentLoaded', function() {
         /*
         Zastosuj stan początkowy przy ładowaniu strony (np. po nieudanej walidacji)
         */
-        console.log("Inicjalizacja stanu wizualnego przycisków DELETE...");
         const initialDeleteCheckboxes = subtransactionsContainer.querySelectorAll(`input[name^="${formsetPrefix}-"][name$="-DELETE"]`);
-        console.log(`Znaleziono ${initialDeleteCheckboxes.length} checkboxów DELETE do sprawdzenia.`);
 
         initialDeleteCheckboxes.forEach((checkbox, index) => {
             const formElement = checkbox.closest('.subtransaction-form');
             // Znajdź labelkę powiązaną z checkboxem przez atrybut 'for'
             const label = formElement?.querySelector(`label[for="${checkbox.id}"]`);
 
-            console.log(`Checkbox #${index} (ID: ${checkbox.id}): checked=${checkbox.checked}`);
-
             if (formElement) {
                 // Użyj classList.add/remove zamiast toggle dla pewności
                 if (checkbox.checked) {
                     formElement.classList.add('marked-for-deletion');
-                    console.log(`  -> Dodano 'marked-for-deletion' do formElement dla checkboxa #${index}`);
                 } else {
                     formElement.classList.remove('marked-for-deletion');
                 }
@@ -177,7 +172,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (label) {
                  if (checkbox.checked) {
                     label.classList.add('active');
-                    console.log(`  -> Dodano klasę 'active' do labelki (for=${checkbox.id})`);
                  } else {
                     label.classList.remove('active');
                  }
@@ -185,7 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
                  console.log(`  -> Nie znaleziono labelki dla checkboxa #${index} (szukano for=${checkbox.id})`);
             }
         });
-        console.log("Zakończono inicjalizację stanu wizualnego.");
 
     } else {
         console.error("Nie znaleziono kontenera subtransakcji (#subtransactions-container).");
