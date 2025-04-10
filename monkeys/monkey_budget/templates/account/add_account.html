@@ -2,14 +2,13 @@
 {% load static %}
 
 {% block content %}
-    <br>
-    <h1>Tworzenie nowego konta</h1>
     <div class="container">
+        <h1>Tworzenie nowego konta</h1>
         <form method="post">
             {% csrf_token %}
             {{ field.label_tag }}
             {{ field }}
-            <button class="btn-getstarted" type="submit">Utwórz konto</button>
+            <button class="btn btn-primary" type="submit">Utwórz konto</button>
         </form>
     </div>
-{% endblock%}
+{% endblock %}
