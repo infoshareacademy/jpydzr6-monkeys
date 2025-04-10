@@ -137,57 +137,68 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addBtn && subtransactionsContainer && totalFormsInput) {
         addBtn.addEventListener('click', function() {
             const currentFormCount = parseInt(totalFormsInput.value, 10);
-            // Szukaj szablonu - idealnie powinien mieć specyficzną klasę lub ID
-            const formTemplate = document.getElementById(`${formsetPrefix}-empty-form`) || subtransactionsContainer.querySelector('.subtransaction-form'); // Preferuj ID jeśli istnieje
+
+            // --- ZMIANA 1: Znajdź szablon po ID ---
+            const templateId = `${formsetPrefix}-empty-form`;
+            const formTemplate = document.getElementById(templateId);
 
             if (formTemplate) {
-                const newForm = formTemplate.cloneNode(true);
-                newForm.removeAttribute('id'); // Usuń ID z klonowanego szablonu, jeśli miał
-                newForm.removeAttribute('data-pk'); // Usuń PK, jeśli było kopiowane
-                newForm.style.display = ''; // Upewnij się, że jest widoczny (jeśli szablon był ukryty)
+                // --- ZMIANA 2: Klonuj szablon, usuń jego ID i uczyń widocznym ---
+                const newForm = formTemplate.cloneNode(true); // Klonuj szablon div
+                newForm.removeAttribute('id');                 // Usuń ID '...-empty-form' z klona
+                newForm.style.display = '';                  // Usuń 'display: none;' aby był widoczny
 
-                 // Aktualizacja atrybutów dla nowego formularza używając pełnej funkcji
-                 updateFormAttributes(newForm, currentFormCount);
+                // --- ZMIANA 3: Zaktualizuj atrybuty zamieniając '__prefix__' na indeks ---
+                const indexRegex = new RegExp('__prefix__', 'g');
+                // Przejdź przez WSZYSTKIE elementy potomne w sklonowanym formularzu
+                newForm.querySelectorAll('*').forEach(el => {
+                    ['name', 'id', 'for'].forEach(attr => {
+                        const oldValue = el.getAttribute(attr);
+                        // Jeśli atrybut istnieje i zawiera placeholder '__prefix__'
+                        if (oldValue && oldValue.includes('__prefix__')) {
+                            // Zamień placeholder na aktualny indeks (numer formularza)
+                            const newValue = oldValue.replace(indexRegex, currentFormCount);
+                            el.setAttribute(attr, newValue);
+                        }
+                    });
+                });
 
-
-                // Czyszczenie wartości w nowym formularzu
+                // --- ZMIANA 4 (bez zmian w kodzie, ale ważne): Czyszczenie wartości ---
+                // Ten kod powinien działać, czyści pola w nowym formularzu.
                 newForm.querySelectorAll('input:not([type=hidden]):not([type=checkbox]):not([type=button]):not([type=submit]), textarea, select').forEach(input => {
-                    if(input.type !== 'radio') { // Nie czyść radio buttonów
-                       input.value = '';
-                    }
+                    if(input.type !== 'radio') { input.value = ''; }
                 });
-                // Resetowanie checkboxów i radio
-                newForm.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(input => {
-                   input.checked = false;
-                });
+                newForm.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(input => { input.checked = false; });
 
-                // Odznaczanie checkboxa DELETE i reset stanu wizualnego
-                const deleteCheckbox = newForm.querySelector(`input[name^="${formsetPrefix}-"][name$="-DELETE"]`);
+                // Upewnij się, że checkbox DELETE jest odznaczony i AKTYWNY w nowym formularzu
+                const deleteCheckbox = newForm.querySelector(`input[name$="-DELETE"]`);
                 if (deleteCheckbox) {
                     deleteCheckbox.checked = false;
-                    deleteCheckbox.disabled = false; // Upewnij się, że nowy jest aktywny
+                    deleteCheckbox.disabled = false; // Nowy formularz zawsze ma aktywny przycisk usuwania
                     const deleteLabel = newForm.querySelector(`label[for="${deleteCheckbox.id}"]`);
                     if (deleteLabel) {
                         deleteLabel.classList.remove('active', 'disabled'); // Usuń klasy stanu
                         deleteLabel.style.pointerEvents = ''; // Zresetuj styl
                     }
                 }
-                 newForm.classList.remove('marked-for-deletion'); // Usuń klasę wizualną
+                newForm.classList.remove('marked-for-deletion'); // Usuń klasę wizualną jeśli była skopiowana
 
-                // Dodanie do DOM i aktualizacja TOTAL_FORMS
+                // Dodanie nowego formularza do kontenera na stronie
                 subtransactionsContainer.appendChild(newForm);
+                // Aktualizacja liczby formularzy w polu zarządzania formsetem
                 totalFormsInput.value = currentFormCount + 1;
 
-                // Aktualizacja placeholderów dla nowego formularza
+                // Aktualizacja placeholderów (np. formatu waluty) dla nowego formularza
                 if (accountSelect?.value) {
                     updatePlaceholder(accountSelect.value);
                 }
 
-                // Po dodaniu formularza zawsze jest > 1 (chyba że zaczynaliśmy od 0), więc musimy upewnić się, że przyciski są aktywne
-                updateDeleteButtonState(); // Zaktualizuj stan przycisków po dodaniu
+                // --- ZMIANA 5: Zawsze aktualizuj stan przycisków po dodaniu ---
+                updateDeleteButtonState(); // Sprawdź, czy np. przycisk pierwszego formularza ma być włączony
 
             } else {
-                console.error("Nie znaleziono szablonu formularza subtransakcji.");
+                // Komunikat błędu, jeśli szablon nie został znaleziony
+                console.error(`Nie znaleziono szablonu formularza o ID "${templateId}". Upewnij się, że istnieje w HTML.`);
             }
         });
     }
