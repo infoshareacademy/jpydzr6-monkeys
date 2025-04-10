@@ -30,7 +30,6 @@ Obsługa przecinka w kwotcie subtransakcji na podstawie wybranego konta
     if (accountSelect.value) {
         updatePlaceholder(accountSelect.value);
     }
-});
 
 /*
 Obsługa przycisków dodawania i usuwania subtransakcji oraz powiązanego z tym dodawania formularzy subtransakcji
@@ -105,4 +104,26 @@ Obsługa przycisków dodawania i usuwania subtransakcji oraz powiązanego z tym 
 
     // Inicjalizacja obsługi przycisków usuwania
     updateToggleButtonIds();
+
+/*
+Czyszczenie nowych formularzy, które mają jednak być usunięte
+ */
+    const form = document.querySelector('form');
+
+    form.addEventListener('submit', function(e) {
+        // Znajdź wszystkie nowe formularze oznaczone do usunięcia
+        const newForms = document.querySelectorAll('.subtransaction-form:not([data-pk]) input[name$="-DELETE"]:checked');
+
+        // Usuń całe formularze z DOM przed wysłaniem
+        newForms.forEach(checkbox => {
+            const formElement = checkbox.closest('.subtransaction-form');
+            formElement.parentNode.removeChild(formElement);
+        });
+
+        // Zrekalkuluj TOTAL_FORMS
+        const totalFormsInput = document.querySelector('[name$="TOTAL_FORMS"]');
+        totalFormsInput.value = document.querySelectorAll('.subtransaction-form').length;
+    });
+
+
 });
