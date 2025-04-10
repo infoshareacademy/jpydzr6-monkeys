@@ -41,5 +41,18 @@ class TransactionAdmin(admin.ModelAdmin):
     list_filter = ['transaction_direction', 'date']
     inlines = [SubTransactionInline]
 
+    def get_formset_kwargs(self, request, obj, inline, prefix):
+        if request.method == 'POST':
+            account_id = request.POST.get('account')
+            account = MoneyAccount.objects.get(pk=account_id)
+            return {
+                **super().get_formset_kwargs(request, obj, inline, prefix),
+                "form_kwargs": {"main_transaction_account": account}
+            }
+        else:
+            return{
+                **super().get_formset_kwargs(request, obj, inline, prefix),
+            }
+
     def total_display(self, obj):
         return Monetary(obj.total, obj.account.currency)

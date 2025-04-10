@@ -1,9 +1,5 @@
-{% extends 'account/base.html' %}
-{% load django_bootstrap5 %}
-
-{% block title %}
-Lista transakcji
-{% endblock title %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container">
@@ -50,7 +46,7 @@ Lista transakcji
                             aria-controls="subs-{{ transaction.pk }}">
                         Wyświetl/Ukryj
                     </button>
-                    <a href="{% url 'edytuj-transakcje' transaction.id %}">
+                    <a href="{% url 'monkey_budget:edytuj-transakcje' transaction.id %}">
                         <button class="btn btn-sm btn-primary" type="button">
                             Edytuj
                         </button>

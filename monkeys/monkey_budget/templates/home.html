@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+        <!-- Welcome Section -->
+        <section id="hero" class="hero section">
+
+            <img src="{% static 'img/hero-bg-abstract.jpg' %}" alt="" data-aos="fade-in" class="">
+      
+            <div class="container">
+              <div class="row justify-content-center" data-aos="zoom-out">
+                <div class="col-xl-7 col-lg-9 text-center">
+                  <h1>Monk(e)y Budget</h1>
+                  <p>Najlepsza aplikacja do prowadzenia domowego budżetu.</p>
+                </div>
+              </div>
+              <div class="text-center" data-aos="zoom-out" data-aos-delay="100">
+                <a href="#about" class="btn-get-started">Logowanie</a>
+              </div>
+      
+              <div class="row gy-4 mt-5">
+                <div class="col-md-6 col-lg-3" data-aos="zoom-out" data-aos-delay="100">
+                  <div class="icon-box">
+                    <div class="icon"><i class="bi bi-easel"></i></div>
+                    <h4 class="title"><a href="">Śledzenie wydatków w czasie rzeczywistym</a></h4>
+                    <p class="description">Aplikacja umożliwia bieżące monitorowanie przychodów i wydatków, co pozwoli Ci na lepsze zrozumienie, na co przeznaczasz pieniądze. Dzięki temu możesz zidentyfikować obszary, w których wydatki są zbyt wysokie, i podjąć odpowiednie działania korygujące.</p>
+                  </div>
+                </div>
+      
+                <div class="col-md-6 col-lg-3" data-aos="zoom-out" data-aos-delay="200">
+                  <div class="icon-box">
+                    <div class="icon"><i class="bi bi-gem"></i></div>
+                    <h4 class="title"><a href="">Redukcja stresu związanego z finansami</a></h4>
+                    <p class="description">Posiadanie pełnej kontroli nad swoimi finansami i świadomość, że wydatki są pod kontrolą, przyczynia się do redukcji stresu związanego z sytuacją finansową.  
+                    </p>
+                  </div>
+                </div>
+      
+                <div class="col-md-6 col-lg-3" data-aos="zoom-out" data-aos-delay="300">
+                  <div class="icon-box">
+                    <div class="icon"><i class="bi bi-geo-alt"></i></div>
+                    <h4 class="title"><a href="">Generowanie raportów i analiz</a></h4>
+                    <p class="description">Dzięki funkcjom analitycznym aplikacji możesz generować szczegółowe raporty dotyczące struktury wydatków i przychodów. Pozwala to na lepsze zrozumienie własnych nawyków finansowych i identyfikację obszarów do poprawy.</p>
+                  </div>
+                </div>
+      
+                <div class="col-md-6 col-lg-3" data-aos="zoom-out" data-aos-delay="400">
+                  <div class="icon-box">
+                    <div class="icon"><i class="bi bi-command"></i></div>
+                    <h4 class="title"><a href="">Edukacja finansowa i zwiększenie świadomości</a></h4>
+                    <p class="description">Regularne korzystanie z aplikacji do budżetowania sprzyja edukacji finansowej, zwiększa świadomość na temat własnych finansów i pomaga w podejmowaniu bardziej świadomych decyzji finansowych.</p>
+                  </div>
+                </div>
+      
+              </div>
+            </div>
+      
+          </section>
+          <!-- /Welcome Section -->    
+
+{% endblock %}
