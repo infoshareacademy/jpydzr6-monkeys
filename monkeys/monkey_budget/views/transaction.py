@@ -90,8 +90,8 @@ class TransactionFormMixin:
                 messages.success(self.request, self.get_success_message())
                 return redirect(self.get_success_url())
         else:
-            for error in formset.errors:
-                messages.error(self.request, error)
+            if formset.errors:
+                messages.error(self.request, "Sprawdź poprawność wprowadzonych danych")
             for error in formset.non_form_errors():
                 messages.error(self.request, error)
             return self.form_invalid(form)
