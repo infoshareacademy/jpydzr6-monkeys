@@ -177,6 +177,8 @@ class TransactionForm(forms.ModelForm):
         # Filter accounts by user if provided
         if user:
             self.fields['account'].queryset = MoneyAccount.objects.filter(user_id=user)
+        else:
+            self.fields['account'].queryset = MoneyAccount.objects.none()
 
         if self.instance.pk:
             self.fields['total_display'].initial = Monetary(self.instance.total, self.instance.currency)

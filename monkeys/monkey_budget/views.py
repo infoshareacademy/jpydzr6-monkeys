@@ -36,13 +36,25 @@ class CustomLoginView(LoginView):
     
     def form_invalid(self, form):
         """If the form is invalid, render the invalid form with custom error messages."""
-        messages.error(self.request, _('Invalid username or password. Please try again.'))
+        messages.error(self.request, _('Nieprawidłowa nazwa użytkownika lub hasło. Proszę spróbować ponownie.'))
         return super().form_invalid(form)
 
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
+            # Check if username or email already exists
+            username = form.cleaned_data.get('username')
+            email = form.cleaned_data.get('email')
+            
+            if User.objects.filter(username=username).exists():
+                form.add_error('username', _('Użytkownik o tej nazwie już istnieje.'))
+                return render(request, 'users/register.html', {'form': form})
+            
+            if User.objects.filter(email=email).exists():
+                form.add_error('email', _('Konto z tym adresem email już istnieje.'))
+                return render(request, 'users/register.html', {'form': form})
+            
             user = form.save()
             
             # Get IP address using django-ipware
@@ -65,24 +77,32 @@ def register(request):
             )
             
             # Send activation email
-            subject = _('Activate your account')
-            message = render_to_string('users/email/account_activation_email.html', {
-                'user': user,
-                'activation_url': activation_url,
-                'expiration_days': settings.ACCOUNT_ACTIVATION_DAYS,
-                'domain': request.get_host(),
-            })
+            try:
+                subject = _('Activate your account')
+                message = render_to_string('users/email/account_activation_email.html', {
+                    'user': user,
+                    'activation_url': activation_url,
+                    'expiration_days': settings.ACCOUNT_ACTIVATION_DAYS,
+                    'domain': request.get_host(),
+                })
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    html_message=message,
+                    fail_silently=False,
+                )
+                messages.success(request, _('Proszę sprawdzić swoją skrzynkę odbiorczą w celu aktywacji konta.'))
+            except Exception as e:
+                # Log the error (you might want to add proper logging here)
+                print(f"Error sending email: {e}")
+                # Set user as active since we couldn't send activation email
+                user.is_active = True
+                user.save()
+                messages.warning(request, _('Konto zostało utworzone, ale wystąpił problem z wysłaniem emaila aktywacyjnego. Możesz się teraz zalogować.'))
             
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                html_message=message,
-                fail_silently=False,
-            )
-            
-            messages.success(request, _('Please check your email to activate your account.'))
             return redirect('monkey_budget:login')
     else:
         form = UserRegistrationForm()
@@ -99,10 +119,10 @@ def activate_account(request, uidb64, token):
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
         user.save()
-        messages.success(request, _('Your account has been activated! You can now log in.'))
+        messages.success(request, _('Twoje konto zostało aktywowane! Możesz teraz się zalogować.'))
         return redirect('monkey_budget:login')
     else:
-        messages.error(request, _('The activation link is invalid or expired.'))
+        messages.error(request, _('Link do aktywacji konta jest nieprawidłowy lub wygasł.'))
         return redirect('monkey_budget:login')
 
 def password_reset_request(request):
@@ -137,10 +157,10 @@ def password_reset_request(request):
                     fail_silently=False
                 )
                 
-                messages.success(request, _('We have sent a password reset link to your email.'))
+                messages.success(request, _('Wysłano link do zresetowania hasła na podany adres email.'))
                 return redirect('monkey_budget:login')
             except User.DoesNotExist:
-                messages.error(request, _('No user found with the given email address.'))
+                messages.error(request, _('Nie znaleziono użytkownika z podanym adresem email.'))
     else:
         form = PasswordResetRequestForm()
     
@@ -181,7 +201,7 @@ def magic_link_request(request):
                 users = User.objects.filter(email=email, is_active=True)
                 
                 if not users.exists():
-                    messages.error(request, _('No active user found with the given email address.'))
+                    messages.error(request, _('Nie znaleziono aktywnego użytkownika z podanym adresem email.'))
                     return redirect('monkey_budget:login')
                 
                 # Send magic link to all matching users
@@ -191,7 +211,7 @@ def magic_link_request(request):
                 for user in users:
                     uid = urlsafe_base64_encode(force_bytes(user.pk))
                     token = magic_link_token.make_token(user)
-                    login_link = f"https://{current_site.domain}/monkey-budget/users/magic-login/{uid}/{token}/"
+                    login_link = f"https://{current_site.domain}/users/magic-login/{uid}/{token}/"
                     
                     # Render email template
                     message = render_to_string('users/email/magic_link_email.html', {
@@ -209,10 +229,10 @@ def magic_link_request(request):
                         fail_silently=False
                     )
                 
-                messages.success(request, _('We have sent a login link to your email.'))
+                messages.success(request, _('Wysłano link do logowania na podany adres email.'))
                 return redirect('monkey_budget:login')
             except Exception as e:
-                messages.error(request, _('An error occurred while sending the login link.'))
+                messages.error(request, _('Wystąpił błąd podczas wysyłania linku do logowania.'))
                 return redirect('monkey_budget:login')
     else:
         form = MagicLinkLoginForm()
@@ -229,10 +249,10 @@ def magic_link_login(request, uidb64, token):
     
     if user is not None and magic_link_token.check_token(user, token):
         login(request, user)
-        messages.success(request, _('Welcome, %(first_name)s! You have been successfully logged in.') % {'first_name': user.first_name})
+        messages.success(request, _('Witaj, %(first_name)s! Zostałeś pomyślnie zalogowany.') % {'first_name': user.first_name})
         return redirect('monkey_budget:dashboard')
     else:
-        messages.error(request, _('The login link is invalid or expired.'))
+        messages.error(request, _('Link do logowania jest nieprawidłowy lub wygasł.'))
         return redirect('monkey_budget:login')
 
 def home(request):
@@ -331,7 +351,7 @@ def get_account_currency_info(request, account_id):
 def transaction_create_view(request):
     header = 'Nowa transakcja'
     if request.method == 'POST':
-        form = TransactionForm(request.POST)
+        form = TransactionForm(request.POST, user=request.user)
         if form.is_valid():
             formset = SubTransactionFormSet(
                 request.POST,
@@ -426,7 +446,7 @@ def profile(request):
                 request.user.profile.avatar = request.FILES['avatar']
                 request.user.profile.save()
                 
-            messages.success(request, _('Your profile has been updated!'))
+            messages.success(request, _('Twoje konto zostało zaktualizowane!'))
             return redirect('monkey_budget:profile')
     else:
         form = UserUpdateForm(instance=request.user)
@@ -443,7 +463,7 @@ def delete_account(request):
         
         # Now delete the user
         user.delete()
-        messages.success(request, '{% trans "Your account has been deleted. Thank you for using Monkey Budget." %}')
+        messages.success(request, _('Twoje konto zostało usunięte. Dziękujemy za używanie Monkey Budget.'))
         return redirect('monkey_budget:login')
     
     return render(request, 'users/delete_account.html')
@@ -484,10 +504,10 @@ def resend_activation_email(request):
                     fail_silently=False,
                 )
                 
-                messages.success(request, _('Activation email has been resent. Please check your inbox.'))
+                messages.success(request, _('Email aktywacyjny został wysłany ponownie. Proszę sprawdzić swoją skrzynkę odbiorczą.'))
                 return redirect('monkey_budget:login')
             except User.DoesNotExist:
-                messages.error(request, _('No inactive account found with this email address.'))
+                messages.error(request, _('Nie znaleziono nieaktywnego konta z tym adresem email.'))
     else:
         form = ResendActivationForm()
     
