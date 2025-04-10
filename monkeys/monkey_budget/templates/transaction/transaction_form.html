@@ -37,24 +37,26 @@
             <h3>Pozycje transakcji</h3>
             {{ formset.management_form }}
 
-            <div id="subtransactions-container" class="d-flex flex-column mb-3">
+            <div id="subtransactions-container" class="mb-3">
                 {% for form in formset %}
-                    <div class="subtransaction-form row border p-3 mb-3 bg-light rounded">
+                    <div class="subtransaction-form row border p-3 mb-3 bg-light rounded align-items-start" data-pk="{{ form.instance.pk|default:'' }}">
     <!--                    {% bootstrap_form form exclude='DELETE'  %}-->
                         {{ form.id }}
 
                         {% for hidden in form.hidden_fields %}
-                            {{ hidden }}
+                            {% if hidden.name != form.DELETE.name %}
+                                {{ hidden }}
+                            {% endif %}
                         {% endfor %}
 
                         {% if form.DELETE %}
                             <div style="display:none;">{{ form.DELETE }}</div>
                         {% endif %}
 
-                        {% bootstrap_field form.amount_decimal wrapper_class='col-4' %}
-                        {% bootstrap_field form.description wrapper_class='col-6' %}
-                        <div class="field actions mt-auto col-auto align-self-end">
-                            <input type="checkbox" class="btn-check" id="delete-check-{{ forloop.counter }}" autocomplete="off" name="{{ form.DELETE.html_name }}">
+                        {% bootstrap_field form.amount_decimal wrapper_class='col-md-4 mb-0' %}
+                        {% bootstrap_field form.description wrapper_class='col-md-6 mb-0' %}
+                        <div class="field actions col-md-auto mb-0 text-end" style="padding-top: 2.1rem;">
+                            <input type="checkbox" class="btn-check" id="{{ form.DELETE.id_for_label }}" autocomplete="off" name="{{ form.DELETE.html_name }} {% if form.DELETE.value %}checked{% endif %}">
                             <label class="btn btn-outline-danger" for="{{ form.DELETE.id_for_label }}">
                                 Usuń
                             </label>
