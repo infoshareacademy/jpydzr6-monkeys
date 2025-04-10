@@ -92,6 +92,8 @@ class TransactionFormMixin:
         else:
             for error in formset.errors:
                 messages.error(self.request, error)
+            for error in formset.non_form_errors():
+                messages.error(self.request, error)
             return self.form_invalid(form)
 
 
