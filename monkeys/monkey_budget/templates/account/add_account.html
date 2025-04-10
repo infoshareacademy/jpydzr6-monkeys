@@ -1,15 +1,6 @@
 {% extends "base.html" %}
 {% load django_bootstrap5 %}
 
-<body>
-    {% block side-menu %}
-        {{ block.super }}
-    {% endblock side-menu%}
-
-    {% block show-side-menu %}
-        {{ block.super }}
-    {% endblock show-side-menu %}
-
     {% block content %}
     <script>
         function confirmSubmit(event) {
@@ -35,6 +26,3 @@
         </div>
     </div>
     {% endblock content %}
-
-</body>
-</html>
