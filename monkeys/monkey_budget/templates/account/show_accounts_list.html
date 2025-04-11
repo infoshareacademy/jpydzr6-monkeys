@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+    <div class="container">
+        <h1>Lista kont</h1>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Nazwa</th>
+                    <th>Saldo</th>
+                    <th>Typ</th>
+                    <th>Opis</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for account in accounts %}
+                        <tr>
+                            <td>{{ account.name }}</td>
+                            <td>{{ account.balance_formatted }}</td>
+                            <td>{{ account.get_type_display_name }}</td>
+                            <td>{{ account.description }}</td>
+                            <td>
+                                <a href="{% url 'monkey_budget:pokaz-konto' account.id %}">
+                                <button class="btn btn-sm btn-primary" type="button">
+                                    Szczegóły konta
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+    </div>
+
+    {% endblock %}

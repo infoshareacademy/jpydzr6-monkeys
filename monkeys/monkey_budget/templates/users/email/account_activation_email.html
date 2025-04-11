@@ -1,0 +1,26 @@
+{% extends "users/email/base_email.html" %}
+{% load i18n %}
+
+{% block email_title %}
+    {% trans "Aktywuj swoje konto - Monkey Budget" context "account_activation_email" %}
+{% endblock %}
+
+{% block email_header %}
+    {% trans "Witaj w Monkey Budget!" context "account_activation_email" %}
+{% endblock %}
+
+{% block email_content %}
+    <p>{% trans "Witaj" context "account_activation_email" %} {{ user.first_name }},</p>
+    <p>{% trans "Dziękujemy za rejestrację w aplikacji Monkey Budget. Aby aktywować swoje konto, proszę kliknąć w link poniżej:" context "account_activation_email" %}</p>
+    
+    <p class="text-center">
+        <a href="{{ activation_url }}" class="button">{% trans "Aktywuj konto" context "account_activation_email" %}</a>
+    </p>
+    
+    <p>{% trans "Link będzie aktywny przez" context "account_activation_email" %} {{ expiration_days }} {% trans "dni." context "account_activation_email" %}</p>
+    
+    <p>{% trans "Jeśli nie zarejestrowałeś się w naszej aplikacji, proszę zignorować tę wiadomość." context "account_activation_email" %}</p>
+    
+    <p class="mt-20">{% trans "Pozdrawiamy," context "account_activation_email" %}<br>
+    {% trans "Zespół Monkey Budget" context "account_activation_email" %}</p>
+{% endblock %} 
