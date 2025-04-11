@@ -4,10 +4,11 @@
 
 {% block content %}
     <div class="container">
-
+        {% if transaction.pk %}
         <div id="back-to-list" class="mt-3 mb-3">
             <a href="{% url 'monkey_budget:transaction-detail' transaction.pk %}" class="btn btn-outline-primary" type="button">Powrót</a>
         </div>
+        {% endif %}
 
         <h1 class="mt-3">{{ header }}</h1>
 

@@ -181,6 +181,7 @@ class TransactionListMixin:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['header'] = 'Lista transakcji'
         if not self.request.GET:
             initial_filter_form = {
                 'date_to': timezone.localdate().strftime('%Y-%m-%d'),
@@ -188,7 +189,12 @@ class TransactionListMixin:
             context['filter_form'] = TransactionFilterForm(initial=initial_filter_form)
         else:
             context['filter_form'] = TransactionFilterForm(self.request.GET)
-        context['header'] = 'Lista transakcji'
+
+        transactions = self.object_list
+        for transaction in transactions:
+            transaction_direction = transaction.transaction_direction
+            transaction.transaction_direction_display = "Przychód" if transaction_direction == 'IN' else "Wydatek"
+        context['transactions'] = transactions
         return context
 
 
