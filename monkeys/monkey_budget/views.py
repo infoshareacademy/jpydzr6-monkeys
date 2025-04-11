@@ -269,7 +269,7 @@ def contact(request):
 
 @login_required
 def show_accounts_list(request):
-    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    all_accounts = MoneyAccount.objects.filter(user_id=request.user.id).order_by('name')
     context = {'accounts': all_accounts}
     return render(request, 'account/show_accounts_list.html', context)
 @login_required
@@ -433,9 +433,9 @@ def transaction_list(request):
         'transactions': transactions,
         'accounts': all_accounts,
     })
-
+@login_required
 def general_financial_report(request):
-    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    all_accounts = MoneyAccount.objects.filter(user_id=request.user).order_by('name')
     all_currencies_balance = []
     account_balances = []
 
@@ -553,9 +553,9 @@ def resend_activation_email(request):
     return render(request, 'users/resend_activation.html', {'form': form})
 
 
-
+@login_required
 def periodic_financial_report(request):
-    all_accounts = MoneyAccount.objects.filter(user_id=4).order_by('name')
+    all_accounts = MoneyAccount.objects.filter(user_id=request.user).order_by('name')
     start_date = (date.today() - timedelta(days=30))
     end_date = (date.today())
     currency_incomes_outcomes_balance = {'balances':[]}
@@ -568,7 +568,7 @@ def periodic_financial_report(request):
             end_date = form.cleaned_data.get('end_date')
             extended_end_date = end_date + timedelta(days=1)
             date_filtered_transactions = Transaction.objects.filter(
-                account__user_id=4,
+                account__user_id=request.user,
                 date__range=(start_date, extended_end_date)
             )
 

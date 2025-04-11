@@ -18,9 +18,9 @@
 <br>
 <div class=" container border p-3 mb-3 bg-light rounded">
         <h1>Podsumowanie wybranego okresu:</h1>
-
+{% if currency_incomes_outcomes_balance and date_filtered_transactions %}
                     <h2>{{ start_date }} - {{ end_date }}</h2>
-            {% if currency_incomes_outcomes_balance and date_filtered_transactions %}
+
                     {% for balance in currency_incomes_outcomes_balance.balances %}
                             <br><h2>Waluta: {{balance.currency_code }}</h2>
                             <h3>Saldo na koniec wybranego okresu: {{ balance.balance_after_period }}{{balance.currency_code }}</h3>
