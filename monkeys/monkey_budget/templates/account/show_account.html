@@ -2,8 +2,8 @@
 {% load static %}
 
     {% block content %}
-        <div class="container-fluid mt-3">
-            <div class="bg-info p-3">
+        <div class="container-fluid">
+            <div>
                 <div>
                     <h1>Szczegóły konta: {{account.name}} </h1>
                 </div>
@@ -30,8 +30,6 @@
             {{ transactions_list_html }}
         </section>
 
-        
-
         <script>
         function deleteAccount() {
             if (confirm('Czy na pewno chcesz usunąć konto?')) {
@@ -46,7 +44,7 @@
                 .then(data => {
                     if (data.success) {
                         alert(data.message);
-                        window.location.href = '{% url "monkey_budget:dashboard" %}';
+                        window.location.href = '{% url "monkey_budget:home" %}';
                     } else {
                         alert('Wystąpił błąd podczas usuwania konta.');
                     }
