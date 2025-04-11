@@ -189,7 +189,7 @@ def transaction_list(request):
 
 
 def periodic_financial_report(request):
-    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    all_accounts = MoneyAccount.objects.filter(user_id=4).order_by('name')
     start_date = (date.today() - timedelta(days=30))
     end_date = (date.today())
     currency_incomes_outcomes_balance = {'balances':[]}
@@ -202,11 +202,10 @@ def periodic_financial_report(request):
             end_date = form.cleaned_data.get('end_date')
             extended_end_date = end_date + timedelta(days=1)
             date_filtered_transactions = Transaction.objects.filter(
-                account__user_id=2,
+                account__user_id=4,
                 date__range=(start_date, extended_end_date)
             )
 
-            # todo wyświatelanie jako tabela
             # todo nie można brać aktualnego balansu konta - jest brany też dla okresów kiedy konto nie istniało,
             #  lepiej brać saldo z ostatniej transakcji na danym koncie
             # todo obsłuż sytuację, że dla danego okresu nie ma danych do wyświetlenia

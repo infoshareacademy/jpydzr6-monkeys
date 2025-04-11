@@ -2,32 +2,35 @@
 {% load static %}
 {% load django_bootstrap5 %}
 
-    {% block content %}
-
-    <h3>Wybierz zakres dat:</h3>
+{% block content %}
+<div class="container">
+    <h1 class="mt-3">Wybierz zakres dat:</h1>
         <div>
               <div>
                   <form method="post">
                       {% csrf_token %}
                       {% bootstrap_form form label_class="fw-bold" %}
-                      <button type="submit" class="btn btn-primary">Wyświetl raport</button>
+                      <button type="submit" class="btn btn-success">Wyświetl raport</button>
                   </form>
               </div>
         </div>
-
+</div>
+<br>
+<div class=" container border p-3 mb-3 bg-light rounded">
         <h1>Podsumowanie wybranego okresu:</h1>
-            <h2>{{ start_date }} - {{ end_date }}</h2>
 
-                {% for balance in currency_incomes_outcomes_balance.balances %}
-                        <br><h2>Waluta: {{balance.currency_code }}</h2>
-                        <h3>Saldo na koniec wybranego okresu: {{ balance.balance_after_period }}{{balance.currency_code }}</h3>
-                        <h3>Suma wydatków: {{ balance.outcomes_total.total_sum }}{{balance.currency_code }}</h3>
-                        <h3>Suma przychodów: {{ balance.incomes_total.total_sum }}{{balance.currency_code }}</h3>
-                        <h3>Bilans wydatków i przychodów: {{ balance.income_outcome_balance }}{{balance.currency_code }}</h3>
-                {% endfor %}
-<!--            <h3>Najpopularniejsze kategorie wydatków:</h3>-->
-<!--            <h3>Najpopularniejsze kategorie przychodów:</h3>-->
+                    <h2>{{ start_date }} - {{ end_date }}</h2>
+            {% if currency_incomes_outcomes_balance and date_filtered_transactions %}
+                    {% for balance in currency_incomes_outcomes_balance.balances %}
+                            <br><h2>Waluta: {{balance.currency_code }}</h2>
+                            <h3>Saldo na koniec wybranego okresu: {{ balance.balance_after_period }}{{balance.currency_code }}</h3>
+                            <h3>Suma wydatków: {{ balance.outcomes_total.total_sum }}{{balance.currency_code }}</h3>
+                            <h3>Suma przychodów: {{ balance.incomes_total.total_sum }}{{balance.currency_code }}</h3>
+                            <h3>Bilans wydatków i przychodów: {{ balance.income_outcome_balance }}{{balance.currency_code }}</h3>
+                    {% endfor %}
+            {% else %}
+                    <h3>Brak danych do wyświtelenia dla wybranego okresu</h3>
+            {% endif %}
+</div>
 
-<!--            <h3>{{ date_filtered_transactions }}</h3>-->
-
-    {% endblock content %}
+{% endblock content %}
