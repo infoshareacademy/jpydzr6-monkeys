@@ -1,162 +1,83 @@
-{% extends 'account/base.html' %}
-{% load django_bootstrap5 %}
-{% load filename_filters %}
-
-{% block title %}
-Lista transakcji
-{% endblock title %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="container my-4">
-    <h1 class="mb-4">Lista transakcji</h1>
-    <table class="table table-striped align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Konto</th>
-                <th>Data</th>
-                <th>Rodzaj transakcji</th>
-                <th>Kwota PLN</th>
-                <th>Stan konta</th>
-                <th>Opis</th>
-                <th>Subtransakcje i załączniki</th>
-            </tr>
+<div class="container">
+    <h1>Lista transakcji</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Konto</th>
+            <th>Data</th>
+            <th>Rodzaj transakcji</th>
+            <th>Kwota PLN</th>
+            <th>Stan konta po transakcji</th>
+            <th>Opis</th>
+            <th>Subtransakcje</th>
+        </tr>
         </thead>
         <tbody>
-            {% for transaction in transactions %}
-                <tr>
-                    <td>{{ transaction.account.name }}</td>
-                    <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
-                    <td>
-                        {% if transaction.transaction_direction == 'IN' %}
-                            <span class="text-success">Przychód</span>
-                        {% elif transaction.transaction_direction == 'OUT' %}
-                            <span class="text-danger">Wydatek</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if transaction.transaction_direction == 'IN' %}
-                            +{{ transaction.total_formatted }}
-                        {% else %}
-                            -{{ transaction.total_formatted }}
-                        {% endif %}
-                    </td>
-                    <td>{{ transaction.balance_after_transaction_formatted }}</td>
-                    <td>{{ transaction.description }}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary"
-                                type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#subs-{{ transaction.pk }}"
-                                aria-expanded="false"
-                                aria-controls="subs-{{ transaction.pk }}">
-                            Wyświetl/Ukryj
-                        </button>
-                        <a href="{% url 'edytuj-transakcje' transaction.id %}" class="btn btn-sm btn-primary">
+        {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.account.name }}</td>
+                <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
+<!--                <td>{{ transaction.get_transaction_direction_display }}</td>-->
+                <td>{% if transaction.transaction_direction == 'IN' %}
+                        Przychód
+                    {% elif transaction.transaction_direction == 'OUT' %}
+                        Wydatek
+                    {% endif %}
+                </td>
+                <td>
+                    {% if transaction.transaction_direction == 'IN' %}
+                        +{{ transaction.total_formatted }}
+                    {% else %}
+                        -{{ transaction.total_formatted }}
+                    {% endif %}
+                </td>
+                <td>{{ transaction.balance_after_transaction_formatted }}</td>
+                <td>{{ transaction.description }}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#subs-{{ transaction.pk }}"
+                            aria-expanded="false"
+                            aria-controls="subs-{{ transaction.pk }}">
+                        Wyświetl/Ukryj
+                    </button>
+                    <a href="{% url 'monkey_budget:edytuj-transakcje' transaction.id %}">
+                        <button class="btn btn-sm btn-primary" type="button">
                             Edytuj
-                        </a>
-                    </td>
-                </tr>
-
-                <tr id="subs-{{ transaction.pk }}" class="collapse">
-                    <td colspan="7">
-                        <h5 class="mt-3">Subtransakcje:</h5>
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Kwota PLN</th>
-                                    <th>Opis</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for sub in transaction.subtransactions.all %}
-                                    <tr>
-                                        <td>{{ sub.amount_formatted }}</td>
-                                        <td>{{ sub.description }}</td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="2" class="text-muted">Brak subtransakcji</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-
-                        <h5 class="mt-4">Załączniki:</h5>
-
-                        <!-- Sekcja PDF -->
-                        <p><strong>Dokumenty PDF:</strong></p>
-                        <ul class="list-unstyled">
-                            {% for attach in transaction.pdf_attachments %}
-                                <li class="mb-2">
-                                    <a href="{{ attach.file.url }}" target="_blank">
-                                        {{ attach.file.name }}
-                                    </a>
-                                    <a href="{% url 'attachment_delete' attach.pk %}"
-                                       class="btn btn-sm btn-danger ms-2"
-                                       onclick="return confirm('Czy na pewno chcesz usunąć ten załącznik?');">
-                                        Usuń
-                                    </a>
-                                </li>
-                            {% empty %}
-                                <li class="text-muted">Brak plików PDF</li>
-                            {% endfor %}
-                        </ul>
-
-                        <!-- Sekcja Obrazki (.png/.jpg/.jpeg) -->
-                        <p><strong>Obrazki:</strong></p>
-                        <ul class="list-unstyled">
-                            {% for attach in transaction.image_attachments %}
-                                <li class="mb-2">
-                                    <img src="{{ attach.file.url }}"
-                                         alt="Załącznik"
-                                         class="img-thumbnail"
-                                         style="max-width: 120px; cursor: pointer;"
-                                         data-bs-toggle="modal"
-                                         data-bs-target="#imgModal-{{ attach.pk }}">
-
-                                    <!-- Modal do wyświetlania powiększonego obrazka -->
-                                    <div class="modal fade"
-                                         id="imgModal-{{ attach.pk }}"
-                                         tabindex="-1"
-                                         aria-labelledby="imgModalLabel-{{ attach.pk }}"
-                                         aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="imgModalLabel-{{ attach.pk }}">
-                                                        {{ attach.file.name }}
-                                                    </h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <img src="{{ attach.file.url }}" class="img-fluid" alt="Załącznik">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <a href="{{ attach.file.url }}" target="_blank">
-                                        {{ attach.file.name }}
-                                    </a>
-                                    <a href="{% url 'attachment_delete' attach.pk %}"
-                                       class="btn btn-sm btn-danger ms-2"
-                                       onclick="return confirm('Czy na pewno chcesz usunąć ten załącznik?');">
-                                        Usuń
-                                    </a>
-                                </li>
-                            {% empty %}
-                                <li class="text-muted">Brak obrazków</li>
-                            {% endfor %}
-                        </ul>
-
-                        <!-- Link "Dodaj załącznik" -->
-                        <a href="{% url 'attachment_add' transaction.pk %}" class="btn btn-sm btn-success">
-                            Dodaj załącznik
-                        </a>
-                    </td>
-                </tr>
-            {% endfor %}
+                        </button>
+                    </a>
+                </td>
+            </tr>
+            <tr id="subs-{{ transaction.pk }}" class="collapse">
+                <td colspan="8">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+<!--                            <th>ID sub</th>-->
+                            <th>Kwota PLN</th>
+                            <th>Opis</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for sub in transaction.subtransactions.all %}
+                            <tr>
+<!--                                <td>{{ sub.id }}</td>-->
+                                <td>{{ sub.amount_formatted }}</td>
+                                <td>{{ sub.description }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="3">Brak subtransakcji</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
 </div>
