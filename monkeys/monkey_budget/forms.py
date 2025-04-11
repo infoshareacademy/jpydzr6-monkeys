@@ -3,7 +3,7 @@ from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
 from django.core.exceptions import ValidationError
 from .money import Monetary, Currency
-from .models import Transaction, SubTransaction
+from .models import Transaction, SubTransaction, TransactionAttachment
 
 
 class MoneyAccountForm(forms.ModelForm):
@@ -273,4 +273,15 @@ SubTransactionFormSet = inlineformset_factory(
     can_delete=True,
 )
 
+class TransactionAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = TransactionAttachment
+        fields = ['file']
 
+TransactionAttachmentFormSet = inlineformset_factory(
+    Transaction,
+    TransactionAttachment,
+    form=TransactionAttachmentForm,
+    extra=1,
+    can_delete=True,
+)

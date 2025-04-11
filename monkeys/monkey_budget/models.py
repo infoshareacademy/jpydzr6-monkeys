@@ -204,7 +204,6 @@ class SubTransaction(models.Model):
             super().delete(*args, **kwargs)
             main_transaction.save()
 
-
 class TransactionAttachment(models.Model):
     transaction = models.ForeignKey(
         Transaction,

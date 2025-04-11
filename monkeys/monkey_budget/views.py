@@ -183,3 +183,29 @@ def transaction_list(request):
         'transactions': transactions,
         'accounts': all_accounts,
     })
+
+def attachment_add(request, pk):
+    transaction = get_object_or_404(Transaction, pk=pk)
+    if request.method == 'POST':
+        form = TransactionAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.transaction = transaction
+            attachment.save()
+            return redirect('lista-transakcji')
+    else:
+        form = TransactionAttachmentForm()
+    return render(request, 'account/attachment_add.html', {
+        'form': form,
+        'transaction': transaction
+    })
+
+def attachment_download(request, pk):
+    attachment = get_object_or_404(TransactionAttachment, pk=pk)
+    return FileResponse(attachment.file.open('rb'), as_attachment=True)
+
+def attachment_delete(request, pk):
+    attachment = get_object_or_404(TransactionAttachment, pk=pk)
+    transaction_pk = attachment.transaction.pk
+    attachment.delete()
+    return redirect('lista-transakcji')
