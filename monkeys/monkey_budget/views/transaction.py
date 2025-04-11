@@ -133,7 +133,13 @@ class TransactionDetailView(DetailView):
 
 
 class TransactionDeleteView(DeleteView):
-    pass
+    model = Transaction
+    template_name = 'transaction/transaction_delete.html'
+    success_url = reverse_lazy('monkey_budget:transaction-list')
+
+    def form_valid(self, form):
+        messages.success(self.request, "Transakcja została usunieta")
+        return super().form_valid(form)
 
 
 class TransactionFilterForm(forms.Form):
