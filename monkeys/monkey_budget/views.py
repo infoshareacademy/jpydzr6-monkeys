@@ -325,7 +325,7 @@ def delete_money_account(request, account_id):
     if request.method == 'POST':
         account = get_object_or_404(MoneyAccount, id=account_id, user_id=request.user.id)
         account.delete()
-        return JsonResponse({'success': True, 'message': _('Account deleted.')})
+        return JsonResponse({'success': True, 'message': _('Konto zostało usunięte.')})
     return JsonResponse({'success': False, 'message': _('Invalid request.')})
 
 @api_view(['GET'])
