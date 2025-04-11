@@ -251,7 +251,7 @@ def magic_link_login(request, uidb64, token):
     if user is not None and magic_link_token.check_token(user, token):
         login(request, user)
         messages.success(request, _('Witaj, %(first_name)s! Zostałeś pomyślnie zalogowany.') % {'first_name': user.first_name})
-        return redirect('monkey_budget:dashboard')
+        return redirect('monkey_budget:lista-transakcji')
     else:
         messages.error(request, _('Link do logowania jest nieprawidłowy lub wygasł.'))
         return redirect('monkey_budget:login')
@@ -264,12 +264,6 @@ def team(request):
 
 def contact(request):
     return render (request, 'contact.html')
-
-@login_required
-def dashboard(request):
-    all_accounts = MoneyAccount.objects.filter(user_id=request.user.id).order_by('name')
-    context = {'accounts': all_accounts}
-    return render(request, 'account/dashboard.html', context)
 
 @login_required
 def show_accounts_list(request):
