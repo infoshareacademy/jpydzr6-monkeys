@@ -49,8 +49,9 @@
         Stan konta {{transaction.account.name}} po transakcji: {{transaction.balance_after_transaction_formatted}}
     </h6>
 
-    <div id="edit-transaction" class="d-grid m-3 col-4 mx-auto">
+    <div id="edit-transaction" class="d-grid gap-2 m-3 col-4 mx-auto">
         <a href="{% url 'monkey_budget:transaction-update' transaction.pk %}" class="btn btn-primary" type="button">Edytuj</a>
+        <a href="{% url 'monkey_budget:transaction-delete' transaction.pk %}" class="btn btn-danger" type="button">Usuń</a>
     </div>
 
 </div>
