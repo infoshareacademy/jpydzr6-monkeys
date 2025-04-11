@@ -2,8 +2,10 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.db.models import Sum, Value
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models.functions import Coalesce
 from .models import MoneyAccount, Transaction, SubTransaction, UserRegistrationData
 from django.template.loader import render_to_string
 from django.contrib import messages
@@ -267,7 +269,7 @@ def contact(request):
 
 @login_required
 def show_accounts_list(request):
-    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    all_accounts = MoneyAccount.objects.filter(user_id=request.user.id).order_by('name')
     context = {'accounts': all_accounts}
     return render(request, 'account/show_accounts_list.html', context)
 @login_required
@@ -431,9 +433,9 @@ def transaction_list(request):
         'transactions': transactions,
         'accounts': all_accounts,
     })
-
+@login_required
 def general_financial_report(request):
-    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    all_accounts = MoneyAccount.objects.filter(user_id=request.user).order_by('name')
     all_currencies_balance = []
     account_balances = []
 
@@ -549,3 +551,70 @@ def resend_activation_email(request):
         form = ResendActivationForm()
 
     return render(request, 'users/resend_activation.html', {'form': form})
+
+
+@login_required
+def periodic_financial_report(request):
+    all_accounts = MoneyAccount.objects.filter(user_id=request.user).order_by('name')
+    start_date = (date.today() - timedelta(days=30))
+    end_date = (date.today())
+    currency_incomes_outcomes_balance = {'balances':[]}
+    date_filtered_transactions = None
+
+    if request.method == 'POST':
+        form = PeriodicFinancialReport(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data.get('start_date')
+            end_date = form.cleaned_data.get('end_date')
+            extended_end_date = end_date + timedelta(days=1)
+            date_filtered_transactions = Transaction.objects.filter(
+                account__user_id=request.user,
+                date__range=(start_date, extended_end_date)
+            )
+
+            # todo nie można brać aktualnego balansu konta - jest brany też dla okresów kiedy konto nie istniało,
+            #  lepiej brać saldo z ostatniej transakcji na danym koncie
+            # todo obsłuż sytuację, że dla danego okresu nie ma danych do wyświetlenia
+            for currency in currencies.__all__:
+                currency_balance_after_period = []
+                all_accounts_currency_filtered = all_accounts.filter(currency_code=currency)
+                if all_accounts_currency_filtered:
+                    for account in all_accounts.filter(currency_code=currency):
+                        ordered_transactions = date_filtered_transactions.filter(account_id=account.id).order_by('-date')
+                        if ordered_transactions:
+                            end_period_account_balance = ordered_transactions[0].balance_after_transaction
+                        else:
+                            end_period_account_balance = account.balance
+                        currency_balance_after_period.append(end_period_account_balance)
+                    balance_after_period = sum(currency_balance_after_period)
+
+                    incomes_total = date_filtered_transactions.filter(
+                        account__currency_code= currency,
+                        transaction_direction='IN'
+                    ).aggregate(total_sum=Coalesce(Sum('total'), Value(0)))
+
+                    outcomes_total = date_filtered_transactions.filter(
+                        account__currency_code= currency,
+                        transaction_direction='OUT'
+                    ).aggregate(total_sum=Coalesce(Sum('total'), Value(0)))
+                    income_outcome_balance = incomes_total['total_sum'] - outcomes_total['total_sum']
+
+                    currency_incomes_outcomes_balance['balances'].append({
+                            'currency_code': currency,
+                            'incomes_total': Monetary(incomes_total['total_sum'], CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
+                            'outcomes_total': Monetary(outcomes_total['total_sum'], CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
+                            'income_outcome_balance': Monetary(income_outcome_balance, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
+                            'balance_after_period': Monetary(balance_after_period, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
+                        })
+    else:
+        form = PeriodicFinancialReport()
+
+    context = {
+        'accounts': all_accounts,
+        'form': form,
+        'start_date': start_date,
+        'end_date': end_date,
+        'currency_incomes_outcomes_balance': currency_incomes_outcomes_balance,
+        'date_filtered_transactions': date_filtered_transactions,
+    }
+    return render(request, 'account/periodic_financial_report.html', context)

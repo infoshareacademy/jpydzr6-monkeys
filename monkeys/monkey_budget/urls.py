@@ -17,6 +17,7 @@ urlpatterns = [
     path('transakcje/nowa/', views.transaction_create_view, name='nowa-transakcja'),
     path('transakcje/edytuj/<int:transaction_id>', views.transaction_update_view, name='edytuj-transakcje'),
     path('transakcje/lista/', views.transaction_list, name='lista-transakcji'),
+    path('raporty/okresowy', views.periodic_financial_report, name='raport-okresowy'),
     path('raporty/ogolny', views.general_financial_report, name='raporty-ogolny'),
     path('users/login/', views.CustomLoginView.as_view(), name='login'),
     path('users/logout/', auth_views.LogoutView.as_view(

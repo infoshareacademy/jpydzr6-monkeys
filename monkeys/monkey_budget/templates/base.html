@@ -64,10 +64,9 @@
           <li class="dropdown"><a href="#"><span>Raporty</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="{% url 'monkey_budget:raporty-ogolny' %}">Raport ogólny</a></li>
-              <li><a href="#">Raport okresowy</a></li>
+              <li><a href="{% url 'monkey_budget:raport-okresowy' %}">Raport okresowy</a></li>
             </ul>
           </li>
-
           <li class="dropdown"><a href="#"><span>Transakcje</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="{% url 'monkey_budget:lista-transakcji' %}">Wszystkie transkacje</a></li>

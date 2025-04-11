@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
@@ -175,7 +176,7 @@ class TransactionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        
+
         # Filter accounts by user if provided
         if user:
             self.fields['account'].queryset = MoneyAccount.objects.filter(user_id=user)
@@ -283,9 +284,45 @@ SubTransactionFormSet = inlineformset_factory(
     formset=SubTransactionBaseInlineFormSet,
     min_num=1,
     can_delete=True,
-)        
+)
 
+class PeriodicFinancialReport(forms.Form):
 
+    start_date = forms.DateField(
+        label='Data początkowa',
+        required=True,
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=(date.today() - timedelta(days=30))
+    )
+    end_date = forms.DateField(
+        label='Data końcowa',
+        required=True,
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=date.today,
+    )
+
+    def clean_start_date(self):
+        start_date = self.cleaned_data.get('start_date')
+        if start_date and start_date > date.today():
+            raise forms.ValidationError("Data początkowa nie może być w przyszłości.")
+        return start_date
+
+    def clean_end_date(self):
+        end_date = self.cleaned_data.get('end_date')
+        if end_date and end_date > date.today():
+            raise forms.ValidationError("Data końcowa nie może być w przyszłości.")
+        return end_date
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date:
+            if start_date > end_date:
+                raise forms.ValidationError(
+                    "Data początkowa nie może być późniejsza niż data końcowa."
+                )
+
+        return cleaned_data
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -327,7 +364,7 @@ class UserRegistrationForm(UserCreationForm):
 
         return cleaned_data
 
-    def save(self, commit=True):   
+    def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
@@ -336,7 +373,7 @@ class UserRegistrationForm(UserCreationForm):
         if commit:
             user.save()
         return user
-    
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
@@ -351,17 +388,17 @@ class UserUpdateForm(forms.ModelForm):
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
     avatar = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
-    
+
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name']
-        
+
     def __init__(self, *args, **kwargs):
         super(UserUpdateForm, self).__init__(*args, **kwargs)
         # Add the 'form-control' class to all form fields
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
-            
+
         # If the user has a profile with an avatar, get it
         if self.instance and hasattr(self.instance, 'profile'):
             self.fields['avatar'].initial = self.instance.profile.avatar
