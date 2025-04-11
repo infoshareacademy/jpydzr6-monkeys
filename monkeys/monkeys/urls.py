@@ -16,8 +16,28 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from django.conf.urls.i18n import i18n_patterns
 
+# URLs that don't need a language prefix
 urlpatterns = [
+    path('i18n/', include('django.conf.urls.i18n')),  # Language switching
+]
+
+# URLs with language prefix
+urlpatterns += i18n_patterns(
     path('', include('monkey_budget.urls')),
     path('admin/', admin.site.urls),
-]
+    prefix_default_language=False,
+)
+
+# Add Rosetta translation interface (admin only)
+if 'rosetta' in settings.INSTALLED_APPS:
+    urlpatterns += [
+        path('rosetta/', include('rosetta.urls'))
+    ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

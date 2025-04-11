@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{% trans "Utwórz konto" context "register" %}</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                {% for error in form.non_field_errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label">{% trans "Nazwa użytkownika" context "register" %}</label>
+                                    <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" 
+                                           class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                                           placeholder="{% trans "Wpisz swoją nazwę użytkownika" context "register" %}" 
+                                           value="{{ form.username.value|default:'' }}"
+                                           required>
+                                    {% if form.username.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.username.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">{% trans "Adres email" context "register" %}</label>
+                                    <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" 
+                                           class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                           placeholder="{% trans "Wpisz swój adres email" context "register" %}" 
+                                           value="{{ form.email.value|default:'' }}"
+                                           required>
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">{% trans "Imię" context "register" %}</label>
+                                    <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" 
+                                           class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
+                                           placeholder="{% trans "Wpisz swoje imię" context "register" %}" 
+                                           value="{{ form.first_name.value|default:'' }}"
+                                           required>
+                                    {% if form.first_name.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.first_name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">{% trans "Nazwisko" context "register" %}</label>
+                                    <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" 
+                                           class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
+                                           placeholder="{% trans "Wpisz swoje nazwisko" context "register" %}" 
+                                           value="{{ form.last_name.value|default:'' }}"
+                                           required>
+                                    {% if form.last_name.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.last_name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.password1.id_for_label }}" class="form-label">{% trans "Hasło" %}</label>
+                                    <input type="password" name="{{ form.password1.name }}" id="{{ form.password1.id_for_label }}" class="form-control {% if form.password1.errors %}is-invalid{% endif %}" placeholder="{% trans "Wpisz swoje hasło" context "register" %}" required>
+                                    {% if form.password1.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.password1.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.password1.help_text }}</small>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.password2.id_for_label }}" class="form-label">{% trans "Powtórz hasło" %}</label>
+                                    <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}" class="form-control {% if form.password2.errors %}is-invalid{% endif %}" placeholder="Powtórz hasło" required>
+                                    {% if form.password2.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.password2.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Agreement Fields -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="{{ form.privacy_policy.name }}" id="{{ form.privacy_policy.id_for_label }}" class="form-check-input {% if form.privacy_policy.errors %}is-invalid{% endif %}" required>
+                                        <label class="form-check-label" for="{{ form.privacy_policy.id_for_label }}">
+                                            {{ form.privacy_policy.label }}
+                                        </label>
+                                        {% if form.privacy_policy.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.privacy_policy.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <small class="form-text text-muted">{{ form.privacy_policy.help_text }}</small>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="{{ form.terms.name }}" id="{{ form.terms.id_for_label }}" class="form-check-input {% if form.terms.errors %}is-invalid{% endif %}" required>
+                                        <label class="form-check-label" for="{{ form.terms.id_for_label }}">
+                                            {{ form.terms.label }}
+                                        </label>
+                                        {% if form.terms.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.terms.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <small class="form-text text-muted">{{ form.terms.help_text }}</small>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="{{ form.rodo.name }}" id="{{ form.rodo.id_for_label }}" class="form-check-input {% if form.rodo.errors %}is-invalid{% endif %}" required>
+                                        <label class="form-check-label" for="{{ form.rodo.id_for_label }}">
+                                            {{ form.rodo.label }}
+                                        </label>
+                                        {% if form.rodo.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.rodo.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <small class="form-text text-muted">{{ form.rodo.help_text }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">{% trans "Utwórz konto" %}</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="text-center">
+                        <p class="mb-0">{% trans "Masz już konto?" %} <a href="{% url 'monkey_budget:login' %}" class="text-primary">{% trans "Zaloguj się" %}</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
