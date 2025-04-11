@@ -113,7 +113,7 @@ class TransactionUpdateView(TransactionFormMixin, UpdateView):
         return f"Transakcja została pomyślnie edytowana"
 
     def get_success_url(self):
-        url = reverse_lazy('monkey_budget:transaction-update', kwargs={'pk': self.object.pk})
+        url = reverse_lazy('monkey_budget:transaction-detail', kwargs={'pk': self.object.pk})
         return url
 
 
