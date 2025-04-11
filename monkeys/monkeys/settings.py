@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Get environment variables
 env = environ.Env()
-#environ.Env.read_env()
+# environ.Env.read_env()
 environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 
 # Quick-start development settings - unsuitable for production
@@ -151,7 +151,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Authentication settings
-LOGIN_REDIRECT_URL = 'monkey_budget:dashboard'
+LOGIN_REDIRECT_URL = 'monkey_budget:lista-transakcji'
 LOGOUT_REDIRECT_URL = 'monkey_budget:login'
 LOGIN_URL = 'monkey_budget:login'
 
