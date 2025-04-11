@@ -39,7 +39,9 @@ class MoneyAccountForm(forms.ModelForm):
         cleaned_data = super().clean()
         balance = cleaned_data.get('balance')
         name = cleaned_data.get('name')
-        all_accounts = MoneyAccount.objects.filter(user_id=2)
+        user_id = self.user.id if hasattr(self, 'user') else None
+        all_accounts = MoneyAccount.objects.filter(user_id=user_id)
+        # all_accounts = MoneyAccount.objects.filter(user_id=2)
         allow_negative = cleaned_data.get('possibly_negative')
 
         if balance is not None and not allow_negative:

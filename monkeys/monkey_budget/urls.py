@@ -13,11 +13,11 @@ urlpatterns = [
     path('konta/edytuj-konto/<int:account_id>', views.edit_money_account, name='edytuj-konto'),
     path('konta/usun-konto/<int:account_id>', views.delete_money_account, name='usun-konto'),
     path('konta/<int:account_id>', views.show_money_account, name='pokaz-konto'),
-    path('konta/dasboard/', views.dashboard, name='dashboard'),
     path('api/account-currency-info/<int:account_id>', views.get_account_currency_info, name='account-currency-info'),
     path('transakcje/nowa/', views.transaction_create_view, name='nowa-transakcja'),
     path('transakcje/edytuj/<int:transaction_id>', views.transaction_update_view, name='edytuj-transakcje'),
     path('transakcje/lista/', views.transaction_list, name='lista-transakcji'),
+    path('raporty/ogolny', views.general_financial_report, name='raporty-ogolny'),
     path('users/login/', views.CustomLoginView.as_view(), name='login'),
     path('users/logout/', auth_views.LogoutView.as_view(
         next_page='monkey_budget:home',
@@ -27,10 +27,10 @@ urlpatterns = [
     path('users/profile/', views.profile, name='profile'),
     path('users/password/', auth_views.PasswordChangeView.as_view(
         template_name='users/password_change.html',
-        success_url=reverse_lazy('monkey_budget:password_change_done')), 
+        success_url=reverse_lazy('monkey_budget:password_change_done')),
         name='password_change'),
     path('users/password/done/', auth_views.PasswordChangeDoneView.as_view(
-        template_name='users/password_change_done.html'), 
+        template_name='users/password_change_done.html'),
         name='password_change_done'),
     path('users/activate/<uidb64>/<token>/', views.activate_account, name='activate'),
     path('users/password-reset/', views.password_reset_request, name='password_reset'),

@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied
 from django.utils.formats import number_format
 from .forms import *
+from .money import CurrencyHelper, currencies
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate, get_user_model
 from django.contrib.auth.views import LoginView
@@ -250,7 +251,7 @@ def magic_link_login(request, uidb64, token):
     if user is not None and magic_link_token.check_token(user, token):
         login(request, user)
         messages.success(request, _('Witaj, %(first_name)s! Zostałeś pomyślnie zalogowany.') % {'first_name': user.first_name})
-        return redirect('monkey_budget:dashboard')
+        return redirect('monkey_budget:lista-transakcji')
     else:
         messages.error(request, _('Link do logowania jest nieprawidłowy lub wygasł.'))
         return redirect('monkey_budget:login')
@@ -263,12 +264,6 @@ def team(request):
 
 def contact(request):
     return render (request, 'contact.html')
-
-@login_required
-def dashboard(request):
-    all_accounts = MoneyAccount.objects.filter(user_id=request.user.id).order_by('name')
-    context = {'accounts': all_accounts}
-    return render(request, 'account/dashboard.html', context)
 
 @login_required
 def show_accounts_list(request):
@@ -436,6 +431,43 @@ def transaction_list(request):
         'transactions': transactions,
         'accounts': all_accounts,
     })
+
+def general_financial_report(request):
+    all_accounts = MoneyAccount.objects.filter(user_id=2).order_by('name')
+    all_currencies_balance = []
+    account_balances = []
+
+    for currency in currencies.__all__:
+        chosen_accounts = all_accounts.filter(currency_code=currency)
+        currency_balance = sum(account.balance for account in chosen_accounts)
+        decimal_currency_balance = Monetary(currency_balance, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal
+        all_currencies_balance.append((currency,decimal_currency_balance))
+
+    for account_type in MoneyAccount.types:
+        type_code = account_type[0]
+        type_name = account_type[1].capitalize()
+        type_data = {
+            'type_name': type_name,
+            'currency_balances': []
+        }
+
+        for currency in currencies.__all__:
+            accounts = all_accounts.filter(type=type_code, currency_code=currency)
+            total_balance = sum(account.balance for account in accounts)
+            type_data['currency_balances'].append((
+                    Monetary(total_balance, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
+                    currency
+                ))
+
+        account_balances.append(type_data)
+
+    context = {
+        'accounts': all_accounts,
+        'all_currencies_balance': all_currencies_balance,
+        'account_balances': account_balances,
+    }
+    return render(request, 'account/general_financial_report.html', context)
+
 
 
 @login_required

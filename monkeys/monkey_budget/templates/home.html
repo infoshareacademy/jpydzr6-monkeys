@@ -11,13 +11,13 @@
             <div class="container">
               <div class="row justify-content-center" data-aos="zoom-out">
                 <div class="col-xl-7 col-lg-9 text-center">
-                  <h1>Monk(e)y Budget</h1>
+                  <h1>Mon(k)ey Budget</h1>
                   <p>Najlepsza aplikacja do prowadzenia domowego budżetu.</p>
                 </div>
               </div>
               <div class="text-center" data-aos="zoom-out" data-aos-delay="100">
                 {% if request.user.is_authenticated %}
-                  <a href="{% url 'monkey_budget:dashboard' %}" class="btn-get-started">{% trans "Przejdź do panelu" %}</a>
+                  <a href="{% url 'monkey_budget:lista-transakcji' %}" class="btn-get-started">{% trans "Przejdź do panelu" %}</a>
                 {% else %}
                   <a href="{% url 'monkey_budget:login' %}" class="btn-get-started">{% trans "Logowanie" %}</a>
                 {% endif %}

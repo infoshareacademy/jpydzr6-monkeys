@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+
+    {% block content %}
+    <div class=" container border p-3 mb-3 bg-light rounded">
+        <h1>Bieżące podsumowanie:</h1>
+            <h2>Dostępne środki:</h2>
+                <div>
+                    {% for currency_balance in all_currencies_balance %}
+                        <h4>{{ currency_balance.0}}: {{ currency_balance.1 }} </h4>
+                    {% endfor %}
+                </div>
+                    <br>
+                {% for account_group in account_balances %}
+                    <div>
+                        <h2>{{ account_group.type_name }}</h2>
+
+                        {% for balance, currency in account_group.currency_balances %}
+                            <div>
+                                <h5>{{ currency }}: {{ balance }}</h5>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+    </div>
+    {% endblock content %}
