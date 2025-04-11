@@ -1,0 +1,25 @@
+{% extends "users/email/base_email.html" %}
+{% load i18n %}
+
+{% block email_title %}
+    {% trans "Link do logowania - Monkey Budget" context "magic_link_email" %}
+{% endblock %}
+
+{% block email_header %}
+    {% trans "Twoje linki do logowania" context "magic_link_email" %}
+{% endblock %}
+
+{% block email_content %}
+    <p>{% trans "Witaj" context "magic_link_email" %} {{ user.first_name }},</p>
+    <p>{% trans "Otrzymałeś link do logowania. Kliknij poniżej, aby zalogować się na swoje konto:" context "magic_link_email" %}</p>
+    
+    <p class="text-center">
+        <a href="{{ login_url }}" class="button">{% trans "Zaloguj się" context "magic_link_email" %}</a>
+    </p>
+    
+    <p>{% trans "Link wygaśnie w ciągu 15 minut ze względu na bezpieczeństwo." context "magic_link_email" %}</p>
+    <p>{% trans "Jeśli nie zażądałeś tego linku do logowania, proszę zignorować tę wiadomość." context "magic_link_email" %}</p>
+    
+    <p class="mt-20">{% trans "Pozdrawiamy," context "magic_link_email" %}<br>
+    {% trans "Zespół Monkey Budget" context "magic_link_email" %}</p>
+{% endblock %} 

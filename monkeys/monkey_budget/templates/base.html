@@ -57,15 +57,6 @@
           <li class="dropdown"><a href="#"><span>Konto</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="{% url 'monkey_budget:dodaj-konto' %}">Dodaj konto</a></li>
-                <li class="dropdown"><a href="#"><span>Konto</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                  <ul>
-                    <li><a href="#">Edycja konta</a></li>
-                    <li><a href="#">Deep Dropdown 2</a></li>
-                    <li><a href="#">Deep Dropdown 3</a></li>
-                    <li><a href="#">Deep Dropdown 4</a></li>
-                    <li><a href="#">Deep Dropdown 5</a></li>
-                  </ul>
-                </li>
               <li><a href="{% url 'monkey_budget:lista-transakcji' %}">Dropdown 2</a></li>
               <li><a href="#">Dropdown 3</a></li>
               <li><a href="#">Dropdown 4</a></li>
@@ -84,7 +75,21 @@
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
 
-      <a class="btn-getstarted" href="#about">Logowanie</a>
+      {% if request.user.is_authenticated %}
+        <div class="d-flex align-items-center">
+          <a class="btn-getstarted me-2" href="{% url 'monkey_budget:profile' %}">
+            <i class="bi bi-person-circle me-1"></i>{% trans "Profil" %}
+          </a>
+          <form method="post" action="{% url 'monkey_budget:logout' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn-getstarted">
+              <i class="bi bi-box-arrow-right me-1"></i>{% trans "Wyloguj" %}
+            </button>
+          </form>
+        </div>
+      {% else %}
+        <a class="btn-getstarted" href="{% url 'monkey_budget:login' %}">{% trans "Logowanie" %}</a>
+      {% endif %}
 
     </div>
   </header>
