@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied
 from django.utils.formats import number_format
 from .forms import *
-from .money import currencies
+from .money import currencies, CurrencyHelper
 
 
 # TODO - brak informacji o id użytkownika, jest wpisane na sztywno do zmiany po dodaniu możliwości logowania
@@ -235,10 +235,10 @@ def periodic_financial_report(request):
 
                     currency_incomes_outcomes_balance['balances'].append({
                             'currency_code': currency,
-                            'incomes_total': incomes_total,
-                            'outcomes_total': outcomes_total,
-                            'income_outcome_balance': income_outcome_balance,
-                            'balance_after_period': balance_after_period,
+                            'incomes_total': Monetary(incomes_total['total_sum'], CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
+                            'outcomes_total': Monetary(outcomes_total['total_sum'], CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
+                            'income_outcome_balance': Monetary(income_outcome_balance, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
+                            'balance_after_period': Monetary(balance_after_period, CurrencyHelper.get_currency_by_its_code(currency)).amount_as_decimal,
                         })
     else:
         form = PeriodicFinancialReport()

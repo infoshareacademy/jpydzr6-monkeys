@@ -24,12 +24,12 @@
                     {% for balance in currency_incomes_outcomes_balance.balances %}
                             <br><h2>Waluta: {{balance.currency_code }}</h2>
                             <h3>Saldo na koniec wybranego okresu: {{ balance.balance_after_period }}{{balance.currency_code }}</h3>
-                            <h3>Suma wydatków: {{ balance.outcomes_total.total_sum }}{{balance.currency_code }}</h3>
-                            <h3>Suma przychodów: {{ balance.incomes_total.total_sum }}{{balance.currency_code }}</h3>
+                            <h3>Suma wydatków: {{ balance.outcomes_total }}{{balance.currency_code }}</h3>
+                            <h3>Suma przychodów: {{ balance.incomes_total }}{{balance.currency_code }}</h3>
                             <h3>Bilans wydatków i przychodów: {{ balance.income_outcome_balance }}{{balance.currency_code }}</h3>
                     {% endfor %}
             {% else %}
-                    <h3>Brak danych do wyświtelenia dla wybranego okresu</h3>
+                    <h3>Brak danych do wyświetlenia dla wybranego okresu</h3>
             {% endif %}
 </div>
 
