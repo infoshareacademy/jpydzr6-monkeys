@@ -3,7 +3,7 @@ import django.utils.timezone
 from django.core.exceptions import ValidationError
 
 from ..models import MoneyAccount, Transaction, SubTransaction
-from ..views import add_money_account
+from ..views.account import add_money_account
 
 datetime_for_test = django.utils.timezone.now()
 

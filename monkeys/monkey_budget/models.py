@@ -1,5 +1,3 @@
-import decimal
-from decimal import Decimal
 from django.core.validators import ValidationError, MinValueValidator
 from django.db import models, transaction
 from django.db.models import Sum

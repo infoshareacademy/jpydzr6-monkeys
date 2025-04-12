@@ -42,7 +42,6 @@ class MoneyAccountForm(forms.ModelForm):
         name = cleaned_data.get('name')
         user_id = self.user.id if hasattr(self, 'user') else None
         all_accounts = MoneyAccount.objects.filter(user_id=user_id)
-        # all_accounts = MoneyAccount.objects.filter(user_id=2)
         allow_negative = cleaned_data.get('possibly_negative')
 
         if balance is not None and not allow_negative:
@@ -67,6 +66,10 @@ class MonetaryField(forms.DecimalField):
         self.currency = currency
         super().__init__(*args, **kwargs)
         self.localize = True
+        self.widget = forms.TextInput(attrs={
+            'step': 'any',
+            'inputmode': 'decimal',
+        })
 
     def prepare_value(self, value):
         if isinstance(value, Monetary):
@@ -142,6 +145,10 @@ class MonetaryField(forms.DecimalField):
 
 
 class TransactionForm(forms.ModelForm):
+    account = forms.ModelChoiceField(
+        label='Konto',
+        queryset=MoneyAccount.objects.none(),
+    )
     total_display = forms.CharField(
         label='Kwota łączna',
         required=False,
@@ -177,11 +184,8 @@ class TransactionForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        # Filter accounts by user if provided
-        if user:
+        if user is not None:
             self.fields['account'].queryset = MoneyAccount.objects.filter(user_id=user)
-        else:
-            self.fields['account'].queryset = MoneyAccount.objects.none()
 
         if self.instance.pk:
             self.fields['total_display'].initial = Monetary(self.instance.total, self.instance.currency)
@@ -201,7 +205,7 @@ class SubTransactionForm(forms.ModelForm):
         fields = ['amount_decimal', 'description']
         widgets = {
             'description': forms.Textarea(
-                attrs={'rows': '2'}
+                attrs={'rows': '1'}
             )
         }
         labels = {
@@ -232,13 +236,6 @@ class SubTransactionForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        subtransaction = self.instance
-
-        if self.instance.pk and self.cleaned_data.get('DELETE', False):
-            transaction = subtransaction.main_transaction
-            if transaction.subtransactions.count() == 1:
-                raise forms.ValidationError('Transakcja musi posiadać przynajmniej jedną subtransakcję')
-
         cleaned_data['amount'] = self.cleaned_data.get('amount_decimal')
         return cleaned_data
 
