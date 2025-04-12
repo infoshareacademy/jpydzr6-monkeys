@@ -4,174 +4,179 @@
 {% block content %}
 <div class="container">
     <h1>Lista transakcji</h1>
-
-    <div class="modal fade" id="attachmentModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <form id="attachmentForm" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="modal-header">
-              <h5 class="modal-title">Dodaj załącznik</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <input type="hidden" id="transactionIdField" name="transaction_id" value="">
-              <label for="id_file" class="form-label">Plik:</label>
-              <input type="file" name="file" class="form-control" id="id_file" required>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
-              <button type="submit" class="btn btn-primary">Wyślij</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
     <table class="table table-striped">
         <thead>
-          <tr>
+        <tr>
             <th>Konto</th>
             <th>Data</th>
             <th>Rodzaj</th>
-            <th>Kwota</th>
+            <th>Kwota PLN</th>
             <th>Stan konta</th>
             <th>Opis</th>
+            <th>Edycja</th>
             <th>Subtransakcje</th>
             <th>Załączniki</th>
-          </tr>
+        </tr>
         </thead>
         <tbody>
         {% if transactions %}
           {% for transaction in transactions %}
             <tr>
-              <td>{{ transaction.account.name }}</td>
-              <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
-              <td>
-                {% if transaction.transaction_direction == 'IN' %}
-                  Przychód
-                {% else %}
-                  Wydatek
-                {% endif %}
-              </td>
-              <td>
-                {% if transaction.transaction_direction == 'IN' %}
-                  +{{ transaction.total_formatted }}
-                {% else %}
-                  -{{ transaction.total_formatted }}
-                {% endif %}
-              </td>
-              <td>{{ transaction.balance_after_transaction_formatted }}</td>
-              <td>{{ transaction.description }}</td>
-              <td>
-                <button class="btn btn-sm btn-outline-primary"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#subs-{{ transaction.pk }}"
-                        aria-expanded="false"
-                        aria-controls="subs-{{ transaction.pk }}">
-                  Pokaż/Ukryj
-                </button>
-              </td>
-              <td>
-                <button class="btn btn-sm btn-outline-primary"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#atts-{{ transaction.pk }}"
-                        aria-expanded="false"
-                        aria-controls="atts-{{ transaction.pk }}">
-                  Pokaż/Ukryj
-                </button>
-              </td>
+                <td>{{ transaction.account.name }}</td>
+                <td>{{ transaction.date|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if transaction.transaction_direction == 'IN' %}
+                        Przychód
+                    {% else %}
+                        Wydatek
+                    {% endif %}
+                </td>
+                <td>
+                    {% if transaction.transaction_direction == 'IN' %}
+                        +{{ transaction.total_formatted }}
+                    {% else %}
+                        -{{ transaction.total_formatted }}
+                    {% endif %}
+                </td>
+                <td>{{ transaction.balance_after_transaction_formatted }}</td>
+                <td>{{ transaction.description }}</td>
+                <td>
+                    <a href="{% url 'monkey_budget:edytuj-transakcje' transaction_id=transaction.pk %}" class="btn btn-sm btn-warning">
+                        Edytuj
+                    </a>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#subs-{{ transaction.pk }}"
+                            aria-expanded="false"
+                            aria-controls="subs-{{ transaction.pk }}">
+                        Pokaż/Ukryj
+                    </button>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#atts-{{ transaction.pk }}"
+                            aria-expanded="false"
+                            aria-controls="atts-{{ transaction.pk }}">
+                        Pokaż/Ukryj
+                    </button>
+                </td>
             </tr>
             <tr id="subs-{{ transaction.pk }}" class="collapse">
-              <td colspan="8">
-                <table class="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th>Kwota</th>
-                      <th>Opis</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  {% for sub in transaction.subtransactions.all %}
-                    <tr>
-                      <td>{{ sub.amount_formatted }}</td>
-                      <td>{{ sub.description }}</td>
-                    </tr>
-                  {% empty %}
-                    <tr><td colspan="2">Brak subtransakcji</td></tr>
-                  {% endfor %}
-                  </tbody>
-                </table>
-              </td>
+                <td colspan="9">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Kwota PLN</th>
+                            <th>Opis</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for sub in transaction.subtransactions.all %}
+                            <tr>
+                                <td>{{ sub.amount_formatted }}</td>
+                                <td>{{ sub.description }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="2">Brak subtransakcji</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
             </tr>
             <tr id="atts-{{ transaction.pk }}" class="collapse">
-              <td colspan="8">
-                <table class="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th>Podgląd</th>
-                      <th>Nazwa</th>
-                      <th>Akcje</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  {% for att in transaction.attachments.all %}
-                    <tr>
-                      <td>
-                        {% if att.file.name|endswith:'.pdf' %}
-                          <a href="{{ att.file.url }}" target="_blank">
-                            <img src="{% static 'images/pdf_icon.png' %}" alt="PDF" style="max-height: 60px;">
-                          </a>
-                        {% else %}
-                          <button type="button" class="btn p-0 border-0" data-bs-toggle="modal" data-bs-target="#imageModal-{{ att.pk }}">
-                            <img src="{{ att.file.url }}" alt="Podgląd" style="max-height: 60px; max-width: 60px;">
-                          </button>
-                          <div class="modal fade" id="imageModal-{{ att.pk }}" tabindex="-1">
-                            <div class="modal-dialog modal-dialog-centered modal-lg">
-                              <div class="modal-content">
-                                <div class="modal-header">
-                                  <h5 class="modal-title">{{ att.file.name|basename }}</h5>
-                                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body text-center">
-                                  <img src="{{ att.file.url }}" alt="Podgląd" style="max-width: 100%; height: auto;">
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        {% endif %}
-                      </td>
-                      <td>{{ att.file.name|basename }}</td>
-                      <td>
-                        <a href="{% url 'monkey_budget:attachment-download' att.pk %}" class="btn btn-sm btn-success">Pobierz</a>
-                        <form action="{% url 'monkey_budget:attachment-delete' att.pk %}" method="POST" class="d-inline-block">
-                          {% csrf_token %}
-                          <button class="btn btn-sm btn-danger" type="submit">Usuń</button>
-                        </form>
-                      </td>
-                    </tr>
-                  {% empty %}
-                    <tr><td colspan="3">Brak załączników</td></tr>
-                  {% endfor %}
-                  <tr>
-                    <td colspan="3">
-                      <button class="btn btn-sm btn-primary add-attachment-btn" data-transaction="{{ transaction.pk }}">
-                        Dodaj załącznik
-                      </button>
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </td>
+                <td colspan="9">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Podgląd</th>
+                            <th>Nazwa pliku</th>
+                            <th>Akcje</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for att in transaction.attachments.all %}
+                            <tr>
+                                <td>
+                                    {% if att.file.name|endswith:'.pdf' %}
+                                        <a href="{{ att.file.url }}" target="_blank">
+                                            <img src="{% static 'images/pdf_icon.png' %}" alt="PDF" style="max-height: 60px;">
+                                        </a>
+                                    {% else %}
+                                        <button type="button" class="btn p-0 border-0" data-bs-toggle="modal" data-bs-target="#imageModal-{{ att.pk }}">
+                                            <img src="{{ att.file.url }}" alt="Podgląd" style="max-height: 60px; max-width: 60px;">
+                                        </button>
+                                        <div class="modal fade" id="imageModal-{{ att.pk }}" tabindex="-1" aria-labelledby="imageModalLabel-{{ att.pk }}" aria-hidden="true">
+                                          <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content">
+                                              <div class="modal-header">
+                                                <h5 class="modal-title" id="imageModalLabel-{{ att.pk }}">{{ att.file.name|basename }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                              </div>
+                                              <div class="modal-body text-center">
+                                                <img src="{{ att.file.url }}" alt="Podgląd" style="max-width: 100%; height: auto;">
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ att.file.name|basename }}</td>
+                                <td>
+                                    <a href="{% url 'monkey_budget:attachment-download' att.pk %}" class="btn btn-sm btn-success">Pobierz</a>
+                                    <form action="{% url 'monkey_budget:attachment-delete' att.pk %}" method="POST" class="d-inline-block">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-danger" type="submit">Usuń</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="3">Brak załączników</td></tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="3">
+                                <button class="btn btn-sm btn-primary add-attachment-btn" data-transaction="{{ transaction.pk }}">
+                                    Dodaj załącznik
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </td>
             </tr>
           {% endfor %}
         {% else %}
-          <tr><td colspan="8">Brak transakcji</td></tr>
+          <tr><td colspan="9">Brak transakcji</td></tr>
         {% endif %}
         </tbody>
     </table>
+</div>
+
+<div class="modal fade" id="attachmentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="attachmentForm" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Dodaj załącznik</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="transactionIdField" name="transaction_id" value="">
+          <label for="id_file" class="form-label">Plik:</label>
+          <input type="file" name="file" class="form-control" id="id_file" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Wyślij</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -182,14 +187,12 @@ document.querySelectorAll('.add-attachment-btn').forEach(btn => {
     new bootstrap.Modal(document.getElementById('attachmentModal')).show();
   });
 });
-
 document.getElementById('attachmentForm').addEventListener('submit', function(e) {
   e.preventDefault();
   const form = e.target;
   const txId = document.getElementById('transactionIdField').value;
   const url = "/transaction/" + txId + "/add-attachment/";
   const formData = new FormData(form);
-
   fetch(url, {
     method: "POST",
     body: formData
@@ -198,7 +201,7 @@ document.getElementById('attachmentForm').addEventListener('submit', function(e)
     if (!response.ok) throw new Error("Błąd przy dodawaniu załącznika");
     return response.text();
   })
-  .then(data => {
+  .then(() => {
     location.reload();
   })
   .catch(err => {

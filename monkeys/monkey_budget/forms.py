@@ -283,6 +283,7 @@ SubTransactionFormSet = inlineformset_factory(
     form=SubTransactionForm,
     formset=SubTransactionBaseInlineFormSet,
     min_num=1,
+    extra=0,
     can_delete=True,
 )
 
