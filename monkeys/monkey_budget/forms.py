@@ -66,6 +66,10 @@ class MonetaryField(forms.DecimalField):
         self.currency = currency
         super().__init__(*args, **kwargs)
         self.localize = True
+        self.widget = forms.TextInput(attrs={
+            'step': 'any',
+            'inputmode': 'decimal',
+        })
 
     def prepare_value(self, value):
         if isinstance(value, Monetary):
