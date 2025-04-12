@@ -1,4 +1,5 @@
 from django import template
+import os
 
 register = template.Library()
 
@@ -9,3 +10,7 @@ def endswith(value, arg):
     if not isinstance(arg, str):
         return False
     return value.lower().endswith(arg.lower())
+
+@register.filter
+def basename(value):
+    return os.path.basename(value)
