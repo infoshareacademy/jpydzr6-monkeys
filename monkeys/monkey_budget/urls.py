@@ -40,4 +40,7 @@ urlpatterns = [
     path('users/magic-login/<uidb64>/<token>/', views.magic_link_login, name='magic_link_login'),
     path('users/delete-account/', views.delete_account, name='delete_account'),
     path('users/resend-activation/', views.resend_activation_email, name='resend_activation'),
+    path('transaction/<int:transaction_id>/add-attachment/', views.attachment_add, name='attachment-add'),
+    path('attachment/download/<int:pk>/', views.attachment_download, name='attachment-download'),
+    path('attachment/<int:pk>/delete/', views.attachment_delete, name='attachment-delete'),
 ]
