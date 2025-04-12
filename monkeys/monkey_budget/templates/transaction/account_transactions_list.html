@@ -1,0 +1,72 @@
+{% load static %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container">
+    <h1>Lista transakcji</h1>
+
+    {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                {% bootstrap_form filter_form %}
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary me-2">Filtruj</button>
+                    <a href="{% url 'monkey_budget:transaction-list' %}" class="btn btn-outline-secondary">Wyczyść</a>
+                </div>
+            </form>
+        </div>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Konto</th>
+            <th>Data</th>
+            <th>Rodzaj transakcji</th>
+            <th>Kwota</th>
+            <th>Saldo po transakcji</th>
+            <th>Opis</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.account.name }}</td>
+                <td>{{ transaction.date|date:"d.m.Y" }}</td>
+<!--                <td>{{ transaction.get_transaction_direction_display }}</td>-->
+                <td>{{ transaction.transaction_direction_display }}</td>
+                <td {% if transaction.transaction_direction == 'IN' %}
+                        style="color:green;"
+                    {% else %}
+                        style="color:red;"
+                    {% endif %}"
+                >
+                    {{ transaction.total_formatted }}
+                </td>
+                <td>{{ transaction.balance_after_transaction_formatted }}</td>
+                <td>{{ transaction.description }}</td>
+                <td>
+                    <a href="{% url 'monkey_budget:transaction-detail' transaction.id %}">
+                        <button class="btn btn-sm btn-primary" type="button">
+                            Zobacz
+                        </button>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page_obj %}
+    {% bootstrap_pagination page_obj justify_content="center" pages_to_show=4 extra=request.GET.urlencode %}
+{% endif %}
+
+{% endblock content %}
