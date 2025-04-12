@@ -13,6 +13,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied
 from django.utils.formats import number_format
 from django.utils import timezone
 from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
 from ..models import MoneyAccount, Transaction
 from ..forms import *
 
@@ -88,7 +89,7 @@ class TransactionFormMixin:
                 formset.instance = self.object
                 formset.save()
                 messages.success(self.request, self.get_success_message())
-                return redirect(self.get_success_url())
+                return HttpResponseRedirect(self.get_success_url())
         else:
             if formset.errors:
                 messages.error(self.request, "Sprawdź poprawność wprowadzonych danych")
