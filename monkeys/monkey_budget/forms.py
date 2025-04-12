@@ -1,9 +1,13 @@
+from datetime import date, timedelta
 from .models import MoneyAccount
 from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
 from django.core.exceptions import ValidationError
 from .money import Monetary, Currency
 from .models import Transaction, SubTransaction
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+from django.utils.translation import gettext as _
 
 
 class MoneyAccountForm(forms.ModelForm):
@@ -36,7 +40,8 @@ class MoneyAccountForm(forms.ModelForm):
         cleaned_data = super().clean()
         balance = cleaned_data.get('balance')
         name = cleaned_data.get('name')
-        all_accounts = MoneyAccount.objects.filter(user_id=2)
+        user_id = self.user.id if hasattr(self, 'user') else None
+        all_accounts = MoneyAccount.objects.filter(user_id=user_id)
         allow_negative = cleaned_data.get('possibly_negative')
 
         if balance is not None and not allow_negative:
@@ -275,4 +280,215 @@ SubTransactionFormSet = inlineformset_factory(
     can_delete=True,
 )
 
+class PeriodicFinancialReport(forms.Form):
 
+    start_date = forms.DateField(
+        label='Data początkowa',
+        required=True,
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=(date.today() - timedelta(days=30))
+    )
+    end_date = forms.DateField(
+        label='Data końcowa',
+        required=True,
+        widget=forms.DateInput(attrs={'type': 'date'}), initial=date.today,
+    )
+
+    def clean_start_date(self):
+        start_date = self.cleaned_data.get('start_date')
+        if start_date and start_date > date.today():
+            raise forms.ValidationError("Data początkowa nie może być w przyszłości.")
+        return start_date
+
+    def clean_end_date(self):
+        end_date = self.cleaned_data.get('end_date')
+        if end_date and end_date > date.today():
+            raise forms.ValidationError("Data końcowa nie może być w przyszłości.")
+        return end_date
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date:
+            if start_date > end_date:
+                raise forms.ValidationError(
+                    "Data początkowa nie może być późniejsza niż data końcowa."
+                )
+
+        return cleaned_data
+
+
+class UserRegistrationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True)
+    privacy_policy = forms.BooleanField(
+        required=True,
+        label=_("Zgadzam się na politykę prywatności"),
+        help_text=_("Musisz zgodzić się na politykę prywatności")
+    )
+    terms = forms.BooleanField(
+        required=True,
+        label=_("Zgadzam się na warunki użytkowania"),
+        help_text=_("Musisz zgodzić się na warunki użytkowania")
+    )
+    rodo = forms.BooleanField(
+        required=True,
+        label=_("Zgadzam się na przetwarzanie danych osobowych (GDPR/RODO)"),
+        help_text=_("Musisz zgodzić się na przetwarzanie danych osobowych")
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'password1', 'password2', 'privacy_policy', 'terms', 'rodo']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        privacy_policy = cleaned_data.get('privacy_policy')
+        terms = cleaned_data.get('terms')
+        rodo = cleaned_data.get('rodo')
+
+        if not privacy_policy:
+            self.add_error('privacy_policy', _("Musisz zgodzić się na politykę prywatności"))
+        if not terms:
+            self.add_error('terms', _("Musisz zgodzić się na warunki użytkowania"))
+        if not rodo:
+            self.add_error('rodo', _("Musisz zgodzić się na przetwarzanie danych osobowych"))
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.is_active = False  # User will be inactive until email is verified
+        if commit:
+            user.save()
+        return user
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError(_("Ten adres email jest już w użyciu."))
+        return email
+
+
+
+class UserUpdateForm(forms.ModelForm):
+    """Form for updating user data in the profile"""
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True)
+    avatar = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
+
+    def __init__(self, *args, **kwargs):
+        super(UserUpdateForm, self).__init__(*args, **kwargs)
+        # Add the 'form-control' class to all form fields
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
+
+        # If the user has a profile with an avatar, get it
+        if self.instance and hasattr(self.instance, 'profile'):
+            self.fields['avatar'].initial = self.instance.profile.avatar
+
+
+class PasswordResetRequestForm(forms.Form):
+    """
+    Form for requesting password reset via email
+    """
+    email = forms.EmailField(
+        label="Email",
+        max_length=254,
+        required=True,
+        widget=forms.EmailInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Podaj adres email',
+                'autocomplete': 'email'
+            }
+        )
+    )
+
+
+class SetPasswordForm(forms.Form):
+    """
+    Form for setting a new password
+    """
+    new_password1 = forms.CharField(
+        label="Nowe hasło",
+        widget=forms.PasswordInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': _('Wprowadź nowe hasło'),
+                'autocomplete': 'new-password'
+            }
+        ),
+        strip=False,
+    )
+    new_password2 = forms.CharField(
+        label="Powtórz nowe hasło",
+        widget=forms.PasswordInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': _('Powtórz nowe hasło'),
+                'autocomplete': 'new-password'
+            }
+        ),
+        strip=False,
+    )
+
+    def clean_new_password2(self):
+        password1 = self.cleaned_data.get('new_password1')
+        password2 = self.cleaned_data.get('new_password2')
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError(_("Hasła nie pasują do siebie"))
+        return password2
+
+
+class MagicLinkLoginForm(forms.Form):
+    """
+    Form for requesting magic link login via email
+    """
+    email = forms.EmailField(
+        label="Email",
+        max_length=254,
+        required=True,
+        widget=forms.EmailInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': _('Podaj adres email'),
+                'autocomplete': 'email'
+            }
+        )
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if not User.objects.filter(email=email).exists():
+            raise forms.ValidationError(_("Nie znaleziono użytkownika z tym adresem email"))
+        return email
+
+
+class ResendActivationForm(forms.Form):
+    """Form for resending account activation email"""
+    email = forms.EmailField(
+        label=_('Email'),
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': _('Podaj adres email')
+        })
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        try:
+            user = User.objects.get(email=email, is_active=False)
+        except User.DoesNotExist:
+            raise forms.ValidationError(_('Nie znaleziono nieaktywnego konta z tym adresem email.'))
+        return email
