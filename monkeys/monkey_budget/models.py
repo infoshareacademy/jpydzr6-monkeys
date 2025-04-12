@@ -6,8 +6,40 @@ from django.db.models import Sum
 from django.contrib.auth.models import User
 import django.utils.timezone
 from .money import Monetary, CurrencyHelper, Currency
-from django.core.validators import FileExtensionValidator
-from .validator import validate_file_size
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
+
+
+class UserProfile(models.Model):
+    """
+    Extended profile model for storing user avatars and additional information
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png', blank=True)
+    
+    def __str__(self):
+        return f"{self.user.username}'s profile"
+    
+    class Meta:
+        app_label = 'monkey_budget'
+        verbose_name = 'User Profile'
+        verbose_name_plural = 'User Profiles'
+
+
+# Signal to automatically create a UserProfile when a new User is created
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    # Check if the user has a profile first; if not, create one
+    try:
+        instance.profile.save()
+    except UserProfile.DoesNotExist:
+        UserProfile.objects.create(user=instance)
 
 
 class MoneyAccount(models.Model):
@@ -204,20 +236,32 @@ class SubTransaction(models.Model):
             super().delete(*args, **kwargs)
             main_transaction.save()
 
-class TransactionAttachment(models.Model):
-    transaction = models.ForeignKey(
-        Transaction,
-        on_delete=models.CASCADE,
-        related_name='attachments'
+
+class UserRegistrationData(models.Model):
+    """
+    Model to store additional user registration data
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='registration_data')
+    ip_address = models.GenericIPAddressField(
+        verbose_name=_('IP Address'),
+        null=True,
+        blank=True,
+        help_text=_('IP address from which the user registered')
     )
-    file = models.FileField(
-        upload_to='attachments/',
-        validators=[
-            FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png']),
-            validate_file_size
-        ]
+    registration_date = models.DateTimeField(
+        verbose_name=_('Registration Date'),
+        auto_now_add=True,
+        help_text=_('Date and time when the user registered')
     )
-    uploaded_at = models.DateTimeField(auto_now_add=True)
+    user_agent = models.TextField(
+        verbose_name=_('User Agent'),
+        blank=True,
+        help_text=_('Browser and system information of the user')
+    )
+
+    class Meta:
+        verbose_name = _('User Registration Data')
+        verbose_name_plural = _('User Registration Data')
 
     def __str__(self):
-        return f"Attachment: {self.file.name}"
+        return f"Registration data for {self.user.username}"

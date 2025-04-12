@@ -19,8 +19,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Get environment variables
 env = environ.Env()
-environ.Env.read_env()
-
+# environ.Env.read_env()
+environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -45,11 +45,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'monkey_budget',
     'django_bootstrap5',
+#    'rosetta',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -113,11 +115,25 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'pl'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Warsaw'
 
 USE_I18N = True
 
+USE_L10N = True
+
 USE_TZ = True
+
+# Available languages
+from django.utils.translation import gettext_lazy as _
+LANGUAGES = [
+    ('en', _('English')),
+    ('pl', _('Polish')),
+]
+
+# Location of translation files
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
 
 
 # Static files (CSS, JavaScript, Images)
@@ -125,7 +141,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-
+# Media files (User uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -133,3 +149,42 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Authentication settings
+LOGIN_REDIRECT_URL = 'monkey_budget:lista-transakcji'
+LOGOUT_REDIRECT_URL = 'monkey_budget:login'
+LOGIN_URL = 'monkey_budget:login'
+
+# Email settings
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@monkeybudget.pl')
+
+# User activation settings
+ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window
+
+
+ # TRANSLATIONS (DEEPL & ROSETTA)
+# DEEPL_TEXT_LENGTH_LIMIT = 2000
+# DEEPL_AUTH_KEY = env('DEEPL_AUTH_KEY', default='')
+
+
+# ROSETTA_ENABLE_TRANSLATION_SUGGESTIONS = True
+# ROSETTA_ENABLE_REFLANG = True
+# ROSETTA_LANGUAGE_GROUPS = True
+# ROSETTA_LOGIN_URL = '/accounts/login/'
+# ROSETTA_MESSAGES_PER_PAGE = 50
+# ROSETTA_MESSAGES_SOURCE_LANGUAGE_CODE = 'en'
+# ROSETTA_MESSAGES_SOURCE_LANGUAGE_NAME = 'English'
+# ROSETTA_SHOW_AT_ADMIN_PANEL = True
+# ROSETTA_STORAGE_CLASS = 'rosetta.storage.CacheRosettaStorage'
+# ROSETTA_UWSGI_AUTO_RELOAD = True
+
