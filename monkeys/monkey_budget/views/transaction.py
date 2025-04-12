@@ -8,12 +8,15 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied
 from django.utils.formats import number_format
 from django.utils import timezone
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from ..models import MoneyAccount, Transaction
 from ..forms import *
 
@@ -26,9 +29,9 @@ from ..forms import *
 def get_account_currency_info(request, account_id):
     try:
         account = MoneyAccount.objects.get(pk=account_id)
-        # if account.user_id != request.user:
-        #     # Zabezpieczenie przed odpytywaniem api bez zalogowanego użytkownika
-        #     raise PermissionDenied(detail="You must be logged in to request this data")
+        if account.user_id != request.user:
+            # Zabezpieczenie przed odpytywaniem api bez zalogowanego użytkownika
+            raise PermissionDenied(detail="You must be logged in to request this data")
         currency = account.currency
         step = f"0.{'0' * (currency['exponent'] - 1)}1" if currency['exponent'] > 0 else "1"
         placeholder = f"0.{'0' * (currency['exponent'])}" if currency['exponent'] > 0 else "0"
@@ -98,6 +101,7 @@ class TransactionFormMixin:
             return self.form_invalid(form)
 
 
+@method_decorator(login_required, name="dispatch")
 class TransactionCreateView(TransactionFormMixin, CreateView):
     def get_header(self):
         return 'Nowa transakcja'
@@ -106,6 +110,7 @@ class TransactionCreateView(TransactionFormMixin, CreateView):
         return f"Transakcja została dodana"
 
 
+@method_decorator(login_required, name="dispatch")
 class TransactionUpdateView(TransactionFormMixin, UpdateView):
     def get_header(self):
         return 'Edytuj transakcję'
@@ -118,6 +123,7 @@ class TransactionUpdateView(TransactionFormMixin, UpdateView):
         return url
 
 
+@method_decorator(login_required, name="dispatch")
 class TransactionDetailView(DetailView):
     model = Transaction
     template_name = 'transaction/transaction_detail.html'
@@ -133,6 +139,7 @@ class TransactionDetailView(DetailView):
         return context
 
 
+@method_decorator(login_required, name="dispatch")
 class TransactionDeleteView(DeleteView):
     model = Transaction
     template_name = 'transaction/transaction_delete.html'
@@ -199,6 +206,7 @@ class TransactionListMixin:
         return context
 
 
+@method_decorator(login_required, name="dispatch")
 class TransactionListView(TransactionListMixin, ListView):
     template_name = 'transaction/transactions_list.html'
 
@@ -206,9 +214,20 @@ class TransactionListView(TransactionListMixin, ListView):
         return self.get_base_queryset()
 
 
+@method_decorator(login_required, name="dispatch")
 class AccountTransactionListView(TransactionListMixin, ListView):
     template_name = 'transaction/account_transactions_list.html'
+    default_sort_field = 'id'
+    default_sort_order = 'asc'
 
     def get_queryset(self):
         account_id = self.kwargs.get('account_id')
-        return self.get_base_queryset().filter(account_id=account_id)
+        sort_by = self.kwargs.get('sort_by', self.default_sort_field)
+        order = self.kwargs.get('order', self.default_sort_order)
+        allowed_fields = [f.name for f in self.model._meta.get_fields()]
+        if sort_by not in allowed_fields:
+            sort_by = self.default_sort_field
+
+        if order.lower() == 'desc':
+            sort_by = '-' + sort_by
+        return self.get_base_queryset().filter(account_id=account_id).order_by(sort_by)
