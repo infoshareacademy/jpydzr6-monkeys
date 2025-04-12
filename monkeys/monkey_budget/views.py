@@ -3,10 +3,10 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Sum, Value
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models.functions import Coalesce
-from .models import MoneyAccount, Transaction, SubTransaction, UserRegistrationData
+from .models import MoneyAccount, Transaction, SubTransaction, UserRegistrationData, TransactionAttachment
 from django.template.loader import render_to_string
 from django.contrib import messages
 from rest_framework.decorators import api_view, permission_classes
@@ -357,29 +357,36 @@ def transaction_create_view(request):
         if form.is_valid():
             formset = SubTransactionFormSet(
                 request.POST,
-                form_kwargs={
-                    'main_transaction_account': form.cleaned_data.get('account'),
-                }
+                form_kwargs={'main_transaction_account': form.cleaned_data.get('account')}
             )
-            if formset.is_valid():
+            attachment_formset = TransactionAttachmentFormSet(request.POST, request.FILES)
+
+            if formset.is_valid() and attachment_formset.is_valid():
                 with transaction.atomic():
-                    transaction_form = form.save()
-                    formset.instance = transaction_form
+                    transaction_obj = form.save()
+                    formset.instance = transaction_obj
                     formset.save()
-                    return redirect('monkey_budget:lista-transakcji')
+                    attachment_formset.instance = transaction_obj
+                    attachment_formset.save()
+
+                return redirect('monkey_budget:lista-transakcji')
             else:
                 for error in formset.non_form_errors():
                     messages.error(request, error)
         else:
             formset = SubTransactionFormSet(request.POST)
+            attachment_formset = TransactionAttachmentFormSet(request.POST, request.FILES)
     else:
-        form = TransactionForm()
+        form = TransactionForm(user=request.user)
         formset = SubTransactionFormSet()
+        attachment_formset = TransactionAttachmentFormSet()
+
     all_accounts = MoneyAccount.objects.filter(user_id=request.user.id).order_by('name')
     context = {
         'header': header,
         'form': form,
         'formset': formset,
+        'attachment_formset': attachment_formset,
         'accounts': all_accounts,
     }
     return render(request, 'account/transaction_form.html', context)
@@ -407,7 +414,7 @@ def transaction_update_view(request, transaction_id):
                 formset.instance = transaction_form
                 formset.save()
             messages.success(request, 'Edycja transakcji udana!')
-            return redirect('monkey_budget:edytuj-transakcje', transaction_id)
+            return redirect('monkey_budget:edytuj-transakcje', transaction_id=transaction_id)
         else:
             for error in formset.non_form_errors():
                 messages.error(request, error)
@@ -618,3 +625,30 @@ def periodic_financial_report(request):
         'date_filtered_transactions': date_filtered_transactions,
     }
     return render(request, 'account/periodic_financial_report.html', context)
+
+@login_required
+def attachment_add(request, transaction_id):
+    transaction = get_object_or_404(Transaction, pk=transaction_id)
+    if request.method == 'POST':
+        form = TransactionAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.transaction = transaction
+            attachment.save()
+            messages.success(request, "Załącznik został dodany.")
+            return redirect('monkey_budget:edytuj-transakcje', transaction_id=transaction_id)
+        return redirect('monkey_budget:edytuj-transakcje', transaction_id=transaction_id)
+    return HttpResponse(status=405)
+
+def attachment_download(request, pk):
+    attachment = get_object_or_404(TransactionAttachment, pk=pk)
+    return FileResponse(attachment.file.open('rb'), as_attachment=True)
+
+def attachment_delete(request, pk):
+    attachment = get_object_or_404(TransactionAttachment, pk=pk)
+    transaction_pk = attachment.transaction.pk
+    attachment.delete()
+    messages.success(request, "Załącznik został usunięty.")
+    return redirect('monkey_budget:lista-transakcji')
+
+

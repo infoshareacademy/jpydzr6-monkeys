@@ -9,7 +9,8 @@ from .money import Monetary, CurrencyHelper, Currency
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
-
+from django.core.validators import FileExtensionValidator
+from .validator import validate_file_size
 
 class UserProfile(models.Model):
     """
@@ -265,3 +266,21 @@ class UserRegistrationData(models.Model):
 
     def __str__(self):
         return f"Registration data for {self.user.username}"
+
+class TransactionAttachment(models.Model):
+    transaction = models.ForeignKey(
+        Transaction,
+        on_delete=models.CASCADE,
+        related_name='attachments'
+    )
+    file = models.FileField(
+        upload_to='attachments/',
+        validators=[
+            FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png']),
+            validate_file_size
+        ]
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Attachment: {self.file.name}"
