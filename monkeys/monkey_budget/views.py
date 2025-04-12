@@ -192,9 +192,11 @@ def attachment_add(request, pk):
             attachment = form.save(commit=False)
             attachment.transaction = transaction
             attachment.save()
-            return redirect('lista-transakcji')
+            messages.success(request, "Załącznik został dodany.")
+            return redirect('monkey_budget:edytuj-transakcje', pk=pk)
     else:
         form = TransactionAttachmentForm()
+
     return render(request, 'account/attachment_add.html', {
         'form': form,
         'transaction': transaction
@@ -208,4 +210,5 @@ def attachment_delete(request, pk):
     attachment = get_object_or_404(TransactionAttachment, pk=pk)
     transaction_pk = attachment.transaction.pk
     attachment.delete()
-    return redirect('lista-transakcji')
+    messages.success(request, "Załącznik został usunięty.")
+    return redirect('monkey_budget:edytuj-transakcje', pk=transaction_pk)
