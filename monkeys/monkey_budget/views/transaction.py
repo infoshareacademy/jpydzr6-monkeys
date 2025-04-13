@@ -76,6 +76,11 @@ class TransactionFormMixin:
         else:
             # request.GET
             context['formset'] = SubTransactionFormSet(instance=self.object)
+            
+            # If we're editing an existing transaction, ensure the category field is properly initialized
+            if self.object and self.object.pk:
+                # Pre-select the transaction direction to ensure categories are loaded correctly
+                context['initial_direction'] = self.object.transaction_direction
 
         context['accounts'] = MoneyAccount.objects.filter(user_id=self.request.user.id).order_by('name')
         return context
