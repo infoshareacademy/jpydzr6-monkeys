@@ -168,6 +168,9 @@ else:
 
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@monkeybudget.pl')
 
+# Site URL configuration for emails and links
+SITE_URL = env('SITE_URL', default='https://monkeybudget.pl')
+
 # User activation settings
 ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window
 
