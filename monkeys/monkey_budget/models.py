@@ -269,7 +269,9 @@ class TransactionAttachment(models.Model):
     transaction = models.ForeignKey(
         Transaction,
         on_delete=models.CASCADE,
-        related_name='attachments'
+        related_name='attachments',
+        null=True,
+        blank=True,
     )
     file = models.FileField(
         upload_to='attachments/',
