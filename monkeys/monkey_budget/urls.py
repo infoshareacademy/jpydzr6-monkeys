@@ -2,6 +2,8 @@ from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views
 from .views.category import get_categories_by_direction
+from .views.transaction import (
+AttachmentAddView, AttachmentDeleteView, AttachmentDownloadView, AttachmentUploadView)
 
 app_name = 'monkey_budget'
 
@@ -15,7 +17,6 @@ urlpatterns = [
     path('konta/usun-konto/<int:account_id>', views.delete_money_account, name='usun-konto'),
     path('konta/<int:account_id>', views.show_money_account, name='pokaz-konto'),
     path('api/account-currency-info/<int:account_id>/', views.get_account_currency_info, name='account-currency-info'),
-    path('api/categories/<str:direction>/', get_categories_by_direction, name='categories-by-direction'),
     path('transaction/create/', views.TransactionCreateView.as_view(), name='transaction-create'),
     path('transaction/<int:pk>/update', views.TransactionUpdateView.as_view(), name='transaction-update'),
     path('transaction/<int:pk>/delete', views.TransactionDeleteView.as_view(), name='transaction-delete'),
@@ -41,7 +42,12 @@ urlpatterns = [
     path('users/password-reset/', views.password_reset_request, name='password_reset'),
     path('users/password-reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
     path('users/magic-link/', views.magic_link_request, name='magic_link_request'),
+    path('transaction/<int:transaction_id>/add-attachment/', AttachmentAddView.as_view(), name='attachment-add'),
+    path('attachment/download/<int:pk>/', AttachmentDownloadView.as_view(), name='attachment-download'),
+    path('attachment/<int:pk>/delete/', AttachmentDeleteView.as_view(), name='attachment-delete'),
+    path('transaction/attachment-upload/', views.AttachmentUploadView.as_view(), name='attachment-upload'),
     path('users/magic-login/<uidb64>/<token>/', views.magic_link_login, name='magic_link_login'),
     path('users/delete-account/', views.delete_account, name='delete_account'),
     path('users/resend-activation/', views.resend_activation_email, name='resend_activation'),
+    path('api/categories/<str:direction>/', get_categories_by_direction, name='categories-by-direction'),
 ]

@@ -4,7 +4,7 @@ from django import forms
 from django.forms.models import inlineformset_factory, BaseInlineFormSet
 from django.core.exceptions import ValidationError
 from .money import Monetary, Currency
-from .models import Transaction, SubTransaction
+from .models import Transaction, SubTransaction, TransactionAttachment
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.utils.translation import gettext as _
@@ -504,3 +504,16 @@ class ResendActivationForm(forms.Form):
         except User.DoesNotExist:
             raise forms.ValidationError(_('Nie znaleziono nieaktywnego konta z tym adresem email.'))
         return email
+
+class TransactionAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = TransactionAttachment
+        fields = ['file']
+
+TransactionAttachmentFormSet = inlineformset_factory(
+    Transaction,
+    TransactionAttachment,
+    form=TransactionAttachmentForm,
+    extra=1,
+    can_delete=True,
+)
