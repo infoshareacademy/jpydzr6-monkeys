@@ -325,7 +325,7 @@ function getCookie(name) {
   return cookieValue;
 }
 
-const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
 
 function isExtensionAllowed(filename) {
   const ext = filename.split('.').pop().toLowerCase();
@@ -457,7 +457,6 @@ document.addEventListener('DOMContentLoaded', function () {
                   hiddenField.value = existing.join(',');
                   const listDiv = document.getElementById('async-attachment-list');
                   const p = document.createElement('p');
-                  p.textContent = "Załącznik ID: " + data.attachment_id;
                   listDiv.appendChild(p);
               } else {
                   alert("Błąd: " + JSON.stringify(data.errors));
