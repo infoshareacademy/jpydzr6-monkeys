@@ -325,34 +325,38 @@ function getCookie(name) {
   return cookieValue;
 }
 
+const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+
+function isExtensionAllowed(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  return allowedExtensions.includes(ext);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 
-  // Dodawanie subtransakcji
   document.getElementById('add-subtransaction')?.addEventListener('click', function(){
-      var container = document.getElementById('subtransactions-container');
-      var totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
-      var currentFormCount = parseInt(totalForms.value);
-      var emptyFormDiv = document.getElementById('empty-form-template');
-      var newFormHtml = emptyFormDiv.innerHTML.replace(/__prefix__/g, currentFormCount);
-      var div = document.createElement('div');
+      const container = document.getElementById('subtransactions-container');
+      const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
+      const currentFormCount = parseInt(totalForms.value);
+      const emptyFormDiv = document.getElementById('empty-form-template');
+      const newFormHtml = emptyFormDiv.innerHTML.replace(/__prefix__/g, currentFormCount);
+      const div = document.createElement('div');
       div.className = "border p-3 mb-3 bg-light rounded subtransaction-form";
       div.innerHTML = newFormHtml;
       container.appendChild(div);
       totalForms.value = currentFormCount + 1;
   });
 
-  // Usuwanie subtransakcji
   document.addEventListener('click', function(e) {
       if(e.target && e.target.matches('.remove-subtransaction-btn')) {
           e.preventDefault();
-          var formDiv = e.target.closest('.subtransaction-form');
+          const formDiv = e.target.closest('.subtransaction-form');
           formDiv.remove();
-          var totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
+          const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
           totalForms.value = parseInt(totalForms.value) - 1;
       }
   });
 
-  // Modal dodawania załącznika (update)
   document.querySelectorAll('.add-attachment-btn').forEach(btn => {
       btn.addEventListener('click', function() {
           const txId = this.getAttribute('data-transaction');
@@ -361,21 +365,26 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 
-  // Formularz załącznika
   const attachmentForm = document.getElementById('attachmentForm');
   if (attachmentForm) {
       attachmentForm.addEventListener('submit', function(e) {
           e.preventDefault();
           const form = e.target;
+          const fileInput = form.querySelector('#attachmentFile');
+          const file = fileInput?.files[0];
+
+          if (file && !isExtensionAllowed(file.name)) {
+              alert("Niedozwolony typ pliku. Dozwolone: " + allowedExtensions.join(', '));
+              return;
+          }
+
           const txId = document.getElementById('transactionIdField').value;
           const url = "/transaction/" + txId + "/add-attachment/";
           const formData = new FormData(form);
           const csrftoken = getCookie('csrftoken');
           fetch(url, {
               method: "POST",
-              headers: {
-                  "X-CSRFToken": csrftoken
-              },
+              headers: { "X-CSRFToken": csrftoken },
               body: formData
           })
           .then(response => {
@@ -387,7 +396,6 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  // Kliknięcie miniatury — otwórz modal i przypisz src + download link
   document.querySelectorAll('.attachment-thumbnail').forEach(link => {
       link.addEventListener('click', function(e) {
           e.preventDefault();
@@ -403,28 +411,31 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 
-  // Czyszczenie modala po zamknięciu (usuwa szarą warstwę i resetuje src)
   const attachmentModalEl = document.getElementById('attachmentViewModal');
   if (attachmentModalEl) {
       attachmentModalEl.addEventListener('hidden.bs.modal', function () {
           const img = document.getElementById('fullAttachmentImage');
           if (img) img.src = '';
-
           const downloadBtn = document.getElementById('downloadAttachmentBtn');
           if (downloadBtn) downloadBtn.href = '#';
-
           document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
           document.body.classList.remove('modal-open');
           document.body.style.overflow = '';
       });
   }
 
-  // Asynchroniczne przesyłanie załączników
   const asyncInput = document.getElementById('asyncAttachmentFile');
-  if(asyncInput) {
-      asyncInput.addEventListener('change', function(){
+  if (asyncInput) {
+      asyncInput.addEventListener('change', function () {
           const file = this.files[0];
           if (!file) return;
+
+          if (!isExtensionAllowed(file.name)) {
+              alert("Niedozwolony typ pliku. Dozwolone: " + allowedExtensions.join(', '));
+              this.value = ''; // Reset file input
+              return;
+          }
+
           const csrftoken = getCookie('csrftoken');
           const formData = new FormData();
           formData.append('file', file);
@@ -440,15 +451,14 @@ document.addEventListener('DOMContentLoaded', function () {
           })
           .then(data => {
               if (data.success) {
-                  let hiddenField = document.getElementById("asyncAttachmentIds");
-                  let existing = hiddenField.value ? hiddenField.value.split(',') : [];
+                  const hiddenField = document.getElementById("asyncAttachmentIds");
+                  const existing = hiddenField.value ? hiddenField.value.split(',') : [];
                   existing.push(data.attachment_id);
                   hiddenField.value = existing.join(',');
                   const listDiv = document.getElementById('async-attachment-list');
-                  var p = document.createElement('p');
+                  const p = document.createElement('p');
                   p.textContent = "Załącznik ID: " + data.attachment_id;
                   listDiv.appendChild(p);
-                  console.log("asyncAttachmentIds updated: " + hiddenField.value);
               } else {
                   alert("Błąd: " + JSON.stringify(data.errors));
               }
