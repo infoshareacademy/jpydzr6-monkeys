@@ -269,7 +269,7 @@ class SubTransactionBaseInlineFormSet(BaseInlineFormSet):
             else:
                 main_transaction_account = self.form_kwargs.get('main_transaction_account')
             main_transaction = self.instance
-            subtransactions = [subtransaction for subtransaction in self.cleaned_data  if subtransaction]
+            subtransactions = [subtransaction for subtransaction in self.cleaned_data  if subtransaction and not subtransaction.get('DELETE')]
             requested_account_balance_after_transaction = Transaction.calculate_new_account_balance(main_transaction_account, main_transaction, subtransactions)
             main_transaction_account.validate_new_balance(requested_account_balance_after_transaction)
 
