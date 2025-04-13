@@ -2,7 +2,7 @@
 
 import django.core.validators
 import django.db.models.deletion
-mport monkey_budget.validator
+import monkey_budget.validator
 from django.db import migrations, models
 
 
