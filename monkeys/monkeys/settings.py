@@ -188,3 +188,9 @@ ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window
 # ROSETTA_STORAGE_CLASS = 'rosetta.storage.CacheRosettaStorage'
 # ROSETTA_UWSGI_AUTO_RELOAD = True
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://www.monkeybudget.pl',
+    'https://monkeybudget.pl',
+]
+
+ALLOWED_HOSTS = ['monkeybudget.pl', 'www.monkeybudget.pl', '127.0.0.1', 'localhost']
