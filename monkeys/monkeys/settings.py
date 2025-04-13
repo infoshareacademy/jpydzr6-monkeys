@@ -31,7 +31,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['monkeybudget.pl', 'www.monkeybudget.pl', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'monkey_budget',
     'django_bootstrap5',
+    'django.contrib.sites',
 #    'rosetta',
 ]
 
@@ -168,6 +169,12 @@ else:
 
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@monkeybudget.pl')
 
+# Site framework settings
+SITE_ID = 1
+
+# Site URL configuration for emails and links
+SITE_URL = env('SITE_URL', default='https://monkeybudget.pl')
+
 # User activation settings
 ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window
 
@@ -188,3 +195,10 @@ ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window
 # ROSETTA_STORAGE_CLASS = 'rosetta.storage.CacheRosettaStorage'
 # ROSETTA_UWSGI_AUTO_RELOAD = True
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://www.monkeybudget.pl',
+    'https://monkeybudget.pl',
+]
+
+# Server name for email links
+SERVER_NAME = env('SERVER_NAME', default='monkeybudget.pl')

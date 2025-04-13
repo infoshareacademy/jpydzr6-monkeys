@@ -154,11 +154,27 @@ class Transaction(models.Model):
     def balance_after_transaction_formatted(self) -> Monetary:
         return Monetary(self.balance_after_transaction, self.currency)
 
+    @property
+    def categories_display(self):
+        """
+        Returns a formatted string of all categories used in this transaction's subtransactions.
+        """
+        categories = set()
+        for subtransaction in self.subtransactions.all():
+            if subtransaction.category:
+                categories.add(f"{subtransaction.category.parent_category.name} - {subtransaction.category.name}")
+        
+        if not categories:
+            return "Brak kategorii"
+        
+        return ", ".join(sorted(categories))
+
     @staticmethod
     def calculate_new_account_balance(new_transaction_account, new_transaction, subtransactions) -> int:
         actual_account_balance = new_transaction_account.balance
         actual_transaction_total = new_transaction.total
-        new_trasnaction_total = sum(subtransaction['amount'] for subtransaction in subtransactions)
+        # Filter out None values and sum only valid amounts
+        new_trasnaction_total = sum(subtransaction['amount'] for subtransaction in subtransactions if subtransaction.get('amount') is not None)
 
         if new_transaction.transaction_direction == 'IN':
             previous_account_balance = actual_account_balance - actual_transaction_total
@@ -201,6 +217,14 @@ class SubTransaction(models.Model):
             limit_value=0,
             message='Subtransaction amount value must be nonnegative')])
     description = models.CharField(max_length=100, blank=True)
+    category = models.ForeignKey(
+        'SubCategory',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='subtransactions',
+        verbose_name='Kategoria'
+    )
 
     class Meta:
         app_label = 'monkey_budget'

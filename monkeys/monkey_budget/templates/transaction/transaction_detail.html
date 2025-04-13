@@ -23,15 +23,17 @@
     <div class="transaction">
         <table id="transaction-container" class="table table-striped table-hover">
             <colgroup>
-                <col style="width: 20%">
                 <col style="width: 15%">
-                <col style="width: 65%">
+                <col style="width: 15%">
+                <col style="width: 45%">
+                <col style="width: 25%">
             </colgroup>
             <thead class="table-light">
                 <tr>
                     <th scope="col">{{ transaction.date | date:"d.m.Y" }}</th>
                     <th scope="col">{{ transaction.total_formatted.amount_as_decimal }}</th>
                     <th scope="col">{{ transaction.description }}</th>
+                    <th scope="col">Kategoria</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,6 +42,13 @@
                     <th scope="row"></th>
                     <td>{{ sub.amount_formatted.amount_as_decimal }}</td>
                     <td>{{ sub.description }}</td>
+                    <td>
+                        {% if sub.category %}
+                            {{ sub.category.parent_category.name }} - {{ sub.category.name }}
+                        {% else %}
+                            <span class="text-muted">Brak kategorii</span>
+                        {% endif %}
+                    </td>
                 </tr>
             {% endfor %}
             </tbody>
