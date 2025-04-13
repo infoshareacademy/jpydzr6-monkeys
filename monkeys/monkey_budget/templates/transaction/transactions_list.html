@@ -34,6 +34,8 @@
             <th>Kwota</th>
             <th>Saldo po transakcji</th>
             <th>Opis</th>
+            <th>Kategorie</th>
+            <th>Akcje</th>
         </tr>
         </thead>
         <tbody>
@@ -53,6 +55,7 @@
                 </td>
                 <td>{{ transaction.balance_after_transaction_formatted }}</td>
                 <td>{{ transaction.description }}</td>
+                <td>{{ transaction.categories_display }}</td>
                 <td>
                     <a href="{% url 'monkey_budget:transaction-detail' transaction.id %}">
                         <button class="btn btn-sm btn-primary" type="button">

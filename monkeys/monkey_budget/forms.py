@@ -202,15 +202,19 @@ class SubTransactionForm(forms.ModelForm):
 
     class Meta:
         model = SubTransaction
-        fields = ['amount_decimal', 'description']
+        fields = ['amount_decimal', 'description', 'category']
         widgets = {
             'description': forms.Textarea(
                 attrs={'rows': '1'}
+            ),
+            'category': forms.Select(
+                attrs={'class': 'form-select category-select'}
             )
         }
         labels = {
             'amount': 'Kwota',
             'description': 'Opis',
+            'category': 'Kategoria',
         }
 
     def __init__(self, main_transaction_account=None, *args, **kwargs):
@@ -225,6 +229,10 @@ class SubTransactionForm(forms.ModelForm):
                 decimal_places=self.currency.get('exponent')
             )
             self.fields['amount_decimal'].initial = Monetary(instance.amount, self.currency)
+            
+            # Set the initial value for the category field if it exists
+            if instance.category:
+                self.fields['category'].initial = instance.category.id
         elif main_transaction_account:
             self.currency = main_transaction_account.currency
             self.fields['amount_decimal'] = MonetaryField(

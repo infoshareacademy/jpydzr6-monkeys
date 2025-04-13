@@ -60,7 +60,8 @@
                         {% endif %}
 
                         {% bootstrap_field form.amount_decimal wrapper_class='col-md-4 mb-0' %}
-                        {% bootstrap_field form.description wrapper_class='col-md-6 mb-0' %}
+                        {% bootstrap_field form.description wrapper_class='col-md-4 mb-0' %}
+                        {% bootstrap_field form.category wrapper_class='col-md-3 mb-0' %}
                         <div class="field actions col-md-auto mb-0 text-end" style="padding-top: 2.1rem;">
                             <input type="checkbox" class="btn-check" id="{{ form.DELETE.id_for_label }}" autocomplete="off" name="{{ form.DELETE.html_name }} {% if form.DELETE.value %}checked{% endif %}">
                             <label class="btn btn-outline-danger" for="{{ form.DELETE.id_for_label }}">
@@ -87,7 +88,10 @@
              {% bootstrap_field form.amount_decimal wrapper_class='col-md-4 mb-0' %}
 
              {# Pole Opis #}
-             {% bootstrap_field form.description wrapper_class='col-md-6 mb-0' %}
+             {% bootstrap_field form.description wrapper_class='col-md-4 mb-0' %}
+
+             {# Pole Kategoria #}
+             {% bootstrap_field form.category wrapper_class='col-md-3 mb-0' %}
 
              {# Kolumna Przycisku Usuń #}
              <div class="field actions col-md-auto mb-0 text-end" style="padding-top: 2.1rem;">
@@ -102,6 +106,11 @@
 
 <script>
     const appUrl = "{% url 'monkey_budget:home' %}";
+    {% if initial_direction %}
+    // Set the initial direction for category loading
+    const initialDirection = "{{ initial_direction }}";
+    {% endif %}
 </script>
 <script src="{% static 'js/transaction_form_logic.js' %}"></script>
+<script src="{% static 'js/category_filter.js' %}"></script>
 {% endblock content %}

@@ -1,6 +1,7 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views
+from .views.category import get_categories_by_direction
 
 app_name = 'monkey_budget'
 
@@ -14,6 +15,7 @@ urlpatterns = [
     path('konta/usun-konto/<int:account_id>', views.delete_money_account, name='usun-konto'),
     path('konta/<int:account_id>', views.show_money_account, name='pokaz-konto'),
     path('api/account-currency-info/<int:account_id>/', views.get_account_currency_info, name='account-currency-info'),
+    path('api/categories/<str:direction>/', get_categories_by_direction, name='categories-by-direction'),
     path('transaction/create/', views.TransactionCreateView.as_view(), name='transaction-create'),
     path('transaction/<int:pk>/update', views.TransactionUpdateView.as_view(), name='transaction-update'),
     path('transaction/<int:pk>/delete', views.TransactionDeleteView.as_view(), name='transaction-delete'),
