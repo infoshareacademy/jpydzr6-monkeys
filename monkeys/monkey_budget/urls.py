@@ -1,6 +1,9 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views
+from .views.transaction import (
+AttachmentAddView, AttachmentDeleteView, AttachmentDownloadView, AttachmentUploadView
+)
 
 app_name = 'monkey_budget'
 
@@ -42,7 +45,8 @@ urlpatterns = [
     path('users/magic-login/<uidb64>/<token>/', views.magic_link_login, name='magic_link_login'),
     path('users/delete-account/', views.delete_account, name='delete_account'),
     path('users/resend-activation/', views.resend_activation_email, name='resend_activation'),
-    path('transaction/<int:transaction_id>/add-attachment/', views.attachment_add, name='attachment-add'),
-    path('attachment/download/<int:pk>/', views.attachment_download, name='attachment-download'),
-    path('attachment/<int:pk>/delete/', views.attachment_delete, name='attachment-delete'),
+    path('transaction/<int:transaction_id>/add-attachment/', AttachmentAddView.as_view(), name='attachment-add'),
+    path('attachment/download/<int:pk>/', AttachmentDownloadView.as_view(), name='attachment-download'),
+    path('attachment/<int:pk>/delete/', AttachmentDeleteView.as_view(), name='attachment-delete'),
+    path('transaction/attachment-upload/', views.AttachmentUploadView.as_view(), name='attachment-upload'),
 ]

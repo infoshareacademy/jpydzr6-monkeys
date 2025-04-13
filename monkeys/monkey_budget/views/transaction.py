@@ -14,17 +14,18 @@ from rest_framework.exceptions import NotFound, PermissionDenied
 from django.utils.formats import number_format
 from django.utils import timezone
 from django.urls import reverse_lazy
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse, FileResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from ..models import MoneyAccount, Transaction
+from ..models import MoneyAccount, Transaction, TransactionAttachment
 from ..forms import *
+from django.views import View
 
 
 @api_view(['GET'])
 # TODO: Kiedy użytkownik zostanie zaimplementowany, odkomentować linię z @permission classes. Niewykluczone, że będzie
 #  potrzebny też dopuszczenie metody autentykacji przez sesję, wtedy nalezy dodać @authentication_classes([SessionAuthentication
-#  Ponadto odkomentować blok warunkowy `if account.user_id != request.user:`
+#  Ponadto odkomentować blok warunkowy if account.user_id != request.user:
 @permission_classes([IsAuthenticated])
 def get_account_currency_info(request, account_id):
     try:
@@ -109,6 +110,13 @@ class TransactionCreateView(TransactionFormMixin, CreateView):
     def get_success_message(self):
         return f"Transakcja została dodana"
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        async_attachment_ids = self.request.POST.get('async_attachment_ids')
+        if async_attachment_ids:
+            ids = [int(i) for i in async_attachment_ids.split(',') if i.strip().isdigit()]
+            TransactionAttachment.objects.filter(pk__in=ids, transaction__isnull=True).update(transaction=self.object)
+        return redirect('monkey_budget:transaction-update', pk=self.object.pk)
 
 @method_decorator(login_required, name="dispatch")
 class TransactionUpdateView(TransactionFormMixin, UpdateView):
@@ -231,3 +239,72 @@ class AccountTransactionListView(TransactionListMixin, ListView):
         if order.lower() == 'desc':
             sort_by = '-' + sort_by
         return self.get_base_queryset().filter(account_id=account_id).order_by(sort_by)
+
+@method_decorator(login_required, name='dispatch')
+class AttachmentMixin(View):
+    def get_transaction(self, transaction_id):
+        return get_object_or_404(Transaction, pk=transaction_id)
+
+@method_decorator(login_required, name='dispatch')
+class AttachmentAddView(AttachmentMixin):
+    def post(self, request, transaction_id):
+        try:
+            transaction = self.get_transaction(transaction_id)
+            form = TransactionAttachmentForm(request.POST, request.FILES)
+            if form.is_valid():
+                attachment = form.save(commit=False)
+                attachment.transaction = transaction
+                attachment.save()
+                messages.success(request, "Załącznik został dodany.")
+                return redirect('monkey_budget:transaction-detail', pk=transaction_id)
+            else:
+                messages.error(request, "Błąd w formularzu: " + str(form.errors))
+                return redirect('monkey_budget:transaction-detail', pk=transaction_id)
+        except Exception as e:
+            messages.error(request, f"Błąd przy dodawaniu załącznika: {e}")
+            return redirect('monkey_budget:transaction-detail', pk=transaction_id)
+    def get(self, request, transaction_id):
+        return HttpResponse(status=405)
+
+@method_decorator(login_required, name='dispatch')
+class AttachmentDeleteView(AttachmentMixin):
+    def post(self, request, pk):
+        try:
+            attachment = get_object_or_404(TransactionAttachment, pk=pk)
+            transaction_id = attachment.transaction.pk
+            attachment.delete()
+            messages.success(request, "Załącznik został usunięty.")
+            return redirect('monkey_budget:transaction-detail', pk=transaction_id)
+        except Exception as e:
+            messages.error(request, f"Błąd przy usuwaniu załącznika: {e}")
+            try:
+                transaction_id = attachment.transaction.pk
+            except Exception:
+                transaction_id = ''
+            return redirect('monkey_budget:transaction-detail', pk=transaction_id)
+
+@method_decorator(login_required, name='dispatch')
+class AttachmentDownloadView(AttachmentMixin):
+    def get(self, request, pk):
+        try:
+            attachment = get_object_or_404(TransactionAttachment, pk=pk)
+            return FileResponse(attachment.file.open('rb'), as_attachment=True)
+        except Exception as e:
+            messages.error(request, f"Błąd przy pobieraniu załącznika: {e}")
+            try:
+                transaction_id = attachment.transaction.pk
+            except Exception:
+                transaction_id = ''
+            return redirect('monkey_budget:transaction-detail', pk=transaction_id)
+
+@method_decorator(login_required, name='dispatch')
+class AttachmentUploadView(View):
+    def post(self, request):
+        form = TransactionAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.transaction = None
+            attachment.save()
+            return JsonResponse({'success': True, 'attachment_id': attachment.pk})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
