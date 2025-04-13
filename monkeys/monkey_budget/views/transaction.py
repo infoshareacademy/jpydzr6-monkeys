@@ -23,9 +23,6 @@ from django.views import View
 
 
 @api_view(['GET'])
-# TODO: Kiedy użytkownik zostanie zaimplementowany, odkomentować linię z @permission classes. Niewykluczone, że będzie
-#  potrzebny też dopuszczenie metody autentykacji przez sesję, wtedy nalezy dodać @authentication_classes([SessionAuthentication
-#  Ponadto odkomentować blok warunkowy if account.user_id != request.user:
 @permission_classes([IsAuthenticated])
 def get_account_currency_info(request, account_id):
     try:
